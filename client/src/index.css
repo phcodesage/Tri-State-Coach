@@ -1,0 +1,19 @@
+:root {
+
+--dark-slate-grey: #2e3532;
+--white-smoke: #efefef;
+--crimson-69: rgba(220, 33, 65, .69);
+--crimson: #dc2141;
+--white-smoke-69: rgba(239, 239, 239, .69);
+--navajo-white: #f2d0a4;
+--tri-state-blue: #132031;
+--white-smoke-42: rgba(239, 239, 239, .42);
+--navajo-white-69: rgba(242, 208, 164, .69);
+--dark-slate-grey-88: rgba(46, 53, 50, .88);
+--white-smoke-13: rgba(239, 239, 239, .13);
+--dark-slate-grey-69: rgba(46, 53, 50, .69);
+--red-shadow: rgba(66, 41, 46, .42);
+--crimson-42: rgba(220, 33, 65, .42);
+--color: #aa8900;
+--gold: var(--color);
+}
