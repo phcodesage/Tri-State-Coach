@@ -12,6 +12,7 @@ import Services from './pages/Services/Services';
 import TermsOfService from './pages/TermsOfService/TermsOfService';
 import PrivacyPolicy from './pages/Privacy-Policy/PrivacyPolicy';
 import Nav from './components/Nav/Nav';
+import NotFoundPage from './Pages/NotFoundPage/NotFoundPage';
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,6 +34,7 @@ function App() {
         <Route path="/services" element={<Services />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );

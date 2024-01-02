@@ -13,13 +13,29 @@ align-content: center;
 justify-content: space-around;
 align-items: center;
 `
+
+const SpecialMessageText = styled.div`
+  background-color: rgba(242, 208, 164, 0.42);
+  color: var(--white-smoke);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 30px;
+  font-family: Questrial, sans-serif;
+  padding: 5px 0;
+`;
+
+
 function Home() {
   const TristateLogo = 'tri-state-coach-logo.png'
   return (
     <StyledNav className="wrapper">
 
-      <div className="special_message_text">
-Now Serving All of New York, New Jersey, and Connecticut</div>
+      <SpecialMessageText className="special_message_text">
+Now Serving All of New York, New Jersey, and Connecticut</SpecialMessageText>
       <Nav />
       <div className='hero-image-div'>
         <img src='/tri-state-coach-logo.png' alt='tri-state-coach-logo'/>
