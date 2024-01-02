@@ -1,6 +1,5 @@
 import './index.css';
 import React, { useState, useEffect  } from 'react';
-import styled from 'styled-components';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home/Home.js';
 import CollegeShuttles from './pages/CollegeShuttles/CollegeShuttles.js';
