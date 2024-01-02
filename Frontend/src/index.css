@@ -1,7 +1,7 @@
 *, *::before, *::after {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 :root {
@@ -25,5 +25,5 @@
 }
 
 body {
-    background-color: #2e3532;
+  background-color: #2e3532;
 }
