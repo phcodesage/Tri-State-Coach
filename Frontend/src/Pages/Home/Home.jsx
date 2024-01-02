@@ -1,5 +1,4 @@
 import React from 'react'
-import Nav from '../../components/Nav/Nav';
 import styled from 'styled-components';
 
 const StyledNav = styled.div`
@@ -10,7 +9,7 @@ height: 100vh;
 display: flex;
 flex-direction: column;
 align-content: center;
-justify-content: space-around;
+justify-content: space-between;
 align-items: center;
 `
 
@@ -36,7 +35,6 @@ function Home() {
 
       <SpecialMessageText className="special_message_text">
 Now Serving All of New York, New Jersey, and Connecticut</SpecialMessageText>
-      <Nav />
       <div className='hero-image-div'>
         <img src='/tri-state-coach-logo.png' alt='tri-state-coach-logo'/>
       </div>

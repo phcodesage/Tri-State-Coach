@@ -6,7 +6,11 @@ const StyledNav = styled.div`
   // Your styles here
 `;
 
+
 function Nav({toggleMenu}) {
+  const handleLinkClick = () => {
+    // Close the menu when a link is clicked
+    toggleMenu(); }
     return (
       <StyledNav className="nav-menu">
         <Link to="/" onClick={toggleMenu}>Home</Link>
