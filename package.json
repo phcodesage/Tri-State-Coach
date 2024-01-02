@@ -1,0 +1,13 @@
+{
+  "name": "tri-state-coach",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "concurrently --names \"SERVER,FRONTEND\" \"npm run server --prefix server\" \"npm run dev --prefix frontend\"",
+    "server": "nodemon server/index.js",
+    "dev": "vite --port 3000 --open"
+  },
+  "devDependencies": {
+    "concurrently": "^x.x.x"
+  }
+}
