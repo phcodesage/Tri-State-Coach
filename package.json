@@ -8,6 +8,7 @@
     "dev": "vite --port 3000 --open"
   },
   "devDependencies": {
-    "concurrently": "^x.x.x"
+    "concurrently": "^x.x.x",
+    "daisyui": "^4.5.0"
   }
 }
