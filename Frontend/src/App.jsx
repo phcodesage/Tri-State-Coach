@@ -13,10 +13,9 @@ import TermsOfService from './Pages/TermsOfService/TermsOfService';
 import PrivacyPolicy from './Pages/Privacy-Policy/PrivacyPolicy';
 import NotFoundPage from './Pages/NotFoundPage/NotFoundPage';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
-
-function App() {
-  const HamburgerMenu = styled.div`
+const HamburgerMenu = styled.div`
   position: fixed;
   top: 85px;
   right: 65px;
@@ -37,35 +36,43 @@ function App() {
 
   
 const MenuOverlay = styled.div`
-z-index: 910;
-width: 613px;
 height: 100vh;
-float: right;
-grid-column-gap: 3vh;
-grid-row-gap: 3vh;
-border-left: 0px solid var(--dark-slate-grey);
-background-color: var(--dark-slate-grey);
-text-align: left;
-mix-blend-mode: normal;
-border-radius: 0;
-flex-direction: column;
-padding-left: 42px;
-padding-right: 69px;
-display: none;
-position: fixed;
-top: 0%;
-bottom: 0%;
-left: auto;
-right: 0%;
-box-shadow: inset 13px 0 18px 1px rgba(0,0,0,.18);
+    position: fixed;
+    width: 50vw;
+    right: 0;
+    background: var(--dark-slate-grey);
+    z-index: 999;
+    box-shadow: inset 13px 0 18px 1px rgba(0,0,0,.18);
 `;
+
+const LinkSectionParent = styled.div`
+
+  height: 70%;
+  grid-column-gap: 3vh;
+  grid-row-gap: 3vh;
+  flex-direction: column;
+  margin-bottom: 0;
+  padding-bottom: 69px;
+  display: flex;
+  overflow: auto;
+
+`
   const HamburgerIcon = () => (
     <svg width="18" height="12" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+
 
       <path d="M0 12H18V9.99984H0V12ZM0 6.99984H18V5.00016H0V6.99984ZM0 0V2.00016H18V0H0Z" fill="#DC2141" />
     </svg>
   );
-  
+
+  const ArrowIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="#f2d0a4" xmlns="http://www.w3.org/2000/svg">
+
+      <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z" fill="#f2d0a4"/>
+    </svg>
+  );
+
+function App() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -74,15 +81,14 @@ box-shadow: inset 13px 0 18px 1px rgba(0,0,0,.18);
     
     <Router>
       <HamburgerMenu onClick={toggleMenu}>
-        <HamburgerIcon />
+      {menuOpen ? <ArrowIcon /> : <HamburgerIcon />}
       </HamburgerMenu>
 
       {menuOpen && (
-        <MenuOverlay className="menu_overlay">
-<div data-w-id="0a31589d-2c6a-068e-4473-e1383b9d3dc4" className="exit_menu">
-</div><div className="link_section_parent">
-<div className="link_section">
-<div className="link_section_heading">
+        <MenuOverlay>
+          <LinkSectionParent>
+          <div className="link_section">
+            <div className="link_section_heading">
 <div className="link_section_line">
 </div><div className="book_a_ride_text">
 BOOK A RIDE</div></div><div className="nav_link">
@@ -97,38 +103,10 @@ College Shuttles<br /></div></a></div><div className="nav_link">
 Get A Quote</div></a></div><div className="nav_link">
 <a href="/contact-us" className="link_block_text w-inline-block">
 <div className="nav_link_text">
-Contact Us</div></a></div></div><div className="link_section">
-<div className="link_section_heading">
-<div className="link_section_line">
-</div><div className="about_us_text">
-ABOUT&nbsp;US</div></div><div className="nav_link">
-<a href="/about-us" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Our Buses<br /></div></a></div><div className="nav_link">
-<a href="/charter-work" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Chartering</div></a></div><div className="nav_link">
-<a href="/product/invoice" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Pay Invoice</div></a></div><div className="nav_link">
-<a href="/services" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Services</div></a></div><div className="nav_link secondary">
-<a href="/terms-of-service" className="link_block_text w-inline-block">
-<div className="nav_link_text secondary">
-Terms of Service</div></a></div><div className="nav_link secondary">
-<a href="/privacy-policy" className="link_block_text w-inline-block">
-<div className="nav_link_text secondary">
-Privacy Policy</div></a></div></div></div><div className="menu_action_icons">
-<a href="tel:+16315432500" className="link-block w-inline-block">
-<div className="menu_phone">
-</div></a><a href="#" className="link-block w-inline-block">
-<div className="menu_chat">
-</div></a><a href="mailto:regencybuses@gmail.com" className="link-block w-inline-block">
-<div className="menu_mail">
-</div></a><a href="https://goo.gl/maps/AGVfBWNNL3ZGRmVJ9" className="link-block w-inline-block">
-<div className="menu__location">
-</div></a></div></MenuOverlay>
+Contact Us</div></a></div></div>
+<div className="link_section"><div className="link_section_heading"><div className="link_section_line"></div><div className="about_us_text">ABOUT&nbsp;US</div></div><div className="nav_link"><a href="/about-us" className="link_block_text w-inline-block"><div className="nav_link_text">Our Buses<br /></div></a></div><div className="nav_link"><a href="/charter-work" className="link_block_text w-inline-block"><div className="nav_link_text">Chartering</div></a></div><div className="nav_link"><a href="/product/invoice" className="link_block_text w-inline-block"><div className="nav_link_text">Pay Invoice</div></a></div><div className="nav_link"><a href="/services" className="link_block_text w-inline-block"><div className="nav_link_text">Services</div></a></div><div className="nav_link secondary"><a href="/terms-of-service" className="link_block_text w-inline-block"><div className="nav_link_text secondary">Terms of Service</div></a></div><div className="nav_link secondary"><a href="/privacy-policy" className="link_block_text w-inline-block"><div className="nav_link_text secondary">Privacy Policy</div></a></div></div>
+</LinkSectionParent>
+      </MenuOverlay>
       )}
       <Routes>
         <Route path="/" element={<Home />} />
