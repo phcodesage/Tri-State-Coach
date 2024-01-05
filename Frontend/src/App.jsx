@@ -105,7 +105,7 @@ Contact Us</div></a></div></div>
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/charter-work" element={<Chartering />} />
-        <Route path="/invoice" element={<Invoice />} />
+        <Route path="/product/invoice" element={<Invoice />} />
         <Route path="/services" element={<Services />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
