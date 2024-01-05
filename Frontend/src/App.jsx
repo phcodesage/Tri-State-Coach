@@ -17,14 +17,14 @@ import MenuOverlay from './Components/MenuOverlay/MenuOverlay'
 
 const HamburgerMenu = styled.div`
   position: fixed;
-  top: 85px;
-  right: 65px;
+  top: 18px;
+  right: 80px;
   z-index: 1000;
   cursor: pointer;
 
   svg {
     fill: #DC2141;
-    width: 41px;
+    width: 58px;
     height: auto;
   }
 

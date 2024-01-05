@@ -1,43 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-*, *::before, *::after {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-:root {
-
---dark-slate-grey: #2e3532;
---white-smoke: #efefef;
---crimson-69: rgba(220, 33, 65, .69);
---crimson: #dc2141;
---white-smoke-69: rgba(239, 239, 239, .69);
---navajo-white: #f2d0a4;
---tri-state-blue: #132031;
---white-smoke-42: rgba(239, 239, 239, .42);
---navajo-white-69: rgba(242, 208, 164, .69);
---dark-slate-grey-88: rgba(46, 53, 50, .88);
---white-smoke-13: rgba(239, 239, 239, .13);
---dark-slate-grey-69: rgba(46, 53, 50, .69);
---red-shadow: rgba(66, 41, 46, .42);
---crimson-42: rgba(220, 33, 65, .42);
---color: #aa8900;
---gold: var(--color);
-}
-
-body {
-  background-color: #2e3532;
-}
-
 html {
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
   font-family: sans-serif
 }
 
+body {
+  margin: 0
+}
 
 article,aside,details,figcaption,figure,footer,header,hgroup,main,menu,nav,section,summary {
   display: block
@@ -3185,6 +3154,14 @@ textarea.w-input,textarea.w-select {
   }
 }
 
+body {
+  min-height: 100vh;
+  background-color: var(--dark-slate-grey);
+  color: var(--white-smoke);
+  font-family: Americana bt,Palatino Linotype,sans-serif;
+  font-size: 14px;
+  line-height: 20px
+}
 
 .section {
   height: 100%;
@@ -4202,6 +4179,11 @@ textarea.w-input,textarea.w-select {
   font-weight: 400
 }
 
+.body {
+  height: 100%;
+  min-height: auto;
+  background-color: var(--tri-state-blue)
+}
 
 .ticket_detail_container {
   width: 100%;
@@ -5713,12 +5695,15 @@ textarea.w-input,textarea.w-select {
 }
 
 .newsletter_footer {
-  z-index: 100;
   position: absolute;
   top: auto;
   bottom: 0%;
   left: 0%;
-  right: 0%
+  right: 0%;
+  display: flex;
+  flex-direction: column;
+  align-content: flex-end;
+  justify-content: center;
 }
 
 .newsletter_footer.z-index-100 {
@@ -5765,6 +5750,20 @@ textarea.w-input,textarea.w-select {
   display: none;
   position: relative;
   box-shadow: inset 0 0 9px 1px rgba(0,0,0,.42)
+}
+
+.subscribe-button {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 1000;
+  /* Style your button as needed */
+}
+
+#newsletter_area {
+  width: 100%;
+  display: none;
+  /* Additional styling as needed */
 }
 
 .newsletter_subheading {
@@ -5901,9 +5900,6 @@ textarea.w-input,textarea.w-select {
   line-height: 15px
 }
 
-.mobile_logo {
-  display: none
-}
 
 .newsletter_trigger_show {
   width: 200px;
@@ -6592,6 +6588,10 @@ textarea.w-input,textarea.w-select {
       padding-top: 20px
   }
 
+  .body {
+      height: 100%
+  }
+
   .checkout_field_label {
       margin-bottom: 8px;
       font-size: 10px
@@ -6801,10 +6801,6 @@ textarea.w-input,textarea.w-select {
 
   .newsletter_trigger_hide {
       width: 200px
-  }
-
-  .newsletter_footer {
-      z-index: 100
   }
 
   .subscribe_text {
@@ -8639,9 +8635,6 @@ textarea.w-input,textarea.w-select {
       display: none
   }
 
-  .newsletter_footer {
-      z-index: 100
-  }
 
   .subscribe_text {
       font-size: 17px;
