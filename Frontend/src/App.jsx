@@ -79,8 +79,8 @@ function App() {
           <LinkSectionParent>
           <div className="link_section">
             <div className="link_section_heading">
-<div className="link_section_line">
-</div><div className="book_a_ride_text">
+<div className="link_section_line"></div>
+<div className="book_a_ride_text">
 BOOK A RIDE</div></div><div className="nav_link">
 <a href="/" aria-current="page" className="link_block_text w-inline-block w--current">
 <div className="nav_link_text">
