@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components';
-
+import MenuOverlay from '../../Components/MenuOverlay/MenuOverlay';
 
 const StyledNav = styled.div`
 background-color: var(--tri-state-blue);
@@ -61,7 +61,7 @@ Luxury &amp; Reliable Coach Bus Services</h1>
 COLLEGE&nbsp;BREAKS</a><a href="/quote" className="hero_button_buy secondary w-button">
 request a quote</a></div>
       </div>
-      
+
       <div className="newsletter_footer">
 <div className="newsletter_trigger_hide">
 <div className="subscribe_text">Subscribe</div>

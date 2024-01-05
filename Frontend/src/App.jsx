@@ -13,7 +13,7 @@ import TermsOfService from './Pages/TermsOfService/TermsOfService';
 import PrivacyPolicy from './Pages/Privacy-Policy/PrivacyPolicy';
 import NotFoundPage from './Pages/NotFoundPage/NotFoundPage';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import MenuOverlay from './Components/MenuOverlay/MenuOverlay'
 
 const HamburgerMenu = styled.div`
   position: fixed;
@@ -34,16 +34,6 @@ const HamburgerMenu = styled.div`
   }
 `;
 
-  
-const MenuOverlay = styled.div`
-height: 100vh;
-    position: fixed;
-    width: 50vw;
-    right: 0;
-    background: var(--dark-slate-grey);
-    z-index: 999;
-    box-shadow: inset 13px 0 18px 1px rgba(0,0,0,.18);
-`;
 
 const LinkSectionParent = styled.div`
 
