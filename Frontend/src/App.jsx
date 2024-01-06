@@ -76,26 +76,6 @@ function App() {
 
       {menuOpen && (
         <MenuOverlay>
-          <LinkSectionParent>
-          <div className="link_section">
-            <div className="link_section_heading">
-<div className="link_section_line"></div>
-<div className="book_a_ride_text">
-BOOK A RIDE</div></div><div className="nav_link">
-<a href="/" aria-current="page" className="link_block_text w-inline-block w--current">
-<div className="nav_link_text">
-Home<br /></div></a></div><div className="nav_link">
-<a href="/college-shuttles" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-College Shuttles<br /></div></a></div><div className="nav_link">
-<a href="/quote" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Get A Quote</div></a></div><div className="nav_link">
-<a href="/contact-us" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Contact Us</div></a></div></div>
-<div className="link_section"><div className="link_section_heading"><div className="link_section_line"></div><div className="about_us_text">ABOUT&nbsp;US</div></div><div className="nav_link"><a href="/about-us" className="link_block_text w-inline-block"><div className="nav_link_text">Our Buses<br /></div></a></div><div className="nav_link"><a href="/charter-work" className="link_block_text w-inline-block"><div className="nav_link_text">Chartering</div></a></div><div className="nav_link"><a href="/product/invoice" className="link_block_text w-inline-block"><div className="nav_link_text">Pay Invoice</div></a></div><div className="nav_link"><a href="/services" className="link_block_text w-inline-block"><div className="nav_link_text">Services</div></a></div><div className="nav_link secondary"><a href="/terms-of-service" className="link_block_text w-inline-block"><div className="nav_link_text secondary">Terms of Service</div></a></div><div className="nav_link secondary"><a href="/privacy-policy" className="link_block_text w-inline-block"><div className="nav_link_text secondary">Privacy Policy</div></a></div></div>
-</LinkSectionParent>
       </MenuOverlay>
       )}
       <Routes>

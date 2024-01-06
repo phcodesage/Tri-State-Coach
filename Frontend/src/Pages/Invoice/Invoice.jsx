@@ -9,61 +9,7 @@ function Invoice() {
   }
   return (
     <div className="page_container w-container">
-<div className="nav w-clearfix">
-<div className="menu_overlay">
-<div data-w-id="0a31589d-2c6a-068e-4473-e1383b9d3dc4" className="exit_menu">
-</div><div className="link_section_parent">
-<div className="link_section">
-<div className="link_section_heading">
-<div className="link_section_line">
-</div><div className="book_a_ride_text">
-BOOK A RIDE</div></div><div className="nav_link">
-<a href="/" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Home<br /></div></a></div><div className="nav_link">
-<a href="/college-shuttles" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-College Shuttles<br /></div></a></div><div className="nav_link">
-<a href="/quote" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Get A Quote</div></a></div><div className="nav_link">
-<a href="/contact-us" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Contact Us</div></a></div></div><div className="link_section">
-<div className="link_section_heading">
-<div className="link_section_line">
-</div><div className="about_us_text">
-ABOUT&nbsp;US</div></div><div className="nav_link">
-<a href="/about-us" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Our Buses<br /></div></a></div><div className="nav_link">
-<a href="/charter-work" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Chartering</div></a></div><div className="nav_link">
-<a href="/product/invoice" aria-current="page" className="link_block_text w-inline-block w--current">
-<div className="nav_link_text">
-Pay Invoice</div></a></div><div className="nav_link">
-<a href="/services" className="link_block_text w-inline-block">
-<div className="nav_link_text">
-Services</div></a></div><div className="nav_link secondary">
-<a href="/terms-of-service" className="link_block_text w-inline-block">
-<div className="nav_link_text secondary">
-Terms of Service</div></a></div><div className="nav_link secondary">
-<a href="/privacy-policy" className="link_block_text w-inline-block">
-<div className="nav_link_text secondary">
-Privacy Policy</div></a></div></div></div><div className="menu_action_icons">
-<a href="tel:+16315432500" className="link-block w-inline-block">
-<div className="menu_phone">
-</div></a><a href="#" className="link-block w-inline-block">
-<div className="menu_chat">
-</div></a><a href="mailto:regencybuses@gmail.com" className="link-block w-inline-block">
-<div className="menu_mail">
-</div></a><a href="https://goo.gl/maps/AGVfBWNNL3ZGRmVJ9" className="link-block w-inline-block">
-<div className="menu__location">
-</div></a></div></div><a href="/" className="logo_link_block w-inline-block">
-<img src="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png" loading="eager" sizes="(max-width: 479px) 100vw, (max-width: 767px) 75.90625px, 100vw" srcSet="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-500.png 500w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-800.png 800w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png 920w" alt="" className="logo" />
-</a><div data-w-id="4c69839c-0bdc-e3ff-923e-6f7ee3cc9420" className="burger_menu">
-</div></div><div className="ticket_page_heading_wrapper">
+<div className="ticket_page_heading_wrapper">
 <h2 className="ticket_page_heading">
 Pay for Your Charter Trip Here</h2><h2 className="ticket_page_heading_spacer w-condition-invisible">
 &nbsp;-&nbsp;</h2><h2 className="ticket_page_heading_line w-condition-invisible">

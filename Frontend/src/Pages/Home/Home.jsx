@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 
 function Home() {
   const [newsletterOpen, setNewsletterOpen] = useState(false);
@@ -12,8 +11,7 @@ function Home() {
 <div className="special_message_text">
 Now Serving All of New York, New Jersey, and Connecticut</div></div><div className="nav w-clearfix">
 <div className="menu_overlay" style={{display: 'none'}}>
-<div data-w-id="0a31589d-2c6a-068e-4473-e1383b9d3dc4" className="exit_menu">
-</div><div className="link_section_parent">
+<div className="link_section_parent">
 <div className="link_section">
 <div className="link_section_heading">
 <div className="link_section_line">
@@ -63,8 +61,7 @@ Privacy Policy</div></a></div></div></div><div className="menu_action_icons">
 <div className="menu__location">
 </div></a></div></div><a href="/" aria-current="page" className="logo_link_block w-inline-block w--current">
 <img src="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png" loading="eager" sizes="(max-width: 479px) 100vw, (max-width: 767px) 75.90625px, 100vw" srcSet="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-500.png 500w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-800.png 800w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png 920w" alt="" className="logo" />
-</a><div data-w-id="4c69839c-0bdc-e3ff-923e-6f7ee3cc9420" className="burger_menu">
-</div></div><img src="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png" loading="lazy" width="251" sizes="(max-width: 767px) 100vw, 251px" alt="" srcSet="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-500.png 500w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-800.png 800w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png 920w" className="image-13" />
+</a></div><img src="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png" loading="lazy" width="251" sizes="(max-width: 767px) 100vw, 251px" alt="" srcSet="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-500.png 500w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-800.png 800w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png 920w" className="image-13" />
 <div className="newsletter_footer z-index-100">
 <div data-w-id="b92fc4b6-5b64-600f-2485-2f783bdbbb80" className="newsletter_trigger_hide">
 <div className="subscribe_text">
@@ -93,7 +90,6 @@ Duplicated email!</div></div></div><div className="newsletter_subscription_mesag
 <div className="newsletter_subscription_mesage">
 We do not share your email. Unsubscribe anytime</div></div></div></div></div><div className="page_container w-container">
 <div className="hero_wrap">
-<img src="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png" loading="lazy" sizes="(max-width: 479px) 46vw, 100vw" srcSet="https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-500.png 500w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo-p-800.png 800w, https://assets-global.website-files.com/62f2f32fd64065d8ceeaa74b/6567d3427c8946c25c6c29a0_Tri-statecoach_logo.png 920w" alt="" className="mobile_logo" />
 <div className="mobile_hero_wrapper">
 <h1 className="hero_heading mobile">
 REGENCY&nbsp;BUSES</h1><div className="subheading">
