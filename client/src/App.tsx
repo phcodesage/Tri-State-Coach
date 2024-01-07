@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { SfButton } from '@storefront-ui/react';
+import Home from './Pages/Home/Home'
+
 
 function App() {
 
 
   return (
     <>
-<SfButton className="w-full">Hello</SfButton>
+    <Home />
     </>
   )
 }
