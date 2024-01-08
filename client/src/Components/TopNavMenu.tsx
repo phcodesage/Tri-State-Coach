@@ -225,30 +225,6 @@ import {
                 </li>
               </ul>
             </nav>
-            <form role="search" className="hidden md:flex flex-[100%] ml-10" onSubmit={search}>
-              <SfInput
-                value={inputValue}
-                type="search"
-                className="[&::-webkit-search-cancel-button]:appearance-none"
-                placeholder="Search"
-                wrapperClassName="flex-1 h-10 pr-0"
-                size="base"
-                slotSuffix={
-                  <span className="flex items-center">
-                    <SfButton
-                      variant="tertiary"
-                      square
-                      aria-label="search"
-                      type="submit"
-                      className="rounded-l-none hover:bg-transparent active:bg-transparent"
-                    >
-                      <SfIconSearch />
-                    </SfButton>
-                  </span>
-                }
-                onChange={(event) => setInputValue(event.target.value)}
-              />
-            </form>
             <nav className="flex-1 flex flex-nowrap justify-end items-center md:ml-10 gap-x-1" aria-label="SF Navigation">
               {actionItems.map((actionItem) => (
                 <SfButton
@@ -266,30 +242,6 @@ import {
               ))}
             </nav>
           </div>
-          <form role="search" className="flex md:hidden flex-[100%] my-2 mx-4" onSubmit={search}>
-            <SfInput
-              value={inputValue}
-              type="search"
-              className="[&::-webkit-search-cancel-button]:appearance-none"
-              placeholder="Search"
-              wrapperClassName="flex-1 h-10 pr-0"
-              size="base"
-              slotSuffix={
-                <span className="flex items-center">
-                  <SfButton
-                    variant="tertiary"
-                    square
-                    aria-label="search"
-                    type="submit"
-                    className="rounded-l-none hover:bg-transparent active:bg-transparent"
-                  >
-                    <SfIconSearch />
-                  </SfButton>
-                </span>
-              }
-              onChange={(event) => setInputValue(event.target.value)}
-            />
-          </form>
         </header>
       </div>
     );
