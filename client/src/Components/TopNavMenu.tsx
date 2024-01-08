@@ -17,20 +17,10 @@ import {
   import { useClickAway } from 'react-use';
   import { CSSTransition } from 'react-transition-group';
   import logo from '../assets/tri-state-coach-logo.png'
-  
+  import React from 'react';
+
   const actionItems = [
-    {
-      icon: <SfIconShoppingCart />,
-      label: '',
-      ariaLabel: 'Cart',
-      role: 'button',
-    },
-    {
-      icon: <SfIconFavorite />,
-      label: '',
-      ariaLabel: 'Wishlist',
-      role: 'button',
-    },
+
     {
       icon: <SfIconPerson />,
       label: 'Log in',
@@ -140,14 +130,14 @@ import {
               aria-label="SF Homepage"
               className="flex shrink-0 ml-4 md:ml-0 mr-2 md:mr-10 text-white focus-visible:outline focus-visible:outline-offset focus-visible:rounded-sm"
             >
-              <picture>
-                <source srcSet="https://storage.googleapis.com/sfui_docs_artifacts_bucket_public/production/vsf_logo_white.svg" media="(min-width: 1024px)" />
-                <img
-                  src="https://storage.googleapis.com/sfui_docs_artifacts_bucket_public/production/vsf_logo_sign_white.svg"
-                  alt="Sf Logo"
-                  className="w-8 h-8 lg:w-[12.5rem] lg:h-[1.75rem]"
-                />
-              </picture>
+            <picture className="block w-[75.9px] md:w-[150px] lg:max-w-[12.1rem]">
+              <img
+                src={logo}
+                alt="Tri-State Coach Logo"
+                className="h-auto w-full"
+              />
+            </picture>
+
             </a>
             <SfButton
               className="hidden md:flex text-white bg-transparent font-body hover:bg-primary-800 hover:text-white active:bg-primary-900 active:text-white"
@@ -158,7 +148,7 @@ import {
               onClick={toggle}
               square
             >
-              <span className="hidden md:inline-flex whitespace-nowrap px-2">Browse products</span>
+              <span className="hidden md:inline-flex whitespace-nowrap px-2">Book a Ride</span>
             </SfButton>
             <nav>
               <ul>

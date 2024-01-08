@@ -9,7 +9,6 @@ export default function AlertWarning() {
     >
       <SfIconWarning className="mt-2 mr-2 text-warning-700 shrink-0" />
       <div className="py-2 mr-2 flex-1 text-center">
-        <p className="font-medium typography-text-base md:typography-text-lg">Your account</p>
         <p>Now Serving All of New York, New Jersey, and Connecticut</p>
       </div>
       <button
