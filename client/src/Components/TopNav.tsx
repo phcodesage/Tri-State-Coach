@@ -10,7 +10,7 @@ import {
   SfIconMenu,
 } from '@storefront-ui/react';
 import React from 'react';
-import logo from '../assets/logo-red.png'
+import logo from '../assets/tri-state-coach-logo.png'
 
 export default function TopNav() {
   const [inputValue, setInputValue] = useState('');
@@ -52,10 +52,10 @@ export default function TopNav() {
           <picture>
             <source srcSet={logo} media="(min-width: 768px)" />
             <img
-              src={logo}
-              alt="Sf Logo"
-              className="w-8 h-8 md:h-6 md:w-[176px] lg:w-[12.5rem] lg:h-[1.75rem]"
-            />
+            src={logo}
+            alt="Tri-State Coach Logo"
+            className="h-auto md:max-w-[176px] lg:max-w-[12.5rem]"
+          />
           </picture>
         </a>
         <SfButton

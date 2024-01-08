@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SfButton, SfInput, SfLink, SfIconCheckCircle, SfIconClose } from '@storefront-ui/react';
+import React from 'react';
 
 export default function NewsletterBox() {
   const [inputValue, setInputValue] = useState('');
@@ -27,11 +28,11 @@ export default function NewsletterBox() {
   return (
     <div className="relative">
       <div className="bg-neutral-100 p-4 sm:p-10 text-center">
-        <p className="typography-headline-4 sm:typography-headline-3 font-bold">
-          Subscribe and get discount on your first purchase!
+        <p className="typography-headline-3 sm:typography-headline-3 font-bold">
+        Join Our Newsletter
         </p>
         <p className="typography-text-sm sm:typography-text-base my-2 mb-4">
-          Be aware of upcoming sales and events. Receive gifts and special offers!
+        Get notified about new trips
         </p>
         <form
           className="mb-4 flex flex-col sm:flex-row gap-4 max-w-[688px] mx-auto"
@@ -44,21 +45,10 @@ export default function NewsletterBox() {
             placeholder="Type your email"
             onChange={(event) => setInputValue(event.target.value)}
           />
-          <SfButton type="submit" size="lg">
+          <SfButton type="submit" size="lg" style={{ backgroundColor: '#be123c' }}>
             Subscribe to Newsletter
           </SfButton>
         </form>
-        <div className="typography-text-xs text-neutral-600">
-          To learn how we process your data, visit our{' '}
-          <SfLink href="#" className="!text-neutral-600">
-            Privacy Notice
-          </SfLink>
-          . You can{' '}
-          <SfLink href="#" className="!text-neutral-600">
-            unsubscribe
-          </SfLink>{' '}
-          at any time without costs.
-        </div>
       </div>
       <div className="absolute top-0 right-0 mx-2 mt-2 sm:mr-6">
         {positiveAlert && (

@@ -21,3 +21,13 @@
     --color: #aa8900;
     --gold: var(--color);
 };
+
+.hero_heading {
+    width: 100%;
+    text-align: left;
+    margin-top: 10px;
+    font-family: 'Questrial', sans-serif;
+    font-size: 50px;
+    font-weight: 400;
+    line-height: 1;
+}

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 import { tailwindConfig } from '@storefront-ui/react/tailwind-config';
+import sfTypography from '@storefront-ui/typography';
 
 export default {
   presets: [tailwindConfig],
@@ -95,5 +96,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [sfTypography],
 };
