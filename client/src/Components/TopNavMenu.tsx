@@ -29,11 +29,6 @@ import {
     },
   ];
   
-  const bannerDetails = {
-    image: 'https://storage.googleapis.com/sfui_docs_artifacts_bucket_public/production/watch.png',
-    title: 'New in designer watches',
-  };
-  
   const categoriesContent = [
     {
       heading: 'Book a Ride',
@@ -108,11 +103,17 @@ import {
     };
   
     return (
-      <div className="w-full h-full z-99999">
+      <div className="w-full z-99999">
         {isOpen && <div className="fixed inset-0 bg-neutral-500 bg-opacity-50 transition-opacity" />}
         <header
           ref={menuRef}
-          style={{ position: 'relative', zIndex: 9999 }}
+          style={{ 
+            position: 'sticky', // Make the header sticky
+            top: 0, // Stick to the top of the viewport
+            zIndex: 9999, 
+            backgroundColor: 'rgb(190, 18, 60)', 
+            height: '5rem' 
+          }}
           className="flex flex-wrap md:flex-nowrap justify-center w-full py-2 md:py-5 border-0 bg-primary-700 border-neutral-200 md:relative md:z-10"
         >
           <div className="flex items-center justify-start h-full max-w-[1536px] w-full px-4 md:px-10">
@@ -131,15 +132,15 @@ import {
               aria-label="SF Homepage"
               className="flex shrink-0 ml-4 md:ml-0 mr-2 md:mr-10 text-white focus-visible:outline focus-visible:outline-offset focus-visible:rounded-sm"
             >
-            <picture className="block w-[75.9px] md:w-[150px] lg:max-w-[12.1rem]">
-              <img
-                src={logo}
-                alt="Tri-State Coach Logo"
-                className="h-auto w-full"
-              />
-            </picture>
-
+              <picture>
+                <img
+                  src={logo}
+                  alt="Tri-State Coach Logo"
+                  style={{ height: '80%', maxHeight: '4rem' }} // Adjust the height as needed
+                />
+              </picture>
             </a>
+
             <SfButton
               className="hidden md:flex text-white bg-transparent font-body hover:bg-primary-800 hover:text-white active:bg-primary-900 active:text-white"
               aria-haspopup="true"
@@ -209,12 +210,6 @@ import {
                           </ul>
                         </div>
                       ))}
-                      <div className="flex flex-col items-center justify-center overflow-hidden md:rounded-md bg-neutral-100 border-neutral-300 grow">
-                        <img src={bannerDetails.image} alt={bannerDetails.title} className="object-contain" />
-                        <p className="px-4 mt-4 mb-4 font-medium text-center typography-text-base">
-                          {bannerDetails.title}
-                        </p>
-                      </div>
                       <SfButton
                         square
                         size="sm"

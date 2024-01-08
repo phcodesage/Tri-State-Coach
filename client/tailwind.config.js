@@ -8,6 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        customHover: '#fef9c3',
         primary: {
           50: '#f0fdf4',
           100: '#dcfce7',

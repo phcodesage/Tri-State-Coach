@@ -8,7 +8,7 @@ export default function Hero() {
       <picture>
         <source srcSet="https://storage.googleapis.com/sfui_docs_artifacts_bucket_public/production/hero-bg.png" media="(min-width: 768px)" />
         <img
-          src={TristateImage}
+          src="https://storage.googleapis.com/sfui_docs_artifacts_bucket_public/production/hero-bg.png"
           className="absolute w-full h-full z-[-1] md:object-cover"
         />
       </picture>

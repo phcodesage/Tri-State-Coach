@@ -5,7 +5,7 @@ import NewsLetterBox from '../../Components/NewsLetterBox'
 import TopNavMenu from '../../Components/TopNavMenu'
 function Home() {
   return (
-    <div>
+    <div className='h-screen'>
       <AlertNeutral />
       <TopNavMenu />
       <Hero />
