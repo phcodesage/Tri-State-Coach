@@ -21,11 +21,11 @@ export default function Hero() {
           />
         </div>
         <div className="p-4 md:p-10 md:flex md:flex-col md:justify-center md:items-start md:basis-2/4">
-          <h1 className="typography-display-1 md:typography-display-1 md:leading-[67.5px] font-bold mt-2 mb-4">
+          <h1 className="font-questrial text-3xl md:typography-display-1 md:leading-[67.5px] font-bold mt-2 mb-4">
           Luxury & Reliable Coach Bus Services
           </h1>
           <div className="flex flex-col md:flex-row gap-4 mt-6">
-          <SfButton size="lg" style={{ backgroundColor: '#be123c' }}>College Breaks</SfButton>
+          <SfButton size="lg" style={{ backgroundColor: '#be123c' }} className='font-questrial'>College Breaks</SfButton>
             <SfButton size="lg" className="bg-white" variant="secondary" >
               Request A Quote
             </SfButton>

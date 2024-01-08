@@ -47,7 +47,7 @@ import {
         },
         {
           title: 'Contact Us',
-          link: '#',
+          link: '/contact-us',
         }
       ],
     },

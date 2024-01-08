@@ -7,6 +7,9 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './node_modules/@storefront-ui/react/**/*.{js,mjs}'],
   theme: {
     extend: {
+      fontFamily: {
+        'questrial': ['Questrial', 'sans-serif'],
+      },
       colors: {
         customHover: '#fef9c3',
         primary: {
