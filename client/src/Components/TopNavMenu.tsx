@@ -35,15 +35,15 @@ import {
       items: [
         {
           title: "Home",
-          link: '#',
+          link: '/',
         },
         {
           title: 'College Shuttles',
-          link: '#',
+          link: '/college-shuttles',
         },
         {
           title: 'Get A Quote',
-          link: '#',
+          link: '/quote',
         },
         {
           title: 'Contact Us',
@@ -56,27 +56,27 @@ import {
       items: [
         {
           title: 'Our Buses',
-          link: '#',
+          link: '/about-us',
         },
         {
           title: 'Chartering',
-          link: '#',
+          link: '/charter-work',
         },
         {
           title: 'Pay Invoice',
-          link: '#',
+          link: '/product/invoice',
         },
         {
           title: 'Services',
-          link: '#',
+          link: '/services',
         },
         {
           title: 'Terms Of Service',
-          link: '#',
+          link: '/terms-of-service',
         },
         {
           title: 'Privacy Policy',
-          link: '#',
+          link: '/privacy-policy',
         },
       ],
     }
@@ -172,7 +172,7 @@ import {
                       placement="top"
                       className="grid grid-cols-1 md:gap-x-6 md:grid-cols-4 bg-white shadow-lg p-0 max-h-screen overflow-y-auto md:!absolute md:!top-20 max-w-[376px] md:max-w-full md:p-6 mr-[50px] md:mr-0"
                     >
-                      <div className="sticky top-0 flex items-center justify-between px-4 py-2 bg-primary-700 md:hidden">
+                      <div className="sticky top-0 flex items-center justify-between px-4 py-2 bg-negative-700 md:hidden">
                         <div className="flex items-center font-medium text-white typography-text-lg">Browse products</div>
                         <SfButton
                           square
