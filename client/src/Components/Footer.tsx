@@ -1,4 +1,3 @@
-import logo from '../assets/tri-state-coach-logo.png'
 import { useLocation } from 'react-router-dom'
 
 export default function Footer() {
@@ -18,142 +17,50 @@ export default function Footer() {
       </h2>
       <div className="mx-auto max-w-7xl px-6 pb-8 pt-16 sm:pt-24 lg:px-8 lg:pt-32">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-        <img
-            className="h-12"
-            src={logo}
-            alt="Company name"
-            width={155.64}
-            height={48}
-          />
           <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
                 <h3 className="text-sm font-semibold leading-6 text-white">
-                  Solutions
+                  About Us
                 </h3>
                 <ul role="list" className="mt-6 space-y-4">
                   <li>
                     <a
-                      href="#"
+                      href="/about-us"
                       className="text-sm leading-6 text-gray-300 hover:text-white"
                     >
-                      Marketing
+                      Our Buses
                     </a>
                   </li>
                   <li>
                     <a
-                      href="#"
+                      href="/charter-work"
                       className="text-sm leading-6 text-gray-300 hover:text-white"
                     >
-                      Analytics
+                      Chartering
                     </a>
                   </li>
                   <li>
                     <a
-                      href="#"
+                      href="/product/invoice"
                       className="text-sm leading-6 text-gray-300 hover:text-white"
                     >
-                      Commerce
+                      Pay Invoice
                     </a>
                   </li>
                   <li>
                     <a
-                      href="#"
+                      href="/services"
                       className="text-sm leading-6 text-gray-300 hover:text-white"
                     >
-                      Insights
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold leading-6 text-white">
-                  Support
-                </h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Pricing
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Documentation
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Guides
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      API Status
+                      Services
                     </a>
                   </li>
                 </ul>
               </div>
             </div>
             <div className="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 className="text-sm font-semibold leading-6 text-white">
-                  Company
-                </h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      About Us
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Phases of Mortgage
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Bank Offers
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Required Documents
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Mortgage Plans
-                    </a>
-                  </li>
-                </ul>
-              </div>
+
               <div className="mt-10 md:mt-0">
                 <h3 className="text-sm font-semibold leading-6 text-white">
                   Legal
@@ -161,34 +68,18 @@ export default function Footer() {
                 <ul role="list" className="mt-6 space-y-4">
                   <li>
                     <a
-                      href="#"
+                      href="/privacy-policy"
                       className="text-sm leading-6 text-gray-300 hover:text-white"
                     >
-                      Claim
+                      Privacy Policy
                     </a>
                   </li>
                   <li>
                     <a
-                      href="#"
+                      href="/terms-of-service"
                       className="text-sm leading-6 text-gray-300 hover:text-white"
                     >
-                      Privacy
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Terms
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-sm leading-6 text-gray-300 hover:text-white"
-                    >
-                      Disclaimer
+                      Terms of Service
                     </a>
                   </li>
                 </ul>
@@ -202,8 +93,7 @@ export default function Footer() {
               Subscribe to our newsletter
             </h3>
             <p className="mt-2 text-sm leading-6 text-gray-300">
-              The latest properties, mortgages, and promos, sent to your inbox
-              weekly.
+            Get notified about new trips
             </p>
           </div>
           <form className="mt-6 sm:flex sm:max-w-md lg:mt-0">

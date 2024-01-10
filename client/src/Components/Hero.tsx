@@ -6,13 +6,7 @@ import React from 'react';
 const navigation = [
   { name: 'College Shuttles', href: '/college-shuttles' },
   { name: 'Get A Quote', href: '/quote' },
-  { name: 'Contact Us', href: '/contact-us' },
-  { name: 'Our Buses', href: '/about-us' },
-  { name: 'Chartering', href: '/charter-work' },
-  { name: 'Pay Invoice', href: '/product/invoice' },
-  { name: 'Services', href: '/services' },
-
-
+  { name: 'Contact Us', href: '/contact-us' }
 ]
 
 const XMarkIcon = () => (
