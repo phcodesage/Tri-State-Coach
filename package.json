@@ -10,5 +10,8 @@
   "devDependencies": {
     "concurrently": "^x.x.x",
     "daisyui": "^4.5.0"
+  },
+  "dependencies": {
+    "vercel": "^33.0.2"
   }
 }
