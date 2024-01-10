@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { SfButton, SfInput, SfLink, SfIconCheckCircle, SfIconClose } from '@storefront-ui/react';
+import { SfButton, SfInput, SfLink, SfIconCheckCircle, SfIconClose, useDisclosure } from '@storefront-ui/react';
 import React from 'react';
 
 export default function NewsletterBox() {
+  const { isOpen, toggle } = useDisclosure();
   const [inputValue, setInputValue] = useState('');
   const [positiveAlert, setPositiveAlert] = useState(false);
   const [errorAlert, setErrorAlert] = useState(false);
@@ -26,6 +27,12 @@ export default function NewsletterBox() {
   };
 
   return (
+    <>
+    <div className='flex'>
+      <SfButton type="button" size="lg" style={{ backgroundColor: '#be123c' }} onClick={toggle}>
+            Subscribe to Newsletter
+          </SfButton></div>
+      {isOpen && 
     <div className="relative">
       <div className="bg-neutral-100 p-4 sm:p-10 text-center">
         <p className="typography-headline-3 sm:typography-headline-3 font-bold">
@@ -88,5 +95,7 @@ export default function NewsletterBox() {
         )}
       </div>
     </div>
+        }
+        </>
   );
 }

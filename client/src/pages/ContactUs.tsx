@@ -1,6 +1,5 @@
 import { SfInput, SfButton } from '@storefront-ui/react';
 import { useState, ChangeEvent, FormEventHandler } from 'react';
-import React from 'react';
 import TopNavMenu from '../Components/TopNavMenu';
 import Footer from '../Components/Footer';
 export default function ContactUs() {

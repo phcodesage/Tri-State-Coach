@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { SfButton } from '@storefront-ui/react';
 import TristateImage from '../assets/tri-state-coach-bus-image.png';
 

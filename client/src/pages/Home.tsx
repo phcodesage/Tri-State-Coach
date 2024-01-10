@@ -1,4 +1,3 @@
-import React from 'react'
 import AlertNeutral from "../Components/AlertNeutral"
 import Hero from '../Components/Hero'
 import NewsLetterBox from '../Components/NewsLetterBox'

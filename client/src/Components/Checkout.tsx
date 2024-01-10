@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { SfSelect, SfInput, SfCheckbox, SfButton } from '@storefront-ui/react';
 import { FormEventHandler, ChangeEvent, FocusEvent, useState } from 'react';
 

@@ -3,6 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
+*::before, *::after {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
 :root {
     --dark-slate-grey: #2e3532;
     --white-smoke: #efefef;
