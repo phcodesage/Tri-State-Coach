@@ -1,9 +1,10 @@
-import TopNavMenu from './../Components/TopNavMenu'
+import Navbar from "../Components/Navbar"
+
 
 function CollegeBreaks() {
   return (
     <div>
-      <TopNavMenu />
+      <Navbar />
       CollegeBreaks</div>
   )
 }

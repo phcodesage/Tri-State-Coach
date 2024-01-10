@@ -1,10 +1,11 @@
 
-import TopNavMenu from './../Components/TopNavMenu'
+import Navbar from '../Components/Navbar'
+
 
 function Chartering() {
   return (
     <div>
-      <TopNavMenu />
+      <Navbar />
       Chartering</div>
   )
 }

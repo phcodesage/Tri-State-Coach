@@ -1,5 +1,5 @@
-import TopNavMenu from './../Components/TopNavMenu';
 import BusTicketCard from '../Components/BusTicketCard';
+import Navbar from '../Components/Navbar';
 
 function CollegeShuttles() {
   const tickets = [
@@ -21,7 +21,7 @@ function CollegeShuttles() {
 
   return (
     <div className='h-screen'>
-      <TopNavMenu />
+      <Navbar />
       <div className="container mx-auto px-4">
         <h1 className="page_heading text-center text-3xl font-bold my-6">College Shuttles</h1>
         <div className="bus_routes_container flex flex-wrap justify-center gap-4">

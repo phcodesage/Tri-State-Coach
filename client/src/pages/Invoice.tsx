@@ -1,4 +1,4 @@
-import TopNavMenu from './../Components/TopNavMenu'
+import TopNavMenu from '../Components/Navbar'
 
 function Invoice() {
   return (

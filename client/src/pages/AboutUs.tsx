@@ -1,9 +1,11 @@
 import { useState} from "react"
+import Navbar from "../Components/Navbar"
 function AboutUs() {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [isHovered, setIsHovered] = useState(false)
   return (
     <>
+    <Navbar />
       <div className="bg-white mb-8">
         <main className="isolate">
           <div className="absolute inset-y-0 right-1/2 -z-10 -mr-96 w-[200%] origin-top-right skew-x-[-30deg] bg-white shadow-xl shadow-purple-600/10 ring-1 ring-purple-50 sm:-mr-80 lg:-mr-96"></div>
