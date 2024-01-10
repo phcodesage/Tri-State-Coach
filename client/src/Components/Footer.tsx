@@ -11,13 +11,13 @@ export default function Footer() {
     return <div />;
   }
   return (
-    <footer className="bg-gray-800" aria-labelledby="footer-heading">
+    <footer className="bg-gray-800 my-" aria-labelledby="footer-heading" style={{marginTop: '100px'}}>
       <h2 id="footer-heading" className="sr-only">
         Footer
       </h2>
-      <div className="mx-auto max-w-7xl px-6 pb-8 pt-16 sm:pt-24 lg:px-8 lg:pt-32">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
+      <div className="mx-auto max-w-7xl px-6 pb-8 pt-8 sm:pt-12 lg:px-8 lg:pt-16">
+      <div className="xl:grid xl:grid-cols-3 xl:gap-8">
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
                 <h3 className="text-sm font-semibold leading-6 text-white">
@@ -58,9 +58,6 @@ export default function Footer() {
                   </li>
                 </ul>
               </div>
-            </div>
-            <div className="md:grid md:grid-cols-2 md:gap-8">
-
               <div className="mt-10 md:mt-0">
                 <h3 className="text-sm font-semibold leading-6 text-white">
                   Legal
@@ -120,7 +117,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 border-t border-white/10 pt-8 md:flex md:items-center md:justify-between">
           <div className="flex space-x-6 md:order-2">
-            <a href="#" className="text-gray-500 hover:text-gray-400">
+            <a href="https://web.facebook.com/Tristatecoach" className="text-gray-500 hover:text-gray-400" target='new_tab'>
               <span className="sr-only">Facebook</span>
               <svg
                 fill="currentColor"
