@@ -114,11 +114,11 @@ import {
             backgroundColor: 'rgb(190, 18, 60)', 
             height: '5rem' 
           }}
-          className="flex flex-wrap md:flex-nowrap justify-center w-full py-2 md:py-5 border-0 bg-primary-700 border-neutral-200 md:relative md:z-10"
+          className="flex flex-wrap md:flex-nowrap justify-center w-full py-2 md:py-5 border-0 bg-negative-300 border-neutral-200 md:relative md:z-10"
         >
           <div className="flex items-center justify-start h-full max-w-[1536px] w-full px-4 md:px-10">
             <SfButton
-              className="block md:hidden text-white bg-transparent font-body hover:bg-primary-800 hover:text-white active:bg-primary-900 active:text-white"
+              className="block md:hidden text-white bg-transparent font-body hover:bg-negative-300 hover:text-white active:bg-negative-300 active:text-white"
               aria-haspopup="true"
               aria-expanded={isOpen}
               variant="tertiary"
@@ -142,7 +142,7 @@ import {
             </a>
 
             <SfButton
-              className="hidden md:flex text-white bg-transparent font-body hover:bg-primary-800 hover:text-white active:bg-primary-900 active:text-white"
+              className="hidden md:flex text-white bg-transparent font-body hover:bg-negative-300 hover:text-neutral-900 active:bg-negative-300 active:text-white"
               aria-haspopup="true"
               aria-expanded={isOpen}
               slotSuffix={<SfIconExpandMore className="hidden md:inline-flex" />}
@@ -228,7 +228,7 @@ import {
             <nav className="flex-1 flex flex-nowrap justify-end items-center md:ml-10 gap-x-1" aria-label="SF Navigation">
               {actionItems.map((actionItem) => (
                 <SfButton
-                  className="text-white bg-transparent hover:bg-primary-800 hover:text-white active:bg-primary-900 active:text-white"
+                  className="text-white bg-transparent hover:bg-negative-300 hover:text-white active:bg-negative-300 active:text-white"
                   key={actionItem.ariaLabel}
                   aria-label={actionItem.ariaLabel}
                   variant="tertiary"
