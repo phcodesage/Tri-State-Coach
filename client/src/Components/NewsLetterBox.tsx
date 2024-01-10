@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { SfButton, SfInput, SfLink, SfIconCheckCircle, SfIconClose, useDisclosure } from '@storefront-ui/react';
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { SfButton, SfInput, SfIconCheckCircle, SfIconClose, useDisclosure, SfIconExpandLess, SfIconExpandMore } from '@storefront-ui/react';
+import { useClickAway } from 'react-use';
 
 export default function NewsletterBox() {
   const { isOpen, toggle } = useDisclosure();
+  const newsletterRef = useRef(null);
   const [inputValue, setInputValue] = useState('');
   const [positiveAlert, setPositiveAlert] = useState(false);
   const [errorAlert, setErrorAlert] = useState(false);
@@ -26,14 +27,29 @@ export default function NewsletterBox() {
     setInputValue('');
   };
 
+  useClickAway(newsletterRef, () => {
+    if (isOpen) {
+      toggle();
+    }
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      const inputElement = newsletterRef.current?.querySelector('input');
+      if (inputElement) {
+        inputElement.focus();
+      }
+    }
+  }, [isOpen]);
   return (
     <>
-    <div className='flex'>
-      <SfButton type="button" size="lg" style={{ backgroundColor: '#be123c' }} onClick={toggle}>
+    <div className="relative bottom-0 left-0 right-0 flex justify-center mb-4">
+      <SfButton type="button" size="lg" onClick={toggle}>
             Subscribe to Newsletter
+            { isOpen ? <SfIconExpandLess /> : <SfIconExpandMore />}
           </SfButton></div>
       {isOpen && 
-    <div className="relative">
+    <div className="relative" ref={newsletterRef}>
       <div className="bg-neutral-100 p-4 sm:p-10 text-center">
         <p className="typography-headline-3 sm:typography-headline-3 font-bold">
         Join Our Newsletter
@@ -42,7 +58,7 @@ export default function NewsletterBox() {
         Get notified about new trips
         </p>
         <form
-          className="mb-4 flex flex-col sm:flex-row gap-4 max-w-[688px] mx-auto"
+          className="flex flex-col sm:flex-row gap-4 max-w-[688px] mx-auto"
           onSubmit={(event) => subscribeNewsletter(event, inputValue)}
         >
           <SfInput
@@ -53,15 +69,16 @@ export default function NewsletterBox() {
             onChange={(event) => setInputValue(event.target.value)}
           />
           <SfButton type="submit" size="lg" style={{ backgroundColor: '#be123c' }}>
-            Subscribe to Newsletter
+            Signup
           </SfButton>
         </form>
+        <p className="typography-text-sm sm:typography-text-base my-2">We do not share your email. Unsubscribe anytime</p>
       </div>
       <div className="absolute top-0 right-0 mx-2 mt-2 sm:mr-6">
         {positiveAlert && (
           <div
             role="alert"
-            className="flex items-start md:items-center shadow-md max-w-[600px] bg-positive-100 pr-2 pl-4 mb-2 ring-1 ring-positive-200 typography-text-sm md:typography-text-base py-1 rounded-md"
+            className="flex items-start md:items-center shadow-md max-w-[600px] bg-positive-100 pr-2 pl-4 ring-1 ring-positive-200 typography-text-sm md:typography-text-base py-1 rounded-md"
           >
             <SfIconCheckCircle className="mr-2 my-2 text-positive-700" />
             <p className="py-2 mr-2">Your email has been added to the newsletter subscription.</p>

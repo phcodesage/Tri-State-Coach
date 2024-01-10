@@ -1,6 +1,4 @@
 import {
-    SfIconShoppingCart,
-    SfIconFavorite,
     SfIconPerson,
     SfIconExpandMore,
     SfIconClose,
@@ -9,15 +7,13 @@ import {
     SfListItem,
     useDisclosure,
     useTrapFocus,
-    SfInput,
-    SfIconSearch,
     SfIconMenu,
   } from '@storefront-ui/react';
-  import { useRef, useState } from 'react';
+  import { useRef } from 'react';
   import { useClickAway } from 'react-use';
   import { CSSTransition } from 'react-transition-group';
   import logo from '../assets/tri-state-coach-logo.png'
-  import React from 'react';
+
 
   const actionItems = [
 
@@ -86,7 +82,6 @@ import {
     const { close, toggle, isOpen } = useDisclosure();
     const drawerRef = useRef(null);
     const menuRef = useRef(null);
-    const [inputValue, setInputValue] = useState('');
   
     useTrapFocus(drawerRef, {
       activeState: isOpen,
@@ -97,10 +92,6 @@ import {
       close();
     });
   
-    const search = (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      alert(`Successfully found 10 results for ${inputValue}`);
-    };
   
     return (
       <div className="w-full z-99999">
@@ -128,7 +119,7 @@ import {
               <SfIconMenu className=" text-white" />
             </SfButton>
             <a
-              href="#"
+              href="/"
               aria-label="SF Homepage"
               className="flex shrink-0 ml-4 md:ml-0 mr-2 md:mr-10 text-white focus-visible:outline focus-visible:outline-offset focus-visible:rounded-sm"
             >
