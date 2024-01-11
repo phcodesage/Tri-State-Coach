@@ -5,10 +5,12 @@ import TicketCard from '../assets/tick-item-card-white.svg'
 export default function BusTicketCard({ ticket }) {
 
   return (
-    <div className="bus_line_item border border-neutral-200 rounded-md hover:shadow-lg max-w-[300px]" style={{backgroundImage: TicketCard,
-    backgroundPosition: '50% 0',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: '373px',}}>
+    <div className="bus_line_item border border-neutral-200 rounded-md hover:shadow-lg max-w-[300px]" style={{
+      backgroundImage: `url(${TicketCard})`, // Use the imported image
+      backgroundPosition: '50% 0',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover', // Changed to 'cover' for better responsiveness
+    }}>
       <a href={ticket.link} className="block relative">
         <img
           src={ticket.imageUrl}

@@ -1,4 +1,5 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
+
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 const Bars3Icon = () => (
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -18,18 +19,25 @@ const XMarkIcon = () => (
 </svg>
 
 )
-const navigation = [
-  { name: 'Dashboard', href: '#', current: true },
-  { name: 'Team', href: '#', current: false },
-  { name: 'Projects', href: '#', current: false },
-  { name: 'Calendar', href: '#', current: false },
-]
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
 
 export default function Navbar() {
+  const [currentPath, setCurrentPath] = useState('/');
+
+  useEffect(() => {
+    setCurrentPath(window.location.pathname);
+  }, []);
+
+  const navigation = [
+    { name: 'Home', href: '/', current: currentPath === '/' },
+    { name: 'College Shuttles', href: '/college-shuttles', current: currentPath === '/college-shuttles' },
+    { name: 'Get a Quote', href: '/quote', current: currentPath === '/quote' },
+    { name: 'Contact Us', href: '/contact-us', current: currentPath === '/contact-us' },
+  ];
+  
+  function classNames(...classes) {
+    return classes.filter(Boolean).join(' ')
+  }
   return (
     <Disclosure as="nav" className="bg-gray-800">
       {({ open }) => (

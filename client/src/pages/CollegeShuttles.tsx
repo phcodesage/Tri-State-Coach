@@ -1,4 +1,5 @@
 import BusTicketCard from '../Components/BusTicketCard';
+import Footer from '../Components/Footer';
 import Navbar from '../Components/Navbar';
 
 function CollegeShuttles() {
@@ -30,6 +31,7 @@ function CollegeShuttles() {
           ))}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
