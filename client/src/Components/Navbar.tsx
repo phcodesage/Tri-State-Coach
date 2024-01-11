@@ -1,4 +1,5 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react';
+import Logo from '../assets/tri-state-coach-logo.png';
 
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 const Bars3Icon = () => (
@@ -43,7 +44,7 @@ export default function Navbar() {
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-            <div className="relative flex h-16 items-center justify-between">
+          <div className="relative z-20 flex h-16 items-center justify-between mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
               <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
                 {/* Mobile menu button*/}
                 <Disclosure.Button className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
@@ -60,8 +61,8 @@ export default function Navbar() {
                 <div className="flex flex-shrink-0 items-center">
                   <img
                     className="h-8 w-auto"
-                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                    alt="Your Company"
+                    src={Logo}
+                    alt="Tri-statecoach Logo"
                   />
                 </div>
                 <div className="hidden sm:ml-6 sm:block">
