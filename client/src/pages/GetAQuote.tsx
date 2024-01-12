@@ -72,17 +72,17 @@ export default function GetAQuote() {
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
             {/* Destination Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="destination" className="block text-sm font-semibold leading-6 text-gray-900">Destination</label>
+              <label htmlFor="destination" className="block text-m font-semibold leading-6 text-gray-900">Destination</label>
               <div className="mt-2.5">
-                <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6" placeholder='Destination Address' />
+                <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Destination Address' />
               </div>
             </div>
 
             {/* Pickup Location Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="pickup-location" className="block text-sm font-semibold leading-6 text-gray-900">Pick-up Location</label>
+              <label htmlFor="pickup-location" className="block text-m font-semibold leading-6 text-gray-900">Pick-up Location</label>
               <div className="mt-2.5">
-                <input type="text" name="pickup-location" id="pickup-location" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6" placeholder='Pick-up Address' />
+                <input type="text" name="pickup-location" id="pickup-location" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Pick-up Address' />
               </div>
             </div>
 
@@ -90,11 +90,11 @@ export default function GetAQuote() {
             <div className="sm:col-span-2">
               <div className="flex items-center justify-between">
                 <div className="relative w-1/2">
-                  <input type="date" name="depart-date-start" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500" placeholder="Depart Date Start" />
+                  <input type="date" name="depart-date-start" className="bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-l-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500" placeholder="Depart Date Start" />
                 </div>
                 <span className="mx-4 text-gray-500">to</span>
                 <div className="relative w-1/2">
-                  <input type="time" name="depart-date-end" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500" placeholder="Depart Time End" />
+                  <input type="time" name="depart-date-end" className="bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-r-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500" placeholder="Depart Time End" />
                 </div>
               </div>
             </div>
@@ -102,9 +102,9 @@ export default function GetAQuote() {
             {/* Add Stop Section */}
             <div className="sm:col-span-2 mt-6">
               <div className="flex items-center justify-between">
-                <button type="button" onClick={addStop} className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">Add Stop</button>
+                <button type="button" onClick={addStop} className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">Add Stop</button>
                 {stops.length > 0 && (
-                  <button type="button" onClick={removeStops} className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Remove All Stops</button>
+                  <button type="button" onClick={removeStops} className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center">Remove All Stops</button>
                 )}
               </div>
               {stops.map((stop, index) => (
@@ -127,7 +127,7 @@ export default function GetAQuote() {
               <button
                 type="button"
                 onClick={toggleReturnDate}
-                className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center"
               >
                 Add Return
               </button>
@@ -135,7 +135,7 @@ export default function GetAQuote() {
                 <button
                   type="button"
                   onClick={removeReturn}
-                  className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center"
                 >
                   Remove Return
                 </button>
@@ -152,7 +152,7 @@ export default function GetAQuote() {
                     name="return-date" 
                     value={returnDate.date}
                     onChange={(e) => setReturnDate({ ...returnDate, date: e.target.value })}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-l-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                   />
                 </div>
                 <span className="mx-4 text-gray-500">at</span>
@@ -163,35 +163,35 @@ export default function GetAQuote() {
                     name="return-time" 
                     value={returnDate.time}
                     onChange={(e) => setReturnDate({ ...returnDate, time: e.target.value })}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-r-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                   />
                 </div>
               </div> 
             )}
 
             <div className="sm:col-span-2 mt-10">
-              <button onClick={() => setActiveFormHandler('bus-requirements')} type="button" className="block w-full rounded-md bg-rose-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-rose-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600">Continue </button>
+              <button onClick={() => setActiveFormHandler('bus-requirements')} type="button" className="block w-full rounded-md bg-rose-600 px-3.5 py-2.5 text-center text-m font-semibold text-white shadow-sm hover:bg-rose-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600">Continue </button>
             </div>
           </div>
           </div>
         </form> )}
         {activeForm === 'bus-requirements' && (
         <form action="#" method="POST" className="mx-auto mt-10 max-w-xl sm:mt-10" id="bus-requirements">
-          <h2 class="text-4xl font-bold dark:text-white py-4">Bus Requirements</h2>
+          <h2 className="text-4xl font-bold dark:text-white py-4">Bus Requirements</h2>
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
             {/* Destination Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="destination" className="block text-sm font-semibold leading-6 text-gray-900">Party Size</label>
+              <label htmlFor="destination" className="block text-m font-semibold leading-6 text-gray-900">Party Size</label>
               <div className="mt-2.5">
-                <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6" placeholder='Number of seats will you need' />
+                <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Number of seats will you need' />
               </div>
             </div>
 
             {/* Pickup Location Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="pickup-location" className="block text-sm font-semibold leading-6 text-gray-900">More details</label>
+              <label htmlFor="pickup-location" className="block text-m font-semibold leading-6 text-gray-900">More details</label>
               <div className="mt-2.5">
-                <textarea name="pickup-location" rows={4} id="pickup-location" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6" placeholder='Things we should know, special needs, and other requests' />
+                <textarea name="pickup-location" rows={4} id="pickup-location" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Things we should know, special needs, and other requests' />
               </div>
             </div>
             <div className="flex justify-between">
@@ -208,21 +208,21 @@ export default function GetAQuote() {
         </form> )}
         {activeForm === 'contact-for-quote' && (
         <form action="#" method="POST" className="mx-auto mt-10 max-w-xl sm:mt-10" id="contact-for-quote">
-          <h2 class="text-4xl font-bold dark:text-white py-4">Contact for Quote</h2>
+          <h2 className="text-4xl font-bold dark:text-white py-4">Contact for Quote</h2>
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
             {/* Name Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="name" className="block text-sm font-semibold leading-6 text-gray-900">Name</label>
+              <label htmlFor="name" className="block text-m font-semibold leading-6 text-gray-900">Name</label>
               <div className="mt-2.5">
-                <input type="text" name="destination" id="name" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6" placeholder='Jonathan Smithereen' />
+                <input type="text" name="destination" id="name" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Jonathan Smithereen' />
               </div>
             </div>
 
             {/* Email Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="email" className="block text-sm font-semibold leading-6 text-gray-900">Email</label>
+              <label htmlFor="email" className="block text-m font-semibold leading-6 text-gray-900">Email</label>
               <div className="mt-2.5">
-                <input type="text" name="email" id="pickup-location" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-sm sm:leading-6" placeholder='email@email.com' />
+                <input type="text" name="email" id="pickup-location" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='email@email.com' />
               </div>
             </div>
 
@@ -230,11 +230,11 @@ export default function GetAQuote() {
             <div className="sm:col-span-2">
               <div className="flex items-center justify-between">
                 <div className="relative w-1/2">
-                  <input type="date" name="depart-date-start" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500" placeholder="Depart Date Start" />
+                  <input type="date" name="depart-date-start" className="bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-l-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500" placeholder="Depart Date Start" />
                 </div>
                 <span className="mx-4 text-gray-500">to</span>
                 <div className="relative w-1/2">
-                  <input type="time" name="depart-date-end" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500" placeholder="Depart Time End" />
+                  <input type="time" name="depart-date-end" className="bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-r-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500" placeholder="Depart Time End" />
                 </div>
               </div>
             </div>
@@ -242,9 +242,9 @@ export default function GetAQuote() {
             {/* Add Stop Section */}
             <div className="sm:col-span-2 mt-6">
               <div className="flex items-center justify-between">
-                <button type="button" onClick={addStop} className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">Add Stop</button>
+                <button type="button" onClick={addStop} className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">Add Stop</button>
                 {stops.length > 0 && (
-                  <button type="button" onClick={removeStops} className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Remove All Stops</button>
+                  <button type="button" onClick={removeStops} className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center">Remove All Stops</button>
                 )}
               </div>
               {stops.map((stop, index) => (
@@ -267,7 +267,7 @@ export default function GetAQuote() {
               <button
                 type="button"
                 onClick={toggleReturnDate}
-                className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center"
               >
                 Add Return
               </button>
@@ -275,7 +275,7 @@ export default function GetAQuote() {
                 <button
                   type="button"
                   onClick={removeReturn}
-                  className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center"
                 >
                   Remove Return
                 </button>
@@ -292,7 +292,7 @@ export default function GetAQuote() {
                     name="return-date" 
                     value={returnDate.date}
                     onChange={(e) => setReturnDate({ ...returnDate, date: e.target.value })}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-l-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                   />
                 </div>
                 <span className="mx-4 text-gray-500">at</span>
@@ -303,7 +303,7 @@ export default function GetAQuote() {
                     name="return-time" 
                     value={returnDate.time}
                     onChange={(e) => setReturnDate({ ...returnDate, time: e.target.value })}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-m rounded-r-lg focus:ring-gray-500 focus:border-gray-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                   />
                 </div>
               </div>
