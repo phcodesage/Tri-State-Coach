@@ -1,53 +1,131 @@
-import Navbar from "../Components/Navbar"
-import Footer from "../Components/Footer"
+import Navbar from "../Components/Navbar";
+import Footer from "../Components/Footer";
+import { useState } from 'react'
+import { Switch } from '@headlessui/react'
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ')
+}
 
 export default function GetAQuote() {
+  const [agreed, setAgreed] = useState(false)
+
+  const [stops, setStops] = useState([]);
+
+  const addStop = () => {
+    setStops([...stops, '']);
+  };
+
+  const removeStops = () => {
+    setStops([]);
+  };
+
   return (
     <>
-    <Navbar />
-    <div className="flex-col justify-center items-center text-center m-5 h-screen">
-    <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Get a Quote</h1>
-    <div className="flex justify-center gap-4">
+      <Navbar />
 
-    <div className="relative inline-block text-left">
-        <div>
-            <button type="button" className="inline-flex w-full justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none" id="menu-button-1" aria-expanded="true" aria-haspopup="true">
-            <svg className="w-16 h-16 text-gray-800 dark:text-white" fill="#000000" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>paper-plane</title> <path d="M0 14.016l9.216 6.912 18.784-16.928-14.592 20.064 10.592 7.936 8-32zM8 32l6.016-4-6.016-4v8z"></path> </g></svg>
+      <div className="isolate bg-white px-6 py-24 sm:py-32 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Get a Quote</h2>
+        </div>
+        <form action="#" method="POST" className="mx-auto mt-16 max-w-xl sm:mt-20">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="destination" className="block text-sm font-semibold leading-6 text-gray-900">
+                Destination
+              </label>
+              <div className="mt-2.5">
+                <input
+                  type="text"
+                  name="destination"
+                  id="destination"
+                  className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-rose-600 sm:text-sm sm:leading-6"
+                  placeholder='Destination Address'
+                />
+              </div>
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="pickup-location" className="block text-sm font-semibold leading-6 text-gray-900">
+                Pick-up Location
+              </label>
+              <div className="mt-2.5">
+                <input
+                  type="text"
+                  name="pickup-location"
+                  id="pickup-location"
+                  className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-rose-600 sm:text-sm sm:leading-6"
+                  placeholder='Pick-up Address'
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-2">
+            <div className="flex items-center justify-between">
+              <div className="relative w-1/2">
+                <input 
+                  type="date" 
+                  name="depart-date-start" 
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-rose-500 focus:border-rose-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-rose-500 dark:focus:border-rose-500" 
+                  placeholder="Depart Date Start" 
+                />
+              </div>
+              <span className="mx-4 text-gray-500">to</span>
+              <div className="relative w-1/2">
+                <input 
+                  type="time" 
+                  name="depart-date-end" 
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-rose-500 focus:border-rose-500 block w-full pl-3.5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-rose-500 dark:focus:border-rose-500" 
+                  placeholder="Depart Time End" 
+                />
+              </div>
+            </div>
+            </div>
+            
+            {/* Additional fields for the form */}
+            
+            {/* Add Stop Section */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={addStop}
+              className="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            >
+              Add Stop
             </button>
+            {stops.length > 0 && (
+              <button
+                type="button"
+                onClick={removeStops}
+                className="text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+              >
+                Remove All Stops
+              </button>
+            )}
+          </div>
+          {stops.map((stop, index) => (
+            <div key={index} className="mt-2">
+              <input
+                type="text"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                placeholder={`Stop ${index + 1}`}
+              />
+            </div>
+          ))}
         </div>
-        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button-1" tabIndex="-1">
-  
-        </div>
-    </div>
+            <div className="mt-10 sm:col-span-2">
+              <button
+                type="submit"
+                className="block w-full rounded-md bg-rose-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-rose-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
 
-
-    <div className="relative inline-block text-left">
-        <div>
-            <button type="button" className="inline-flex w-full justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none" id="menu-button-2" aria-expanded="true" aria-haspopup="true">
-            <svg className="w-16 h-16 text-gray-800 dark:text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-    <path d="M5 6V15.8C5 16.9201 5 17.4802 5.21799 17.908C5.40973 18.2843 5.71569 18.5903 6.09202 18.782C6.51984 19 7.07989 19 8.2 19H15.8C16.9201 19 17.4802 19 17.908 18.782C18.2843 18.5903 18.5903 18.2843 18.782 17.908C19 17.4802 19 16.9201 19 15.8V6M5 6C5 6 5 3 12 3C19 3 19 6 19 6M5 6H19M5 13H19M17 21V19M7 21V19M8 16H8.01M16 16H16.01" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-            </button>
-        </div>
-        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button-2" tabIndex="-1">
-
-        </div>
-    </div>
-
-
-    <div className="relative inline-block text-left">
-        <div>
-            <button type="button" className="inline-flex w-full justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none" id="menu-button-3" aria-expanded="true" aria-haspopup="true">
-            <svg className="w-16 h-16 text-gray-800 dark:text-white" fill="#000000" height="200px" width="200px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 455 455" xmlSpace="preserve"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M297.5,212.5c-8.271,0-15,6.729-15,15s6.729,15,15,15s15-6.729,15-15S305.771,212.5,297.5,212.5z"></path> <polygon points="55,98.788 18.344,98.788 18.344,128.788 55,128.788 55,212.5 15,212.5 15,242.5 55,242.5 55,326.212 15,326.212 15,356.212 55,356.212 55,455 125,455 125,0 55,0 "></polygon> <path d="M155,0v455h285V0H155z M357.5,277.985c-12.009,0-23.193-4.807-31.494-13.534c-0.379-0.399-0.763-0.818-1.149-1.256 c-7.587,5.829-17.071,9.305-27.357,9.305c-24.813,0-45-20.187-45-45s20.187-45,45-45s45,20.187,45,45 c0,15.12,8.081,20.485,15,20.485s15-5.365,15-20.485c0-41.355-33.645-75-75-75s-75,33.645-75,75s33.645,75,75,75 c10.131,0,19.952-1.981,29.189-5.888l11.687,27.63c-12.955,5.479-26.708,8.258-40.875,8.258c-57.897,0-105-47.103-105-105 s47.103-105,105-105s105,47.103,105,105C402.5,260.644,379.862,277.985,357.5,277.985z"></path> </g> </g></svg>
-            </button>
-        </div>
-        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button-3" tabIndex="-1">
-
-        </div>
-    </div>
-</div>
-</div>
-    <Footer />
+      <Footer />
     </>
-  )
+  );
 }
