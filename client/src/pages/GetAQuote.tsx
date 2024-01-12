@@ -228,7 +228,7 @@ export default function GetAQuote() {
 
             {/* Phone Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="phone" className="block text-m font-semibold leading-6 text-gray-900">Email</label>
+              <label htmlFor="phone" className="block text-m font-semibold leading-6 text-gray-900">Phone Number</label>
               <div className="mt-2.5">
                 <input type="number" name="phone" id="phone-number" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='+1 (631) 543 2500' />
               </div>

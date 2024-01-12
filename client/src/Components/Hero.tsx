@@ -139,7 +139,7 @@ export default function Example() {
               >
                 COLLEGE BREAKS
               </a>
-              <a href="/quote" className="text-m font-semibold leading-6 text-gray-900 border-rose-600">
+              <a href="/quote" className=" px-3.5 py-2.5 rounded-md text-m font-semibold leading-6 text-gray-900 border-gray-600 hover:bg-gray-500 hover:text-white">
                 REQUEST A QUOTE <span aria-hidden="true">→</span>
               </a>
             </div>
