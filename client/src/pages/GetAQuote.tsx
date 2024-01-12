@@ -1,19 +1,21 @@
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import { useState } from 'react'
-import { Switch } from '@headlessui/react'
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
 export default function GetAQuote() {
-  const [agreed, setAgreed] = useState(false)
-
+  const [agreed, setAgreed] = useState(false);
   const [stops, setStops] = useState([]);
 
   const addStop = () => {
-    setStops([...stops, '']);
+    setStops([...stops, { id: Math.random(), value: '' }]);
+  };
+
+  const removeStop = (id) => {
+    setStops(stops.filter(stop => stop.id !== id));
   };
 
   const removeStops = () => {
@@ -84,35 +86,51 @@ export default function GetAQuote() {
             {/* Additional fields for the form */}
             
             {/* Add Stop Section */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between">
+            <div className="mt-6">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={addStop}
+            className="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+          >
+            Add Stop
+          </button>
+          {stops.length > 0 && (
             <button
               type="button"
-              onClick={addStop}
-              className="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+              onClick={removeStops}
+              className="text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
             >
-              Add Stop
+              Remove All Stops
             </button>
-            {stops.length > 0 && (
-              <button
-                type="button"
-                onClick={removeStops}
-                className="text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-              >
-                Remove All Stops
-              </button>
-            )}
-          </div>
-          {stops.map((stop, index) => (
-            <div key={index} className="mt-2">
-              <input
-                type="text"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                placeholder={`Stop ${index + 1}`}
-              />
-            </div>
-          ))}
+          )}
         </div>
+        {stops.map((stop, index) => (
+          <div key={stop.id} className="mt-2 flex items-center">
+            <input
+              type="text"
+              value={stop.value}
+              onChange={(e) => {
+                const newStops = [...stops];
+                newStops[index].value = e.target.value;
+                setStops(newStops);
+              }}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              placeholder={`Stop ${index + 1}`}
+            />
+            <button
+              type="button"
+              onClick={() => removeStop(stop.id)}
+              className="ml-2 text-red-500 hover:text-red-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        ))}
+      </div>
+        
             <div className="mt-10 sm:col-span-2">
               <button
                 type="submit"
