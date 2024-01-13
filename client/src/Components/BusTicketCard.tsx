@@ -32,7 +32,7 @@ export default function BusTicketCard({ ticket }) {
           </div>
         </div>
       </div>
-      <div className="absolute bottom-0 px-5 pb-5 w-full flex justify-between items-end">
+      <div className="absolute bottom-0 px-5 pb-5 w-full flex justify-around items-end">
         <div>
           <span className="text-2 font-semibold text-gray-900 dark:text-white">{ticket.price} USD/{ticket.tripType}</span>
           <div className="text-m font-bold text">

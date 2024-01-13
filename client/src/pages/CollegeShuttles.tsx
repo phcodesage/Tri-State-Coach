@@ -25,7 +25,7 @@ const busLines = [
       title: 'Binghamton Spring Break',
       date: 'Mar 1',
       stops: 'Fresh Meadows, Hicksville,Commack',
-      price: '$140.00',
+      price: '$75.00',
       seats: 3,
       tripType: 'Round Trip'
       }
@@ -65,7 +65,7 @@ function CollegeShuttles() {
             <h2 className="text-2xl font-bold my-4">{lineName}</h2>
             <div className="flex overflow-x-auto p-6 bg-rose-900 scrollbar-custom" style={{ minHeight: '390px' }}>
               {groupedTickets[lineName].map((ticket, idx) => (
-                <div key={idx} className="flex-shrink-0 mr-4" style={{ width: '336px' }}>
+                <div key={idx} className="flex-shrink-0" style={{ width: '336px' }}>
                   <BusTicketCard ticket={ticket} />
                 </div>
               ))}
