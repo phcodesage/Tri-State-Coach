@@ -1,51 +1,42 @@
-import { SfButton, SfIconShoppingCart } from '@storefront-ui/react';
 import TicketCard from '../assets/tick-item-card-white.svg'
-
+import BearcatLogo from '../assets/binghamton-logo-bearcat.png'
 
 export default function BusTicketCard({ ticket }) {
-
   return (
-    <div className="bus_line_item border border-neutral-200 rounded-md hover:shadow-lg max-w-[300px]" style={{
-      backgroundImage: `url(${TicketCard})`, // Use the imported image
-      backgroundPosition: '50% 0',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: 'cover', // Changed to 'cover' for better responsiveness
-    }}>
-      <a href={ticket.link} className="block relative">
-        <img
-          src={ticket.imageUrl}
-          alt={ticket.title}
-          className="object-cover h-auto rounded-md aspect-square"
-          width="300"
-          height="300"
-        />
-        <div className="ticket_launch_icon absolute bottom-0 right-0 mr-2 mb-2"></div>
+    <div className="relative w-full max-w-xs overflow-hidden rounded-lg shadow-lg"
+         style={{ 
+           backgroundImage: `url(${TicketCard})`, 
+           backgroundSize: 'cover', 
+           backgroundPosition: 'center center', 
+           backgroundRepeat: 'no-repeat',
+           minHeight: '390px'
+         }}>
+      <a href={ticket.link}>
+        <img className="p-8 rounded-t-lg" src={ticket.imageUrl || BearcatLogo} alt={ticket.title} />
       </a>
-      <div className="p-4 border-t border-neutral-200">
-        <h3 className="ticket_heading font-bold">{ticket.title}</h3>
-        <div className="ticket_dates_block py-2">
-          <span className="ticket_dates_departure">{ticket.departureDate}</span>
-          <span className="ticket_hyphen mx-1">-</span>
-          <span className="ticket_dates_return">{ticket.returnDate}</span>
+      <div className="px-5 pb-5">
+        <div className="my-4">
+          <a href={ticket.link}>
+              <h5 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">{ticket.title}</h5>
+          </a>
+          <div className="my-2">
+              <div className="text-sm">{ticket.date}</div>
+              <div className="text-sm my-1">{ticket.stops}</div>
+          </div>
         </div>
-        <div className="ticket_stops_block py-1">
-          <span className="ticket_stops_text">{ticket.stops.join(', ')}</span>
-        </div>
-        <div className="ticket_price_cart_block flex justify-between items-center py-2">
+      </div>
+      <div className="px-5 pb-5 absolute bottom-0">
+        <div className="flex items-center justify-end h-full">
           <div>
-            <span className="ticket_price font-bold">${ticket.price}</span>
-            <span className="ticket_trip_type_text mx-1">/</span>
-            <span className="ticket_trip_type_text">{ticket.tripType}</span>           
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{ticket.price}</span>
           </div>
-          <SfButton variant="tertiary" size="sm" aria-label="Add to cart">
-            <SfIconShoppingCart size="sm" />
-          </SfButton>
-
+          <div className="text-sm mb-5">
+            Seats Available: {ticket.seats}
+          </div>
+          {/* Add to cart button or similar action */}
         </div>
-        <div className="text-left">
-            <span className="ticket_trip_type_text">Seats Available: {ticket.seatsAvailable}</span>
-          </div>
       </div>
     </div>
   );
 }
+
