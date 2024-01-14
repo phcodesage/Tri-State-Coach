@@ -1,3 +1,4 @@
+import Footer from '../Components/Footer'
 import Navbar from '../Components/Navbar'
 import Bushero from '../assets/Regency_Buses_Coach_Bus_Fleet_Charter-p-1080.png'
 
@@ -29,7 +30,9 @@ function Chartering() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
+
   )
 }
 
