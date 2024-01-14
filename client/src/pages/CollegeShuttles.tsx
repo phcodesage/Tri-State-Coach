@@ -21,7 +21,7 @@ const busLines = [
     lineName: "Bearcat Bus - SUNY Binghamton",
     tickets: [
       {// ... array of tickets for this bus line
-      id: 'ticket1',
+      id: 'ticket2',
       title: 'Binghamton Spring Break',
       date: 'Mar 1',
       stops: 'Fresh Meadows, Hicksville,Commack',
@@ -34,7 +34,43 @@ const busLines = [
   {
     lineName: "Red Dragon Express - SUNY Cortland",
     tickets: [
-      // ... array of tickets for this bus line
+      {// ... array of tickets for this bus line
+      id: 'ticket3',
+      title: 'Delaware Spring Break',
+      date: 'Mar 1',
+      stops: 'Fresh Meadows, Hicksville,Commack',
+      price: '$130.00',
+      seats: 49,
+      tripType: 'Round Trip'
+      }
+    ],
+  },
+  {
+    lineName: "Delaware to Long Island - University of Delaware",
+    tickets: [
+      {// ... array of tickets for this bus line
+      id: 'ticket3',
+      title: 'Delaware Spring Break',
+      date: 'Mar 1',
+      stops: 'Fresh Meadows, Hicksville,Commack',
+      price: '$130.00',
+      seats: 49,
+      tripType: 'Round Trip'
+      }
+    ],
+  },
+  {
+    lineName: "Oswego to Long Island - SUNY Oswego",
+    tickets: [
+      {// ... array of tickets for this bus line
+      id: 'ticket3',
+      title: 'Delaware Spring Break',
+      date: 'Mar 1',
+      stops: 'Fresh Meadows, Hicksville,Commack',
+      price: '$130.00',
+      seats: 49,
+      tripType: 'Round Trip'
+      }
     ],
   },
   // ... other bus lines
@@ -66,7 +102,7 @@ function CollegeShuttles() {
             <div className="flex overflow-x-auto p-6 bg-rose-900 scrollbar-custom" style={{ minHeight: '390px' }}>
               {groupedTickets[lineName].map((ticket, idx) => (
                 <div key={idx} className="flex-shrink-0" style={{ width: '336px' }}>
-                  <BusTicketCard ticket={ticket} />
+                  <BusTicketCard ticket={ticket} lineName={lineName} />
                 </div>
               ))}
             </div>
