@@ -4,6 +4,7 @@ import Bushero from '../assets/Regency_Buses_Coach_Bus_Fleet_Charter-p-1080.png'
 
 function Chartering() {
   return (
+    <>
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <div className="flex-grow flex items-center justify-center px-4 py-6">
@@ -30,8 +31,10 @@ function Chartering() {
           </div>
         </div>
       </div>
-      <Footer />
+      
     </div>
+    <Footer />
+    </>
 
   )
 }

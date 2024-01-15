@@ -11,7 +11,7 @@ export default function Footer() {
     return <div />;
   }
   return (
-    <footer className="bg-gray-800 my-" aria-labelledby="footer-heading" style={{marginTop: '100px'}}>
+    <footer className="bg-gray-800 my-" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">
         Footer
       </h2>
