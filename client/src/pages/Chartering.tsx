@@ -23,7 +23,7 @@ function Chartering() {
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                 </svg>
               </a>
-              <a href="#" className="inline-flex items-center px-3 py-2 text-m font-medium text-center text-white bg-gray-600 rounded-lg hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300">
+              <a href="/invoice" className="inline-flex items-center px-3 py-2 text-m font-medium text-center text-white bg-gray-600 rounded-lg hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300">
                 Pay Invoice
               </a>
             </div>

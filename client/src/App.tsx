@@ -21,7 +21,7 @@ function App() {
         <Route path="/quote" element={<GetAQuote />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/charter-work" element={<Chartering />} />
-        <Route path="/product/invoice" element={<Invoice />} />
+        <Route path="/invoice" element={<Invoice />} />
         <Route path="/services" element={<Services />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
