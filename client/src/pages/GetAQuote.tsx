@@ -1,11 +1,19 @@
 import Navbar from "../Components/Navbar";
 import { useState } from 'react';
+import busImage from '../assets/two-regency-busses-parked-with-each-other.jpg';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function GetAQuote() {
+  const backgroundStyle = window.innerWidth < 1024 ? 
+    { 
+      backgroundImage: `linear-gradient(rgba(0, 0, 0, .69), rgba(0, 0, 0, .69)), url(${busImage})`,
+backgroundPosition: '0 0, 25%',
+backgroundSize: 'auto, cover'
+} : {}
+
   const [activeForm, setActiveForm] = useState('route-details');
   const [stops, setStops] = useState([]);
   const [returnDate, setReturnDate] = useState({ date: '', time: '' });
@@ -50,12 +58,20 @@ export default function GetAQuote() {
     console.log({ stops, returnDate, contactInfo });
   };
   return (
-    <>
-      <Navbar />
+    <div className="h-screen">
+    <Navbar />
+      <div className="flex flex-col lg:flex-row">
+        
+        {/* Image Container - Hidden on mobile, shown on larger screens */}
+        <div className="hidden lg:block lg:w-1/2 h-screen">
+          <img src={busImage} alt="Bus" className="w-full h-full object-cover" />
+        </div>
 
-      <div className="isolate bg-white px-6 py-10 sm:py-10 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Get a Quote</h2>
+        <div className="isolate lg:bg-transparent px-6 py-10 sm:py-10 lg:px-8 w--full lg:w-1/2"
+style={backgroundStyle}>
+  
+    <div className="mx-auto max-w-2xl text-center">
+        <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Get a Quote</h2>
           {/* Buttons below the heading */}
           <div className="flex justify-center gap-4 mt-4">
             {/* Button styles adjusted */}
@@ -68,19 +84,19 @@ export default function GetAQuote() {
         
         {activeForm === 'route-details' && (
         <form action="#" method="POST" className="mx-auto mt-10 max-w-xl sm:mt-10" id="route-details">
-          <h2 className="text-4xl font-bold dark:text-white py-4">Route Details</h2>
+          <h2 className="text-4xl font-bold text-white py-4">Route Details</h2>
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
             {/* Destination Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="destination" className="block text-m font-semibold leading-6 text-gray-900">Destination</label>
+              <label htmlFor="destination" className="block text-m font-semibold leading-6 text-white">Destination</label>
               <div className="mt-2.5">
-                <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Destination Address' />
+                <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-white shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Destination Address' />
               </div>
             </div>
 
             {/* Pickup Location Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="pickup-location" className="block text-m font-semibold leading-6 text-gray-900">Pick-up Location</label>
+              <label htmlFor="pickup-location" className="block text-m font-semibold leading-6 text-white">Pick-up Location</label>
               <div className="mt-2.5">
                 <input type="text" name="pickup-location" id="pickup-location" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Pick-up Address' />
               </div>
@@ -257,6 +273,7 @@ export default function GetAQuote() {
         </form>
         )}
       </div>
-    </>
+      </div>
+    </div>
   );
 }
