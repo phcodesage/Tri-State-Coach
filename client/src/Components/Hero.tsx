@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Dialog } from '@headlessui/react'
 import logo from '../assets/tri-state-coach-logo.png'
-import React from 'react';
+import AlertWarning from './Alertwarning';
 
 
 const navigation = [
@@ -27,7 +27,8 @@ export default function Example() {
 
   return (
     <div className="bg-white h-screen">
-      <header className="absolute inset-x-0 top-0 z-50">
+      <AlertWarning />
+      <header className="absolute inset-x-0 top-10 z-50">
         <nav className="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
           <div className="flex lg:flex-1">
             <a href="#" className="-m-1.5 p-1.5">
