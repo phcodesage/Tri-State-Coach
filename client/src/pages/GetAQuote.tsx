@@ -9,10 +9,10 @@ function classNames(...classes) {
 export default function GetAQuote() {
   const backgroundStyle = window.innerWidth < 1024 ? 
     { 
-      backgroundImage: `linear-gradient(rgba(0, 0, 0, .69), rgba(0, 0, 0, .69)), url(${busImage})`,
+      background: `linear-gradient(rgba(0, 0, 0, .69), rgba(0, 0, 0, .69)), url(${busImage})`,
 backgroundPosition: '0 0, 25%',
 backgroundSize: 'auto, cover'
-} : {}
+} : { background: 'white'}
 
   const [activeForm, setActiveForm] = useState('route-details');
   const [stops, setStops] = useState([]);
@@ -84,11 +84,11 @@ style={backgroundStyle}>
         
         {activeForm === 'route-details' && (
         <form action="#" method="POST" className="mx-auto mt-10 max-w-xl sm:mt-10" id="route-details">
-          <h2 className="text-4xl font-bold text-white py-4">Route Details</h2>
+          <h2 className="text-4xl font-bold text-gray py-4">Route Details</h2>
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
             {/* Destination Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="destination" className="block text-m font-semibold leading-6 text-white">Destination</label>
+              <label htmlFor="destination" className="block text-m font-semibold leading-6 text-gray">Destination</label>
               <div className="mt-2.5">
                 <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-white shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Destination Address' />
               </div>
@@ -96,7 +96,7 @@ style={backgroundStyle}>
 
             {/* Pickup Location Input */}
             <div className="sm:col-span-2">
-              <label htmlFor="pickup-location" className="block text-m font-semibold leading-6 text-white">Pick-up Location</label>
+              <label htmlFor="pickup-location" className="block text-m font-semibold leading-6 text-gray">Pick-up Location</label>
               <div className="mt-2.5">
                 <input type="text" name="pickup-location" id="pickup-location" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Pick-up Address' />
               </div>
