@@ -33,8 +33,9 @@ export default function Navbar() {
     { name: 'Home', href: '/', current: currentPath === '/' },
     { name: 'College Shuttles', href: '/college-shuttles', current: currentPath === '/college-shuttles' },
     { name: 'Get a Quote', href: '/quote', current: currentPath === '/quote' },
-    { name: 'Chartering', href: '/charter-work', current: currentPath === '/charter-work' },
     { name: 'Contact Us', href: '/contact-us', current: currentPath === '/contact-us' },
+    { name: 'Our Buses', href: '/about-us', current: currentPath === '/about-us' },
+    { name: 'Chartering', href: '/charter-work', current: currentPath === '/charter-work' },
   ];
   
   function classNames(...classes:any) {

@@ -1,5 +1,5 @@
 import Navbar from "../Components/Navbar";
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import busImage from '../assets/two-regency-busses-parked-with-each-other.jpg';
 
 function classNames(...classes) {
@@ -7,13 +7,7 @@ function classNames(...classes) {
 }
 
 export default function GetAQuote() {
-  const backgroundStyle = window.innerWidth < 1024 ? 
-    { 
-      background: `linear-gradient(rgba(0, 0, 0, .69), rgba(0, 0, 0, .69)), url(${busImage})`,
-backgroundPosition: '0 0, 25%',
-backgroundSize: 'auto, cover'
-} : { background: 'white'}
-
+  const [backgroundStyle, setBackgroundStyle] = useState({});
   const [activeForm, setActiveForm] = useState('route-details');
   const [stops, setStops] = useState([]);
   const [returnDate, setReturnDate] = useState({ date: '', time: '' });
@@ -57,6 +51,29 @@ backgroundSize: 'auto, cover'
     // For example, you can send data to an API or log it to the console
     console.log({ stops, returnDate, contactInfo });
   };
+
+  useEffect(() => {
+    const updateBackgroundStyle = () => {
+      if (window.innerWidth < 1024) {
+        setBackgroundStyle({
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, .69), rgba(0, 0, 0, .69)), url(${busImage})`,
+          backgroundPosition: '0 0, 25%',
+          backgroundSize: 'auto, cover'
+        });
+      } else {
+        setBackgroundStyle({});
+      }
+    };
+
+    window.addEventListener('resize', updateBackgroundStyle);
+    updateBackgroundStyle(); // Initial call to set background
+
+    return () => {
+      window.removeEventListener('resize', updateBackgroundStyle);
+    };
+  }, []);
+
+
   return (
     <div className="h-screen">
     <Navbar />
@@ -67,8 +84,7 @@ backgroundSize: 'auto, cover'
           <img src={busImage} alt="Bus" className="w-full h-full object-cover" />
         </div>
 
-        <div className="isolate lg:bg-transparent px-6 py-10 sm:py-10 lg:px-8 w--full lg:w-1/2"
-style={backgroundStyle}>
+        <div className="isolate lg:bg-transparent px-6 py-10 sm:py-10 lg:px-8 w--full lg:w-1/2">
   
     <div className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Get a Quote</h2>
