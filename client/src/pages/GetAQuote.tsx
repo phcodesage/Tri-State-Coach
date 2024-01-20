@@ -1,18 +1,21 @@
 import Navbar from "../Components/Navbar";
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import busImage from '../assets/two-regency-busses-parked-with-each-other.jpg';
+import { useForm } from 'react-hook-form';
 
-function classNames(...classes) {
+function classNames(...classes:any) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function GetAQuote() {
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const [backgroundStyle, setBackgroundStyle] = useState({});
   const [activeForm, setActiveForm] = useState('route-details');
   const [stops, setStops] = useState([]);
   const [returnDate, setReturnDate] = useState({ date: '', time: '' });
-  const [contactInfo, setContactInfo] = useState({ name: '', email: '', phone: '', company: '' });
 
+
+  
   const addStop = () => {
     setStops([...stops, { id: Math.random(), value: '' }]);
   };
@@ -45,11 +48,9 @@ export default function GetAQuote() {
     setContactInfo({ ...contactInfo, [e.target.name]: e.target.value });
   };
 
-  const handleSubmitAll = (e) => {
-    e.preventDefault();
-    // Here you would handle the submission of all forms data
-    // For example, you can send data to an API or log it to the console
-    console.log({ stops, returnDate, contactInfo });
+  const onSubmit = (data) => {
+    console.log(data);
+    // Handle form submission
   };
 
   useEffect(() => {
@@ -106,7 +107,7 @@ export default function GetAQuote() {
             <div className="sm:col-span-2">
               <label htmlFor="destination" className="block text-m font-semibold leading-6 text-gray">Destination</label>
               <div className="mt-2.5">
-                <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-white shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Destination Address' />
+                <input type="text" name="destination" id="destination" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Destination Address' />
               </div>
             </div>
 
@@ -239,14 +240,14 @@ export default function GetAQuote() {
           </div>
         </form> )}
         {activeForm === 'contact-for-quote' && (
-        <form action="#" method="POST" className="mx-auto mt-10 max-w-xl sm:mt-10" id="contact-for-quote">
+        <form onSubmit={handleSubmit(onSubmit)} action="#" method="POST" className="mx-auto mt-10 max-w-xl sm:mt-10" id="contact-for-quote">
           <h2 className="text-4xl font-bold dark:text-white py-4">Contact for Quote</h2>
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
             {/* Name Input */}
             <div className="sm:col-span-2">
               <label htmlFor="name" className="block text-m font-semibold leading-6 text-gray-900">Name</label>
               <div className="mt-2.5">
-                <input type="text" name="destination" id="name" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Jonathan Smithereen' />
+              <input {...register('name', { required: 'Name is required' })} type="text" id="name" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='Your Name' /> {errors.name && <span className="text-red-500">This field is required</span>}
               </div>
             </div>
 
@@ -254,7 +255,7 @@ export default function GetAQuote() {
             <div className="sm:col-span-2">
               <label htmlFor="email" className="block text-m font-semibold leading-6 text-gray-900">Email</label>
               <div className="mt-2.5">
-                <input type="text" name="email" id="email" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='email@email.com' />
+                <input {...register('email', { required: true })} type="text" name="email" id="email" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='email@email.com' />{errors.name && <span className="text-red-500">This field is required</span>}
               </div>
             </div>
 
@@ -262,7 +263,7 @@ export default function GetAQuote() {
             <div className="sm:col-span-2">
               <label htmlFor="phone" className="block text-m font-semibold leading-6 text-gray-900">Phone Number</label>
               <div className="mt-2.5">
-                <input type="number" name="phone" id="phone-number" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='+1 (631) 543 2500' />
+                <input {...register('phone', { required: true })} type="number" name="phone" id="phone-number" className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" placeholder='+1 (631) 543 2500' />{errors.name && <span className="text-red-500">This field is required</span>}
               </div>
             </div>
 

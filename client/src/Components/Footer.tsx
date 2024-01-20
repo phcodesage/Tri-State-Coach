@@ -42,7 +42,7 @@ export default function Footer() {
                   </li>
                   <li>
                     <a
-                      href="/product/invoice"
+                      href="/invoice"
                       className="text-m leading-6 text-gray-300 hover:text-white"
                     >
                       Pay Invoice

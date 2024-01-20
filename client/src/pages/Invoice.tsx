@@ -3,6 +3,7 @@ import Bushero from '../assets/Regency_Buses_Coach_Bus_Fleet_Charter-p-1080.png'
 import Navbar from '../Components/Navbar';
 
 function Invoice() {
+    const [isAgreed, setIsAgreed] = useState(false);
     const [step, setStep] = useState(1);
     const [amount, setAmount] = useState(1)
     const [formData, setFormData] = useState({
@@ -58,6 +59,7 @@ function Invoice() {
         }
     };
 
+    
     return (
         <div className='flex flex-col justify-between h-screen'>
             <Navbar />
@@ -77,9 +79,9 @@ function Invoice() {
                                     How much would you like to pay today?
                                 </h2>
                                 <div className="flex flex-col items-center justify-center my-4 gap-y-2">
-                                    <div className="flex items-center justify-center rounded-md gap-x-2">
-                                        <button onClick={decrementAmount} className="p-2">
-                                        <svg width="50px" height="64px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>minus-circle</title> <desc>Created with Sketch Beta.</desc> <defs> </defs> <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd" sketch:type="MSPage"> <g id="Icon-Set" sketch:type="MSLayerGroup" transform="translate(-516.000000, -1087.000000)" fill="#000000"> <path d="M532,1117 C524.268,1117 518,1110.73 518,1103 C518,1095.27 524.268,1089 532,1089 C539.732,1089 546,1095.27 546,1103 C546,1110.73 539.732,1117 532,1117 L532,1117 Z M532,1087 C523.163,1087 516,1094.16 516,1103 C516,1111.84 523.163,1119 532,1119 C540.837,1119 548,1111.84 548,1103 C548,1094.16 540.837,1087 532,1087 L532,1087 Z M538,1102 L526,1102 C525.447,1102 525,1102.45 525,1103 C525,1103.55 525.447,1104 526,1104 L538,1104 C538.553,1104 539,1103.55 539,1103 C539,1102.45 538.553,1102 538,1102 L538,1102 Z" id="minus-circle" sketch:type="MSShapeGroup"> </path> </g> </g> </g></svg>
+                                    <div className="flex items-center justify-center rounded-md gap-x-2 border">
+                                        <button onClick={decrementAmount} className="p-1 md:p-2">
+                                        <svg width="24px" height="24px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>minus-circle</title> <desc>Created with Sketch Beta.</desc> <defs> </defs> <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd" sketch:type="MSPage"> <g id="Icon-Set" sketch:type="MSLayerGroup" transform="translate(-516.000000, -1087.000000)" fill="#000000"> <path d="M532,1117 C524.268,1117 518,1110.73 518,1103 C518,1095.27 524.268,1089 532,1089 C539.732,1089 546,1095.27 546,1103 C546,1110.73 539.732,1117 532,1117 L532,1117 Z M532,1087 C523.163,1087 516,1094.16 516,1103 C516,1111.84 523.163,1119 532,1119 C540.837,1119 548,1111.84 548,1103 C548,1094.16 540.837,1087 532,1087 L532,1087 Z M538,1102 L526,1102 C525.447,1102 525,1102.45 525,1103 C525,1103.55 525.447,1104 526,1104 L538,1104 C538.553,1104 539,1103.55 539,1103 C539,1102.45 538.553,1102 538,1102 L538,1102 Z" id="minus-circle" sketch:type="MSShapeGroup"> </path> </g> </g> </g></svg>
                                         </button>
                                         <input
                                             type="text"
@@ -92,7 +94,7 @@ function Invoice() {
                                         />
                                         <button onClick={incrementAmount} className="p-2">
                                             {/* Plus SVG */}
-                                            <svg width="50px" height="64px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Add_Plus_Circle"> <path id="Vector" d="M8 12H12M12 12H16M12 12V16M12 12V8M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g> </g></svg>
+                                            <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Add_Plus_Circle"> <path id="Vector" d="M8 12H12M12 12H16M12 12V16M12 12V8M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g> </g></svg>
                                         </button>
                                     </div>
                                     <div className='w-full flex justify-center'>
@@ -109,76 +111,114 @@ function Invoice() {
                     </div>
                 )}
                 {step === 2 && (
-                     <div className="checkout-form px-4 py-6">
-                     <h2 className="text-4xl font-bold text-gray py-4">Route Details</h2>
-                     <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-                         {/* Charter Info Section */}
-                         <div className="sm:col-span-2">
-                             <label htmlFor="invoiceNumber" className="block text-m font-semibold leading-6 text-gray">Invoice Number</label>
-                             <input 
-                                 type="text" 
-                                 name="invoiceNumber" 
-                                 id="invoiceNumber" 
-                                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6"
-                                 placeholder="Enter Invoice number..." 
-                                 value={formData.invoiceNumber} 
-                                 onChange={handleInputChange} 
-                             />
-                         </div>
-             
-                         {/* Notes Section */}
-                         <div className="sm:col-span-2">
-                             <label htmlFor="notes" className="block text-m font-semibold leading-6 text-gray">Notes</label>
-                             <textarea 
-                                 name="notes" 
-                                 id="notes" 
-                                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6"
-                                 placeholder="Enter notes..." 
-                                 value={formData.notes} 
-                                 onChange={handleInputChange}>
-                             </textarea>
-                         </div>
-             
-                         {/* Additional Styled Fields */}
-                         {/* Destination Field */}
-                         <div className="sm:col-span-2">
-                             <label htmlFor="destination" className="block text-m font-semibold leading-6 text-gray">Destination</label>
-                             <input 
-                                 type="text" 
-                                 name="destination" 
-                                 id="destination" 
-                                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" 
-                                 placeholder="Destination Address" 
-                                 value={formData.destination} 
-                                 onChange={handleInputChange} 
-                             />
-                         </div>
-             
-                         {/* Pickup Location Field */}
-                         <div className="sm:col-span-2">
-                             <label htmlFor="pickupLocation" className="block text-m font-semibold leading-6 text-gray">Pick-up Location</label>
-                             <input 
-                                 type="text" 
-                                 name="pickupLocation" 
-                                 id="pickupLocation" 
-                                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800 sm:text-m sm:leading-6" 
-                                 placeholder="Pick-up Address" 
-                                 value={formData.pickupLocation} 
-                                 onChange={handleInputChange} 
-                             />
-                         </div>
-             
-                         {/* Continue Button */}
-                         <div className="sm:col-span-2 mt-10">
-                             <button 
-                                 type="submit" 
-                                 className="block w-full rounded-md bg-rose-700 px-3.5 py-2.5 text-center text-m font-semibold text-white shadow-sm hover:bg-rose-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600">
-                                 Continue
-                             </button>
-                         </div>
-                     </form>
-                 </div>
-                )}
+    <div className="checkout-form px-4 py-6">
+        <h2 className="text-4xl font-bold text-gray py-4">Charter Details</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+
+            {/* Student Info Section */}
+            <div>
+                <h4 className="text-xl font-semibold text-gray mb-2">Student Info</h4>
+                <input 
+                    type="text" 
+                    name="studentName" 
+                    className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
+                    placeholder="Student Name" 
+                    value={formData.studentName} 
+                    onChange={handleInputChange} 
+                />
+                <input 
+                    type="email" 
+                    name="studentEmail" 
+                    className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
+                    placeholder="Student Email" 
+                    value={formData.studentEmail} 
+                    onChange={handleInputChange} 
+                />
+                <input 
+                    type="tel" 
+                    name="studentPhone" 
+                    className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
+                    placeholder="Student Phone" 
+                    value={formData.studentPhone} 
+                    onChange={handleInputChange} 
+                />
+            </div>
+
+            {/* Parent Info Section */}
+            <div>
+                <h4 className="text-xl font-semibold text-gray mb-2">Parent Info</h4>
+                <input 
+                    type="text" 
+                    name="parentName" 
+                    className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
+                    placeholder="Parent Name" 
+                    value={formData.parentName} 
+                    onChange={handleInputChange} 
+                />
+                <input 
+                    type="email" 
+                    name="parentEmail" 
+                    className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
+                    placeholder="Parent Email" 
+                    value={formData.parentEmail} 
+                    onChange={handleInputChange} 
+                />
+                <input 
+                    type="tel" 
+                    name="parentPhone" 
+                    className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
+                    placeholder="Parent Phone" 
+                    value={formData.parentPhone} 
+                    onChange={handleInputChange} 
+                />
+            </div>
+        
+            {/* Items in Order and Order Summary */}
+            <div className="sm:col-span-2 md:flex md:justify-between">
+                <div className="md:w-1/2">
+                    <h4 className="text-xl font-semibold text-gray mb-2">Items in Order</h4>
+                    <p className="mb-3">Quantity: {amount}</p>
+                    <p>${amount}.00 USD</p>
+                </div>
+
+                <div className="md:w-1/2 mt-4 md:mt-0">
+                    <h4 className="text-xl font-semibold text-gray mb-2">Order Summary</h4>
+                    <p className="mb-1">Subtotal: ${amount}.00 USD</p>
+                    <p>Total: ${amount}.00 USD</p>
+                </div>
+            </div>
+
+            
+    {/* Agreement Checkbox */}
+    <div className="sm:col-span-2">
+        <label className="flex items-center space-x-3 mb-3">
+            <input 
+                type="checkbox" 
+                name="agreement" 
+                className="form-tick appearance-none h-6 w-6 border border-gray-300 rounded-md checked:bg-rose-600 checked:border-transparent focus:outline-none" 
+                onChange={(e) => setIsAgreed(e.target.checked)}
+            />
+            <span className="text-gray-700 dark:text-white font-normal">
+                By checking this box, I understand that all sales are final, there are no refunds or exchanges, and that tickets are non transferrable. <strong>In order for tickets to be valid, student information MUST be included with the order.</strong>
+            </span>
+        </label>
+    </div>
+            {/* Continue Button */}
+            <div className="sm:col-span-2 mt-10">
+        <button 
+            type="submit" 
+            className={`block w-full rounded-md px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm ${isAgreed ? 'bg-rose-700 hover:bg-rose-500' : 'bg-gray-400'} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600`}
+            disabled={!isAgreed}
+        >
+            Checkout
+        </button>
+    </div>
+
+        </form>
+    </div>
+)}
+
+
                 {step === 3 && (
                     <div>
                         <p>Thank you for your order!</p>
