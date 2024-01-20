@@ -1,22 +1,38 @@
 
 import { useState } from 'react'
-import { Switch } from '@headlessui/react'
+import { useForm } from 'react-hook-form';
 import Navbar from '../Components/Navbar'
 import Footer from '../Components/Footer'
+import { Switch } from '@headlessui/react';
 
-
-const ChevronDownIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-</svg>
-
-)
-function classNames(...classes) {
+function classNames(...classes:any) {
   return classes.filter(Boolean).join(' ')
 }
 
 export default function ContactUs() {
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const [agreed, setAgreed] = useState(false)
+  // ContactUs.js
+  const handleFormSubmit = async (formData) => {
+    console.log(formData)
+    try {
+      const response = await fetch('http://localhost:5000/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        // Handle success
+      } else {
+        // Handle error
+      }
+    } catch (error) {
+      // Handle error
+    }
+  };
 
   return (
     <>
@@ -39,21 +55,22 @@ export default function ContactUs() {
       <div className="mx-auto max-w-7xl lg:grid lg:grid-cols-3 lg:gap-8">
       <div className="lg:col-span-2">     
       
-      <form action="#" method="POST" className="mx-auto mt-16 max-w-xl sm:mt-20">
+      <form onSubmit={handleSubmit(handleSubmit(handleFormSubmit))} action="#" method="POST" className="mx-auto mt-16 max-w-xl sm:mt-20">
         <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label htmlFor="first-name" className="block text-m font-semibold leading-6 text-gray-900">
+            <label htmlFor="name" className="block text-m font-semibold leading-6 text-gray-900">
               Name
             </label>
             <div className="mt-2.5">
               <input
+              {...register('name', { required: true })}
                 type="text"
-                name="first-name"
-                id="first-name"
+                name="name"
+                id="name"
                 autoComplete="given-name"
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-m sm:leading-6"
                 placeholder='Full Name'
-              />
+              /> {errors.name && <p className="text-red-600">Name is required</p>}
             </div>
           </div>
           <div className="sm:col-span-2">
@@ -62,13 +79,15 @@ export default function ContactUs() {
             </label>
             <div className="mt-2.5">
               <input
+                  {...register('email', { required: true, pattern: /^\S+@\S+$/i })}
                 type="email"
                 name="email"
                 id="email"
                 autoComplete="email"
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-m sm:leading-6"
                 placeholder='email@email.com'
-              />
+              /> {errors.email && <p className="text-red-600">Valid email is required</p>}
+
             </div>
           </div>
           <div className="sm:col-span-2">
@@ -77,13 +96,14 @@ export default function ContactUs() {
             </label>
             <div className="mt-2.5">
               <textarea
+               {...register('message', { required: true })}
                 name="message"
                 id="message"
                 rows={4}
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-m sm:leading-6"
                 defaultValue={''}
                 placeholder='Leave us a message'
-              />
+              /> {errors.message && <p className="text-red-600">Message is required</p>}
             </div>
           </div>
           <Switch.Group as="div" className="flex gap-x-4 sm:col-span-2">
