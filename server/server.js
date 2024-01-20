@@ -4,6 +4,9 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const QuoteRequest = require('./models/QuoteRequest');
 const ContactForm = require('./models/ContactForm');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 
 require('dotenv').config();
 
@@ -13,6 +16,9 @@ app.use(express.json()); // for parsing application/json
 
 const PORT = process.env.PORT || 5000;
 
+const users = [
+  { id: 1, username: 'admin', password: '$2a$10$...' } // hashed password
+];
 // SMTP Transporter
 const transporter = nodemailer.createTransport({
   host: 'shamuscoachbus.com',
@@ -27,6 +33,42 @@ const transporter = nodemailer.createTransport({
 app.get('/', (req, res) => {
   res.send('Welcome to the tristate-coach-backend!')
 })
+
+// Login Route
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  // Find user by username
+  const user = users.find(u => u.username === username);
+
+  if (user && bcrypt.compareSync(password, user.password)) {
+    // User authenticated, create a token
+    const token = jwt.sign({ userId: user.id }, 'your-secret-key', { expiresIn: '1h' });
+    res.json({ token });
+  } else {
+    res.status(401).send('Invalid credentials');
+  }
+});
+
+// Middleware to authenticate token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, 'your-secret-key', (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+// Example of a protected route
+app.get('/protected', authenticateToken, (req, res) => {
+  res.json({ message: 'Welcome to the protected route, authenticated user!' });
+});
+
 
 // Route to handle form submission
 app.post('/quote-request', async (req, res) => {

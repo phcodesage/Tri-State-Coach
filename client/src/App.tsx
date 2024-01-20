@@ -9,6 +9,8 @@ import Services from './Pages/Services'
 import TermsOfService from './Pages/TermsOfService'
 import PrivacyPolicy from './Pages/PrivacyPolicy'
 import NotFoundPage from './Pages/NotFoundPage'
+import Login from './admin/login'
+import AdminDashboard from './admin/AdminDashboard'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 
@@ -26,6 +28,8 @@ function App() {
         <Route path="/services" element={<Services />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/login" element={<Login />} />    
         <Route path="*" element={<NotFoundPage />} />
         
       </Routes>
