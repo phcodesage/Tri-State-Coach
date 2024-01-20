@@ -11,7 +11,9 @@ function classNames(...classes:any) {
 
 export default function ContactUs() {
   const { register, handleSubmit, formState: { errors } } = useForm();
-  const [agreed, setAgreed] = useState(false)
+  const [agreed, setAgreed] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
   // ContactUs.js
   const handleFormSubmit = async (formData) => {
     console.log(formData)
@@ -25,6 +27,7 @@ export default function ContactUs() {
       });
 
       if (response.ok) {
+        setSubmissionSuccess(true);
         // Handle success
       } else {
         // Handle error
@@ -137,13 +140,16 @@ export default function ContactUs() {
         </div>
 
         <div className="mt-10">
-          <button
-            type="submit"
-            className="block w-full rounded-md bg-rose-600 px-3.5 py-2.5 text-center text-m font-semibold text-white shadow-sm hover:bg-rose-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
-          >
-            Submit
-          </button>
-        </div>
+  <button
+    type="submit"
+    disabled={!agreed} // Disables button if not agreed
+    className={`block w-full rounded-md px-3.5 py-2.5 text-center text-m font-semibold text-white shadow-sm ${
+      agreed ? 'bg-rose-600 hover:bg-rose-500' : 'bg-gray-300' // Changes button color if not agreed
+    } focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600`}
+  >
+    Submit
+  </button>
+</div>
       </form>
       </div>
       <div className="flex-col justify-center items-center mt-12 lg:mt-0 lg:col-span-1 text-center">
@@ -170,6 +176,16 @@ Nesconset<br/>NY, 11767</dd>
       </div>
       </div>
     </div>
+    {submissionSuccess && (
+        <div className="flex items-center p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+          <svg className="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+          </svg>
+          <div>
+            <span className="font-medium">Success alert!</span> Your message has been sent successfully.
+          </div>
+        </div>
+      )}
     </div>
     <Footer />
     </>
