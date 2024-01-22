@@ -34,6 +34,23 @@ app.get('/', (req, res) => {
   res.send('Welcome to the tristate-coach-backend!')
 })
 
+// Middleware to check if the user is already authenticated
+function checkAlreadyAuthenticated(req, res, next) {
+  const token = req.headers['authorization']?.split(' ')[1];
+
+  if (!token) {
+    return next(); // No token, user not authenticated yet, proceed to login
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return next(); // Invalid token, proceed to login
+    }
+
+    // Valid token, user already authenticated
+    return res.status(403).send('You are already logged in');
+  });
+}
 
 // Login Route
 app.post('/login', async (req, res) => {

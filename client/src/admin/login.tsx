@@ -1,9 +1,18 @@
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 function login() {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
+
+  // Check if the user is already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/admin'); // Redirect to admin dashboard
+    }
+  }, [navigate]);
 
   const onSubmit = async (data) => {
     try {
@@ -12,21 +21,23 @@ function login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-  
+
       if (response.status === 401) {
         throw new Error('Unauthorized: Invalid credentials');
       }
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-  
+
       const responseData = await response.json();
-      localStorage.setItem('token', responseData.token);
-      navigate('/admin');
+      localStorage.setItem('token', responseData.token); // Store the token
+      navigate('/admin'); // Redirect to admin route
     } catch (error) {
       console.error('Error submitting form:', error);
+      // Display error to user
     }
   };
+
   return (
     <div><section className="bg-gray-50 dark:bg-gray-900">
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
