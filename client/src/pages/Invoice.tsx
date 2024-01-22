@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import Bushero from '../assets/Regency_Buses_Coach_Bus_Fleet_Charter-p-1080.png';
 import Navbar from '../Components/Navbar';
 
@@ -17,7 +18,9 @@ function Invoice() {
         pickupLocation: '',
         // Add more form fields as needed
     });
-
+    const { register, handleSubmit, formState: { errors } } = useForm({
+        mode: "onBlur" // This will trigger validation on blur
+    });
     const handleInputChange = (e) => {
         setFormData({
             ...formData,
@@ -37,9 +40,8 @@ function Invoice() {
         }
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log(formData);
+    const onFormSubmit = (data) => {
+        console.log(data);
         goToNextStep();
     };
 
@@ -113,64 +115,70 @@ function Invoice() {
                 {step === 2 && (
     <div className="checkout-form px-4 py-6">
         <h2 className="text-4xl font-bold text-gray py-4">Charter Details</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+        <form onSubmit={handleSubmit(onFormSubmit)}className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
 
             {/* Student Info Section */}
             <div>
                 <h4 className="text-xl font-semibold text-gray mb-2">Student Info</h4>
                 <input 
+                {...register("studentName", { required: true })}
                     type="text" 
                     name="studentName" 
                     className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
                     placeholder="Student Name" 
                     value={formData.studentName} 
                     onChange={handleInputChange} 
-                />
+                />{errors.studentName && <p className="text-red-600">Student Name is required</p>}
                 <input 
+                {...register("studentemail", { required: true })}
                     type="email" 
                     name="studentEmail" 
                     className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
                     placeholder="Student Email" 
                     value={formData.studentEmail} 
                     onChange={handleInputChange} 
-                />
+                />{errors.studentEmail && <p className="text-red-600">Student Email is required</p>}
                 <input 
+                {...register("studentPhone", { required: true })}
                     type="tel" 
                     name="studentPhone" 
                     className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
                     placeholder="Student Phone" 
                     value={formData.studentPhone} 
                     onChange={handleInputChange} 
-                />
+                />{errors.studentPhone && <p className="text-red-600">Student Phone is required</p>}
             </div>
 
             {/* Parent Info Section */}
             <div>
                 <h4 className="text-xl font-semibold text-gray mb-2">Parent Info</h4>
                 <input 
+                {...register("parentName", { required: true })}
                     type="text" 
                     name="parentName" 
                     className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
                     placeholder="Parent Name" 
                     value={formData.parentName} 
                     onChange={handleInputChange} 
-                />
+                />{errors.parentName && <p className="text-red-600">Parent Name is required</p>}
                 <input 
+                    {...register("parentEmail", { required: true })}
                     type="email" 
                     name="parentEmail" 
                     className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
                     placeholder="Parent Email" 
                     value={formData.parentEmail} 
                     onChange={handleInputChange} 
-                />
+                />{errors.parentEmail && <p className="text-red-600">Student Email is required</p>}
                 <input 
+                {...register("parentPhone", { required: true })}
                     type="tel" 
                     name="parentPhone" 
                     className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
                     placeholder="Parent Phone" 
                     value={formData.parentPhone} 
                     onChange={handleInputChange} 
-                />
+                />{errors.parentPhone && <p className="text-red-600">Parent Phone is required</p>}
             </div>
         
             {/* Items in Order and Order Summary */}
