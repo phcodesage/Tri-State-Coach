@@ -130,7 +130,7 @@ function Invoice() {
                     onChange={handleInputChange} 
                 />{errors.studentName && <p className="text-red-600">Student Name is required</p>}
                 <input 
-                {...register("studentemail", { required: true })}
+                {...register("studentEmail", { required: true })}
                     type="email" 
                     name="studentEmail" 
                     className="block w-full rounded-md border-0 px-3.5 py-2 mb-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-800" 
