@@ -34,16 +34,14 @@ app.get('/', (req, res) => {
   res.send('Welcome to the tristate-coach-backend!')
 })
 
+
 // Login Route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   
-  // Find user by username
-  const user = users.find(u => u.username === username);
-
-  if (user && bcrypt.compareSync(password, user.password)) {
+  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
     // User authenticated, create a token
-    const token = jwt.sign({ userId: user.id }, 'your-secret-key', { expiresIn: '1h' });
+    const token = jwt.sign({ userId: 1 }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
   } else {
     res.status(401).send('Invalid credentials');
@@ -57,12 +55,13 @@ function authenticateToken(req, res, next) {
 
   if (token == null) return res.sendStatus(401);
 
-  jwt.verify(token, 'your-secret-key', (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
     req.user = user;
     next();
   });
 }
+
 
 // Example of a protected route
 app.get('/protected', authenticateToken, (req, res) => {

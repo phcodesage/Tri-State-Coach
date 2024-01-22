@@ -11,8 +11,20 @@ import PrivacyPolicy from './Pages/PrivacyPolicy'
 import NotFoundPage from './Pages/NotFoundPage'
 import Login from './admin/login'
 import AdminDashboard from './admin/AdminDashboard'
+import { Navigate } from 'react-router-dom';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    // If no token, redirect to login
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
 
 function App() {
   return (
@@ -28,7 +40,11 @@ function App() {
         <Route path="/services" element={<Services />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
         <Route path="/login" element={<Login />} />    
         <Route path="*" element={<NotFoundPage />} />
         
