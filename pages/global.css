@@ -1,0 +1,65 @@
+@import url("https://fonts.googleapis.com/css2?family=Palatino+Linotype:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+body {
+  margin: 0;
+  line-height: normal;
+}
+:root {
+  /* fonts */
+  --font-inter: Inter;
+  --font-palatino-linotype: "Palatino Linotype";
+  --font-roboto: Roboto;
+
+  /* font sizes */
+  --font-size-base: 16px;
+  --font-size-xl: 20px;
+  --font-size-19xl: 38px;
+  --font-size-5xl: 24px;
+  --font-size-lgi: 19px;
+  --font-size-10xl: 29px;
+  --font-size-29xl: 48px;
+
+  /* Colors */
+  --color-brown: #a13d3d;
+  --color-white: #fff;
+  --color-gray-100: #fcfcfc;
+  --color-gray-200: #7a7a7a;
+  --color-gray-300: #192636;
+  --color-darkkhaki: #908345;
+  --color-black: #000;
+  --color-darkred: #991616;
+
+  /* Gaps */
+  --gap-16xl: 35px;
+  --gap-3xl: 22px;
+  --gap-sm: 14px;
+  --gap-xs: 12px;
+  --gap-9xl: 28px;
+  --gap-lg: 18px;
+  --gap-17xl: 36px;
+  --gap-13xl: 32px;
+  --gap-base: 16px;
+  --gap-xl: 20px;
+
+  /* Paddings */
+  --padding-55xl: 74px;
+  --padding-4xl: 23px;
+  --padding-6xs: 7px;
+  --padding-xl: 20px;
+  --padding-12xs: 1px;
+  --padding-lgi: 19px;
+  --padding-5xl: 24px;
+  --padding-smi: 13px;
+  --padding-base: 16px;
+  --padding-mid: 17px;
+  --padding-8xs: 5px;
+  --padding-mini: 15px;
+  --padding-xs: 12px;
+  --padding-sm: 14px;
+  --padding-lg: 18px;
+
+  /* Border radiuses */
+  --br-3xs: 10px;
+  --br-981xl: 1000px;
+}
