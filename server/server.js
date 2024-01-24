@@ -4,7 +4,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const QuoteRequest = require('./models/QuoteRequest');
 const ContactForm = require('./models/ContactForm');
-const bcrypt = require('bcryptjs');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const jwt = require('jsonwebtoken');
 
 
@@ -135,6 +135,27 @@ app.post('/send-email', async (req, res) => {
     res.status(500).send('Error processing your request');
   }
 });
+
+app.post("/create-payment-intent", async (req, res) => {
+  try {
+    const { amount } = req.body; // You should calculate the amount on the server to avoid manipulation
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount, // amount should be in cents
+      currency: "usd",
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

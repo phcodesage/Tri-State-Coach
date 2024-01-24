@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import{ useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Bushero from '../assets/Regency_Buses_Coach_Bus_Fleet_Charter-p-1080.png';
 import Navbar from '../Components/Navbar';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+const stripePromise = loadStripe('"pk_test_51OaMmnHFYyVMKiryTaCSRaF697lsoem17nQxPFykX7a90NzUGYubpTsNAPckvFmtR1JFkmKh9SbPZeHsAD7jj4Jx00wQikePXw');
+
 
 function Invoice() {
     const [isAgreed, setIsAgreed] = useState(false);
     const [step, setStep] = useState(1);
     const [amount, setAmount] = useState(1)
+    const [clientSecret, setClientSecret] = useState('');
     const [formData, setFormData] = useState({
         invoiceNumber: '',
         notes: '',
@@ -14,6 +20,8 @@ function Invoice() {
         studentName: '',
         studentEmail: '',
         studentPhone: '',
+        parentName: '',
+        parentEmail: '',
         destination: '',
         pickupLocation: '',
         // Add more form fields as needed
@@ -22,12 +30,12 @@ function Invoice() {
         mode: "onBlur" // This will trigger validation on blur
     });
     const handleInputChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
     };
-
     const goToNextStep = () => {
         if (step < 3) {
             setStep(step + 1);
@@ -61,7 +69,53 @@ function Invoice() {
         }
     };
 
-    
+    useEffect(() => {
+        // Fetch the client secret from your backend
+        fetch('http://localhost:5000/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: amount * 100 }) // send amount in cents
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Client Secret received:', data.clientSecret); // Check the client secret
+          setClientSecret(data.clientSecret);
+        })
+        .catch(error => console.error('Error:', error));
+      }, [amount]);
+
+    const StripePaymentForm = () => {
+        const stripe = useStripe();
+        const elements = useElements();
+
+        const handleSubmitStripe = async (event) => {
+            event.preventDefault();
+            if (!stripe || !elements) {
+                return;
+            }
+
+            const result = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    return_url: 'your_return_url',
+                },
+            });
+
+            if (result.error) {
+                console.log(result.error.message);
+            } else {
+                // The payment process is now complete
+            }
+        };
+
+        return (
+            <form onSubmit={handleSubmitStripe}>
+                <PaymentElement />
+                <button disabled={!stripe || !clientSecret}>Pay</button>
+            </form>
+        );
+    };
+
     return (
         <div className='flex flex-col justify-between h-screen'>
             <Navbar />
@@ -229,9 +283,10 @@ function Invoice() {
 
                 {step === 3 && (
                     <div>
-                        <p>Thank you for your order!</p>
-                        <button type="button" onClick={() => setStep(1)}>New Order</button>
-                    </div>
+                     <Elements stripe={stripePromise} options={{ clientSecret }}>
+                        <StripePaymentForm />
+                    </Elements>
+                </div>
                 )}
                 <div className="w-full flex justify-center">
     <ol className="items-center space-y-4 sm:flex sm:space-x-8 sm:space-y-0 rtl:space-x-reverse">
