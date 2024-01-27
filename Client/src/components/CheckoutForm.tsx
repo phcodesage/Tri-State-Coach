@@ -1,54 +1,36 @@
 import React, { useEffect, useState } from "react";
-import {
-  PaymentElement,
-  useStripe,
-  useElements
-} from "@stripe/react-stripe-js";
+import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { useNavigate } from "react-router-dom";
 
 export default function CheckoutForm() {
   const stripe = useStripe();
   const elements = useElements();
+  const navigate = useNavigate();
 
   const [message, setMessage] = useState(null);
+  const [messageType, setMessageType] = useState("info"); // 'info', 'success', 'error'
   const [isLoading, setIsLoading] = useState(false);
-
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   useEffect(() => {
-    if (!stripe) {
-      return;
+    // Check for the Stripe payment intent query parameters
+    const query = new URLSearchParams(window.location.search);
+    const paymentIntentStatus = query.get("redirect_status");
+
+    if (paymentIntentStatus === "succeeded") {
+      setPaymentSuccess(true);
+      setMessage("Payment succeeded!");
+      setMessageType("success");
+      // Redirect to '/invoice' after showing success message
+      setTimeout(() => {
+        navigate('/invoice');
+      }, 3000);
     }
-
-    const clientSecret = new URLSearchParams(window.location.search).get(
-      "payment_intent_client_secret"
-    );
-
-    if (!clientSecret) {
-      return;
-    }
-
-    stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
-      switch (paymentIntent.status) {
-        case "succeeded":
-          setMessage("Payment succeeded!");
-          break;
-        case "processing":
-          setMessage("Your payment is processing.");
-          break;
-        case "requires_payment_method":
-          setMessage("Your payment was not successful, please try again.");
-          break;
-        default:
-          setMessage("Something went wrong.");
-          break;
-      }
-    });
-  }, [stripe]);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!stripe || !elements) {
-      // Stripe.js hasn't yet loaded.
-      // Make sure to disable form submission until Stripe.js has loaded.
       return;
     }
 
@@ -56,48 +38,47 @@ export default function CheckoutForm() {
 
     const { error } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        // Make sure to change this to your payment completion page
-        return_url: "http://localhost:3000",
-      },
+      redirect: 'if_required',
     });
 
-    // This point will only be reached if there is an immediate error when
-    // confirming the payment. Otherwise, your customer will be redirected to
-    // your `return_url`. For some payment methods like iDEAL, your customer will
-    // be redirected to an intermediate site first to authorize the payment, then
-    // redirected to the `return_url`.
-    if (error.type === "card_error" || error.type === "validation_error") {
+    if (error) {
       setMessage(error.message);
+      setMessageType("error");
     } else {
-      setMessage("An unexpected error occurred.");
+      setMessage("Processing payment...");
     }
 
     setIsLoading(false);
   };
 
-  const paymentElementOptions = {
-    layout: "tabs"
-  }
+  const renderAlert = () => {
+    if (!message) return null;
+
+    const baseClass = "p-4 mb-4 text-sm rounded-lg ";
+    let alertClass = baseClass;
+
+    if (messageType === "success") {
+      alertClass += "text-green-700 bg-green-100 dark:bg-green-200 dark:text-green-800";
+    } else if (messageType === "error") {
+      alertClass += "text-red-700 bg-red-100 dark:bg-red-200 dark:text-red-800";
+    } else {
+      alertClass += "text-blue-700 bg-blue-100 dark:bg-blue-200 dark:text-blue-800";
+    }
+
+    return (
+      <div className={alertClass} role="alert">
+        {message}
+      </div>
+    );
+  };
 
   return (
-    <form id="payment-form" onSubmit={handleSubmit} className="w-full md:w-1/3 min-w-full md:min-w-0 p-10 rounded-lg shadow-lg flex flex-col items-center">
-      <PaymentElement id="payment-element" options={paymentElementOptions} className="mb-6" />
-      <button
-        disabled={isLoading || !stripe || !elements}
-        id="submit"
-        className={`w-full bg-blue-600 text-white py-2 px-4 rounded-md text-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50 transition ease-in-out duration-150 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        {isLoading ? (
-          <div className="spinner" aria-hidden="true"></div>
-        ) : (
-          "Pay now"
-        )}
+    <form id="payment-form" onSubmit={handleSubmit}>
+      <PaymentElement id="payment-element" />
+      <button disabled={isLoading || !stripe || !elements} id="submit">
+        {isLoading ? <div className="spinner" id="spinner"></div> : "Pay now"}
       </button>
-      {message && (
-        <div id="payment-message" className="text-gray-700 mt-3">{message}</div>
-      )}
+      {renderAlert()}
     </form>
   );
-  
 }

@@ -11,7 +11,7 @@ export default function Footer() {
     return <div />;
   }
   return (
-    <footer className="bg-gray-800 my-" aria-labelledby="footer-heading" style={{marginTop: '100px'}}>
+    <footer className="bg-gray-800" aria-labelledby="footer-heading" style={{marginTop: '100px'}}>
       <h2 id="footer-heading" className="sr-only">
         Footer
       </h2>
@@ -27,7 +27,7 @@ export default function Footer() {
                   <li>
                     <a
                       href="/about-us"
-                      className="text-m leading-6 text-gray-300 hover:text-white"
+                      className="text-m leading-6 text-rose-300 hover:text-white"
                     >
                       Our Buses
                     </a>
@@ -35,7 +35,7 @@ export default function Footer() {
                   <li>
                     <a
                       href="/charter-work"
-                      className="text-m leading-6 text-gray-300 hover:text-white"
+                      className="text-m leading-6 text-rose-300 hover:text-white"
                     >
                       Chartering
                     </a>
@@ -43,7 +43,7 @@ export default function Footer() {
                   <li>
                     <a
                       href="/product/invoice"
-                      className="text-m leading-6 text-gray-300 hover:text-white"
+                      className="text-m leading-6 text-rose-300 hover:text-white"
                     >
                       Pay Invoice
                     </a>
@@ -51,7 +51,7 @@ export default function Footer() {
                   <li>
                     <a
                       href="/services"
-                      className="text-m leading-6 text-gray-300 hover:text-white"
+                      className="text-m leading-6 text-rose-300 hover:text-white"
                     >
                       Services
                     </a>
@@ -66,7 +66,7 @@ export default function Footer() {
                   <li>
                     <a
                       href="/privacy-policy"
-                      className="text-m leading-6 text-gray-300 hover:text-white"
+                      className="text-m leading-6 text-rose-300 hover:text-white"
                     >
                       Privacy Policy
                     </a>
@@ -74,7 +74,7 @@ export default function Footer() {
                   <li>
                     <a
                       href="/terms-of-service"
-                      className="text-m leading-6 text-gray-300 hover:text-white"
+                      className="text-m leading-6 text-rose-300 hover:text-white"
                     >
                       Terms of Service
                     </a>
@@ -89,7 +89,7 @@ export default function Footer() {
             <h3 className="text-m font-semibold leading-6 text-white">
               Subscribe to our newsletter
             </h3>
-            <p className="mt-2 text-m leading-6 text-gray-300">
+            <p className="mt-2 text-m leading-6 text-rose-300">
             Get notified about new trips
             </p>
           </div>
@@ -102,7 +102,7 @@ export default function Footer() {
               name="email-address"
               id="email-address"
               required={true}
-              className="w-full min-w-0 appearance-none rounded-md border-0 bg-white/5 px-3 py-1.5 text-base text-white shadow-sm ring-1 ring-inset ring-white/10 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-rose-500 sm:w-56 sm:text-m sm:leading-6"
+              className="w-full min-w-0 appearance-none rounded-md border-0 bg-white/5 px-3 py-1.5 text-base text-white shadow-sm ring-1 ring-inset ring-white/10 placeholder:text-rose-500 focus:ring-2 focus:ring-inset focus:ring-rose-500 sm:w-56 sm:text-m sm:leading-6"
               placeholder="Enter your email"
             />
             <div className="mt-4 sm:ml-4 sm:mt-0 sm:flex-shrink-0">
@@ -117,7 +117,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 border-t border-white/10 pt-8 md:flex md:items-center md:justify-between">
           <div className="flex space-x-6 md:order-2">
-            <a href="https://web.facebook.com/Tristatecoach" className="text-gray-500 hover:text-gray-400" target='new_tab'>
+            <a href="https://web.facebook.com/Tristatecoach" className="text-rose-500 hover:text-rose-400" target='new_tab'>
               <span className="sr-only">Facebook</span>
               <svg
                 fill="currentColor"
@@ -134,7 +134,7 @@ export default function Footer() {
             </a>
 
           </div>
-          <p className="mt-8 text-xs leading-5 text-gray-400 md:order-1 md:mt-0">
+          <p className="mt-8 text-xs leading-5 text-rose-400 md:order-1 md:mt-0">
             © 2024 Tri-StateCoach, Inc. All rights reserved.
           </p>
         </div>
