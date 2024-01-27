@@ -4,8 +4,9 @@ import Bushero from '../assets/Regency_Buses_Coach_Bus_Fleet_Charter-p-1080.png'
 import Navbar from '../Components/Navbar';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
-import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-const stripePromise = loadStripe('"pk_test_51OaMmnHFYyVMKiryTaCSRaF697lsoem17nQxPFykX7a90NzUGYubpTsNAPckvFmtR1JFkmKh9SbPZeHsAD7jj4Jx00wQikePXw');
+import CheckoutForm from '../components/CheckoutForm'
+const stripePromise = loadStripe('pk_test_51OaMmnHFYyVMKiryTaCSRaF697lsoem17nQxPFykX7a90NzUGYubpTsNAPckvFmtR1JFkmKh9SbPZeHsAD7jj4Jx00wQikePXw');
+
 
 
 function Invoice() {
@@ -74,7 +75,7 @@ function Invoice() {
         fetch('http://localhost:5000/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: amount * 100 }) // send amount in cents
+          body: JSON.stringify({ amount }) // send amount in cents
         })
         .then(response => response.json())
         .then(data => {
@@ -83,38 +84,6 @@ function Invoice() {
         })
         .catch(error => console.error('Error:', error));
       }, [amount]);
-
-    const StripePaymentForm = () => {
-        const stripe = useStripe();
-        const elements = useElements();
-
-        const handleSubmitStripe = async (event) => {
-            event.preventDefault();
-            if (!stripe || !elements) {
-                return;
-            }
-
-            const result = await stripe.confirmPayment({
-                elements,
-                confirmParams: {
-                    return_url: 'your_return_url',
-                },
-            });
-
-            if (result.error) {
-                console.log(result.error.message);
-            } else {
-                // The payment process is now complete
-            }
-        };
-
-        return (
-            <form onSubmit={handleSubmitStripe}>
-                <PaymentElement />
-                <button disabled={!stripe || !clientSecret}>Pay</button>
-            </form>
-        );
-    };
 
     return (
         <div className='flex flex-col justify-between h-screen'>
@@ -279,13 +248,13 @@ function Invoice() {
         </form>
     </div>
 )}
-
-
                 {step === 3 && (
-                    <div>
-                     <Elements stripe={stripePromise} options={{ clientSecret }}>
-                        <StripePaymentForm />
-                    </Elements>
+                    <div className='flex justify-center my-10'>
+                     {clientSecret && (
+    <Elements stripe={stripePromise} options={{ clientSecret }}>
+        <CheckoutForm />
+    </Elements>
+)}
                 </div>
                 )}
                 <div className="w-full flex justify-center">

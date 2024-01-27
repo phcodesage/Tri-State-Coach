@@ -4,11 +4,20 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const QuoteRequest = require('./models/QuoteRequest');
 const ContactForm = require('./models/ContactForm');
+require('dotenv').config();
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('Stripe secret key is missing.');
+  process.exit(1);
+}
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const jwt = require('jsonwebtoken');
 
+function calculateOrderAmount(items) {
+  // For simplicity, let's assume each item has a 'price' field
+  return items.reduce((total, item) => total + item.price, 0);
+}
 
-require('dotenv').config();
+
 
 const app = express();
 app.use(cors());
@@ -137,24 +146,28 @@ app.post('/send-email', async (req, res) => {
 });
 
 app.post("/create-payment-intent", async (req, res) => {
+  const { amount } = req.body;
+
+  if (amount === undefined) {
+    return res.status(400).send({ error: "Amount is required" });
+  }
+
   try {
-    const { amount } = req.body; // You should calculate the amount on the server to avoid manipulation
+    const orderAmount = amount * 100; // $1 per count, amount in cents
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount, // amount should be in cents
+      amount: orderAmount,
       currency: "usd",
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      automatic_payment_methods: { enabled: true },
     });
 
-    res.send({
-      clientSecret: paymentIntent.client_secret,
-    });
-  } catch (err) {
-    res.status(500).send({ error: err.message });
+    res.send({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.error('Error creating payment intent:', error);
+    res.status(500).send({ error: 'Error creating payment intent' });
   }
 });
+
 
 
 app.listen(PORT, () => {
