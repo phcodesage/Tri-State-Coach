@@ -1,16 +1,144 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
 function AdminDashboard() {
-  // Admin dashboard content goes here
-  const navigate = useNavigate();
+   const navigate = useNavigate();
+   const [lines, setLines] = useState([]);
+  const navigateRef = useRef(navigate);
+   const [isLineFormVisible, setIsLineFormVisible] = useState(false);
+   const toggleLineFormVisibility = () => {
+      setIsLineFormVisible(!isLineFormVisible);
+    };
+    const authToken = localStorage.getItem('token'); // or your state management
+    const [creationTime, setCreationTime] = useState(new Date().toISOString());
+   const [lastEditedTime, setLastEditedTime] = useState('');
+   const [lastPublishedTime, setLastPublishedTime] = useState('');
+   const [ticketData, setTicketData] = useState({
+      productType: '',
+      name: '',
+      slug: '',
+      description: '',
+      price: '',
+      compareAtPrice: '',
+      sku: '',
+      trackInventory: false,
+      requiresShipping: false,
+    });
+    const [newLine, setNewLine] = useState({
+      name: '',
+      status: 'Published', // default value
+      products: 0, // default value, assuming it's a new line with no products yet
+      modified: new Date().toISOString(),
+      published: new Date().toISOString(),
+    });
+
+    const createLine = async (lineData) => {
+      const authToken = localStorage.getItem('token');
+    
+      if (!authToken) {
+        console.error('Auth token is not available.');
+        navigateRef.current('/login');
+        return;
+      }
+    
+      console.log("Sending line data:", lineData); // Log the data being sent
+    
+      try {
+        const response = await fetch('http://localhost:5000/api/lines', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(lineData)
+        });
+    
+        if (response.status === 403) {
+          localStorage.removeItem('token');
+          navigateRef.current('/login');
+          return;
+        } else if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Response error:", response.status, errorText); // Log any non-ok response
+          alert("Error creating line: " + errorText); // Display the error to the user
+          return;
+        }
+       const newLine = await response.json();
+      // Update local state with the new line
+      setLines(prevLines => [...prevLines, newLine]);
+    } catch (error) {
+      console.error('Error creating line:', error);
+    }
+   
+    
+    // Fetch lines when the component mounts
+  useEffect(() => {
+   async function fetchLines() {
+     const response = await fetch('http://localhost:5000/api/lines');
+     const data = await response.json();
+     setLines(data);
+   }
+
+   fetchLines();
+ }, []);
+}
+       const handleInputChangeLine = (e) => {
+         const { name, value } = e.target;
+         setNewLine({
+           ...newLine,
+           [name]: value,
+         });
+       };
+     
+       const handleInputChange = (e) => {
+         const { name, value } = e.target;
+         setTicketData({
+           ...ticketData,
+           [name]: value,
+         });
+       };
+
+       const handleLineSubmit = async (e) => {
+         e.preventDefault();
+         await createLine(newLine);
+         // Optionally clear the form or navigate the user to another page
+         setNewLine({
+           name: '',
+           status: 'Published',
+           products: 0,
+           modified: new Date().toISOString(),
+           published: new Date().toISOString(),
+         });
+         // No need to manually fetch lines here as createLine will update the state
+       };
+
+       const handleSubmit = async (e) => {
+         e.preventDefault();
+         // Here you would typically make an HTTP request to your backend API
+         // to create the new ticket, using the state `ticketData`.
+         console.log(ticketData);
+     
+         // After submitting, you might want to navigate the user to a different page
+         // or clear the form, depending on your UX needs.
+         setTicketData({
+           productType: '',
+           name: '',
+           slug: '',
+           description: '',
+           price: '',
+           compareAtPrice: '',
+           sku: '',
+           trackInventory: false,
+           requiresShipping: false,
+         });
+       };
 
   const handleLogout = () => {
    localStorage.removeItem('token'); // Remove the token
    navigate('/'); // Redirect to home page
  };
 
+ 
   return (
     <>
 <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
@@ -36,11 +164,10 @@ function AdminDashboard() {
             <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
             <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#000000"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#000000"> </path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Tickets</span>
-               <span className="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">Pro</span>
             </a>
          </li>
          <li>
-            <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+            <a href="#" onClick={toggleLineFormVisibility} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                   <path d="m17.418 3.623-.018-.008a6.713 6.713 0 0 0-2.4-.569V2h1a1 1 0 1 0 0-2h-2a1 1 0 0 0-1 1v2H9.89A6.977 6.977 0 0 1 12 8v5h-2V8A5 5 0 1 0 0 8v6a1 1 0 0 0 1 1h8v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4h6a1 1 0 0 0 1-1V8a5 5 0 0 0-2.582-4.377ZM6 12H4a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2Z"/>
                </svg>
@@ -73,107 +200,189 @@ function AdminDashboard() {
 </aside>
 
 <div className="p-4 sm:ml-64">
-   <div className="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700">
-      <div className="grid grid-cols-3 gap-4 mb-4">
-         <div className="flex items-center justify-center h-24 rounded bg-gray-50 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div className="flex items-center justify-center h-24 rounded bg-gray-50 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div className="flex items-center justify-center h-24 rounded bg-gray-50 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-      </div>
-      <div className="flex items-center justify-center h-48 mb-4 rounded bg-gray-50 dark:bg-gray-800">
-         <p className="text-2xl text-gray-400 dark:text-gray-500">
-            <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-               <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-            </svg>
-         </p>
-      </div>
-      <div className="grid grid-cols-2 gap-4 mb-4">
-         <div className="flex items-center justify-center rounded bg-gray-50 h-28 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div className="flex items-center justify-center rounded bg-gray-50 h-28 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div className="flex items-center justify-center rounded bg-gray-50 h-28 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div className="flex items-center justify-center rounded bg-gray-50 h-28 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-      </div>
-      <div className="flex items-center justify-center h-48 mb-4 rounded bg-gray-50 dark:bg-gray-800">
-         <p className="text-2xl text-gray-400 dark:text-gray-500">
-            <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-               <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-            </svg>
-         </p>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-         <div className="flex items-center justify-center rounded bg-gray-50 h-28 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div className="flex items-center justify-center rounded bg-gray-50 h-28 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div className="flex items-center justify-center rounded bg-gray-50 h-28 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div className="flex items-center justify-center rounded bg-gray-50 h-28 dark:bg-gray-800">
-            <p className="text-2xl text-gray-400 dark:text-gray-500">
-               <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-      </div>
-   </div>
+   
+   <div className="my-4">
+          <h1>Create New Ticket</h1>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              name="productType"
+              value={ticketData.productType}
+              onChange={handleInputChange}
+              placeholder="Product Type"
+            />
+            <input
+              type="text"
+              name="name"
+              value={ticketData.name}
+              onChange={handleInputChange}
+              placeholder="Ticket Name"
+            />
+            <input
+              type="text"
+              name="slug"
+              value={ticketData.slug}
+              onChange={handleInputChange}
+              placeholder="Slug"
+            />
+            <textarea
+              name="description"
+              value={ticketData.description}
+              onChange={handleInputChange}
+              placeholder="Description"
+            />
+            <input
+              type="text"
+              name="price"
+              value={ticketData.price}
+              onChange={handleInputChange}
+              placeholder="Price"
+            />
+            <input
+              type="text"
+              name="compareAtPrice"
+              value={ticketData.compareAtPrice}
+              onChange={handleInputChange}
+              placeholder="Compare at Price"
+            />
+            <input
+              type="text"
+              name="sku"
+              value={ticketData.sku}
+              onChange={handleInputChange}
+              placeholder="SKU"
+            />
+            <label>
+              Track Inventory:
+              <input
+                type="checkbox"
+                name="trackInventory"
+                checked={ticketData.trackInventory}
+                onChange={(e) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
+              />
+            </label>
+            <label>
+              Requires Shipping:
+              <input
+                type="checkbox"
+                name="requiresShipping"
+                checked={ticketData.requiresShipping}
+                onChange={(e) => setTicketData({ ...ticketData, requiresShipping: e.target.checked })}
+              />
+            </label>
+            <button type="submit">Create Ticket</button>
+          </form>
+        </div>
 </div>
+
+{isLineFormVisible && (
+  <div className="p-4 sm:ml-64">
+    <div className="bg-white shadow rounded-lg p-6">
+      <h1 className="text-xl font-semibold mb-4">Create New Line</h1>
+      <form onSubmit={handleLineSubmit} className="space-y-6">
+        {/* Line Name Input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="line-name">
+            Name *
+          </label>
+          <input
+            id="line-name"
+            type="text"
+            name="name"
+            required
+            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            placeholder="Line Name"
+            value={newLine.name}
+            onChange={(e) => setNewLine({ ...newLine, name: e.target.value })}
+          />
+        </div>
+
+        {/* Status Select */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="status">
+            Status
+          </label>
+          <select
+            id="status"
+            name="status"
+            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            value={newLine.status}
+            onChange={(e) => setNewLine({ ...newLine, status: e.target.value })}
+          >
+            <option value="Published">Published</option>
+            <option value="Unpublished">Unpublished</option>
+          </select>
+        </div>
+
+        {/* Dates and Buttons */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="created">
+              Created
+            </label>
+            <input
+              id="created"
+              type="datetime-local"
+              name="created"
+              value={creationTime.slice(0, -1)}
+              readOnly
+              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"// Here you might need to adjust the logic to get the created date
+              onChange={(e) => setNewLine({ ...newLine, created: e.target.value })}
+            />
+          </div>
+          {/* Add inputs for 'Last edited' and 'Last published' similarly */}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-start space-x-4">
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Create Line
+        </button>
+          <button type="button" className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+            Archive
+          </button>
+          <button type="button" className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            Delete
+          </button>
+          <button type="button" className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            Duplicate
+          </button>
+        </div>
+      </form>
+    </div>
+    <div className="p-4 sm:ml-64">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Name</th>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Status</th>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Products</th>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Modified</th>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Published</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {lines.map((line) => (
+                <tr key={line._id}>
+                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.name}</td>
+                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.status}</td>
+                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.products}</td>
+                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{new Date(line.modified).toLocaleString()}</td>
+                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{new Date(line.published).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+  </div>
+  
+  
+)}
+
     </>
-  )};
+  );
+              }
   
 export default AdminDashboard;

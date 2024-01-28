@@ -11,6 +11,8 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const jwt = require('jsonwebtoken');
+const Ticket = require('./models/Ticket');
+const Line = require('./models/Line')
 
 function calculateOrderAmount(items) {
   // For simplicity, let's assume each item has a 'price' field
@@ -79,10 +81,16 @@ function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (token == null) return res.sendStatus(401);
+  if (token == null) {
+    return res.sendStatus(401);
+  }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) {
+      console.log("Error verifying token:", err.message);
+      // Instead of just sending a status, you could also send a message or a specific error code
+      return res.status(403).json({ message: 'Token is expired', code: 'TOKEN_EXPIRED' });
+    }
     req.user = user;
     next();
   });
@@ -168,6 +176,102 @@ app.post("/create-payment-intent", async (req, res) => {
   }
 });
 
+// Endpoint to create a new ticket
+app.post('/api/tickets', async (req, res) => {
+  try {
+    const newTicket = new Ticket(req.body);
+    await newTicket.save();
+    res.status(201).send(newTicket);
+  } catch (error) {
+    res.status(400).send('Error creating new ticket');
+  }
+});
+
+// Endpoint to get all tickets
+app.get('/api/tickets', async (req, res) => {
+  try {
+    const tickets = await Ticket.find({});
+    res.status(200).send(tickets);
+  } catch (error) {
+    res.status(500).send('Error fetching tickets');
+  }
+});
+
+// Endpoint to update a ticket
+app.put('/api/tickets/:id', async (req, res) => {
+  try {
+    const ticket = await Ticket.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).send(ticket);
+  } catch (error) {
+    res.status(400).send('Error updating ticket');
+  }
+});
+
+// Endpoint to delete a ticket
+app.delete('/api/tickets/:id', async (req, res) => {
+  try {
+    await Ticket.findByIdAndDelete(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).send('Error deleting ticket');
+  }
+});
+
+app.post('/api/lines', authenticateToken, async (req, res) => {
+  try {
+    const newLine = new Line(req.body);
+    await newLine.save();
+    res.status(201).send(newLine);
+  } catch (error) {
+    console.error('Error creating new line:', error);
+    // Send detailed error message
+    res.status(400).send({ message: 'Error creating new line', error: error.message });
+  }
+});
+
+// Endpoint to get all lines
+app.get('/api/lines', authenticateToken, async (req, res) => {
+  try {
+    const lines = await Line.find({});
+    res.status(200).send(lines);
+  } catch (error) {
+    res.status(500).send('Error fetching lines');
+  }
+});
+
+app.patch('/api/lines/:id/archive', authenticateToken, async (req, res) => {
+  try {
+    const line = await Line.findByIdAndUpdate(req.params.id, { archived: true }, { new: true });
+    res.status(200).send(line);
+  } catch (error) {
+    res.status(400).send('Error archiving line');
+  }
+});
+
+// Endpoint to delete a line
+app.delete('/api/lines/:id', authenticateToken, async (req, res) => {
+  try {
+    await Line.findByIdAndRemove(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).send('Error deleting line');
+  }
+});
+
+// Endpoint to duplicate a line
+app.post('/api/lines/:id/duplicate', authenticateToken, async (req, res) => {
+  try {
+    const lineToDuplicate = await Line.findById(req.params.id);
+    if (!lineToDuplicate) {
+      return res.status(404).send('Line not found');
+    }
+    const duplicatedLine = new Line({ ...lineToDuplicate.toObject(), _id: mongoose.Types.ObjectId(), isNew: true });
+    await duplicatedLine.save();
+    res.status(201).send(duplicatedLine);
+  } catch (error) {
+    res.status(500).send('Error duplicating line');
+  }
+});
 
 
 app.listen(PORT, () => {

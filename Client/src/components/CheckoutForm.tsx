@@ -29,27 +29,57 @@ export default function CheckoutForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!stripe || !elements) {
+      // Stripe.js has not yet loaded.
+      // Make sure to disable form submission until Stripe.js has loaded.
       return;
     }
-
+  
     setIsLoading(true);
-
-    const { error } = await stripe.confirmPayment({
+  
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
+      confirmParams: {
+        // Make sure to change this to your payment completion page
+        return_url: window.location.origin + "/invoice",
+      },
       redirect: 'if_required',
     });
-
+  
+    // This point will only be reached if there is an immediate error when confirming the payment.
+    // Otherwise, your customer will be redirected to your `return_url`.
     if (error) {
       setMessage(error.message);
       setMessageType("error");
-    } else {
-      setMessage("Processing payment...");
+      setIsLoading(false);
+    } else if (paymentIntent) {
+      switch (paymentIntent.status) {
+        case 'succeeded':
+          setMessage("Payment succeeded!");
+          setMessageType("success");
+          setIsLoading(false);
+          // Redirect to '/invoice' after showing success message
+          setTimeout(() => {
+            navigate('/invoice');
+          }, 3000);
+          break;
+        case 'processing':
+          setMessage("Your payment is processing.");
+          setMessageType("info");
+          break;
+        case 'requires_payment_method':
+          setMessage("Your payment was not successful, please try again.");
+          setMessageType("error");
+          break;
+        default:
+          setMessage("Something went wrong.");
+          setMessageType("error");
+          break;
+      }
     }
-
-    setIsLoading(false);
   };
+  
 
   const renderAlert = () => {
     if (!message) return null;
