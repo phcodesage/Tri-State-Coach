@@ -290,18 +290,48 @@ function AdminDashboard() {
         </div>
 
         {/* Media Section */}
-        <div>
-      <label htmlFor="media" className="block mb-2 text-sm font-medium text-gray-700">Media</label>
-      <div className="flex items-center space-x-4 mb-2">
-         {ticketData.image && (
-            <img src={ticketData.image} alt="Ticket" className="w-32 h-32 object-cover rounded-md" />
-         )}
-         <div>
-            <button type="button" className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md">Replace</button>
-            <button type="button" className="px-4 py-2 text-sm bg-red-600 text-white rounded-md mt-2">Delete</button>
-         </div>
+<div className="mb-4">
+  <label htmlFor="media" className="block text-sm font-medium text-gray-700 mb-2">Media</label>
+  <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
+    <div className="flex items-center">
+      {ticketData.image && (
+        <img src={ticketData.image} alt="Main" className="w-16 h-16 rounded mr-4" />
+      )}
+      <div>
+        <p className="text-sm font-medium">{ticketData.image ? ticketData.imageName : "No image selected"}</p>
+        <p className="text-xs text-gray-500">{ticketData.image ? `${ticketData.imageWidth} x ${ticketData.imageHeight} - ${ticketData.imageSize}KB` : ""}</p>
       </div>
+    </div>
+    <div className="flex space-x-2">
+      <button type="button" className="flex items-center px-2 py-1 bg-white text-gray-800 text-sm font-medium rounded hover:bg-gray-200 focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Replace
+      </button>
+      <button type="button" className="flex items-center px-2 py-1 bg-white text-gray-800 text-sm font-medium rounded hover:bg-gray-200 focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Delete
+      </button>
+    </div>
+  </div>
+  
+  <label htmlFor="moreImages" className="block text-sm font-medium text-gray-700 mt-4 mb-2">More Images</label>
+  <div className="flex justify-center items-center w-full">
+    <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-gray-100 hover:border-gray-300 rounded-lg group">
+      <div className="flex flex-col items-center justify-center pt-7">
+        <svg className="w-10 h-10 text-gray-400 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
+        <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
+          Drag your images here or click to browse files
+        </p>
       </div>
+      <input type="file" className="opacity-0" multiple />
+    </label>
+  </div>
+</div>
+
 
          {/* More Images */}
          <div>
