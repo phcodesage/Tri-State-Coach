@@ -203,82 +203,200 @@ function AdminDashboard() {
    </div>
 </aside>
 
-{isTicketFormVisible && (<div className="p-4 sm:ml-64">
-   
-   <div className="my-4">
-          <h1>Create New Ticket</h1>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              name="productType"
-              value={ticketData.productType}
-              onChange={handleInputChange}
-              placeholder="Product Type"
-            />
-            <input
-              type="text"
-              name="name"
-              value={ticketData.name}
-              onChange={handleInputChange}
-              placeholder="Ticket Name"
-            />
-            <input
-              type="text"
-              name="slug"
-              value={ticketData.slug}
-              onChange={handleInputChange}
-              placeholder="Slug"
-            />
-            <textarea
-              name="description"
-              value={ticketData.description}
-              onChange={handleInputChange}
-              placeholder="Description"
-            />
-            <input
-              type="text"
-              name="price"
-              value={ticketData.price}
-              onChange={handleInputChange}
-              placeholder="Price"
-            />
-            <input
-              type="text"
-              name="compareAtPrice"
-              value={ticketData.compareAtPrice}
-              onChange={handleInputChange}
-              placeholder="Compare at Price"
-            />
-            <input
-              type="text"
-              name="sku"
-              value={ticketData.sku}
-              onChange={handleInputChange}
-              placeholder="SKU"
-            />
-            <label>
-              Track Inventory:
-              <input
-                type="checkbox"
-                name="trackInventory"
-                checked={ticketData.trackInventory}
-                onChange={(e) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
-              />
-            </label>
-            <label>
-              Requires Shipping:
-              <input
-                type="checkbox"
-                name="requiresShipping"
-                checked={ticketData.requiresShipping}
-                onChange={(e) => setTicketData({ ...ticketData, requiresShipping: e.target.checked })}
-              />
-            </label>
-            <button type="submit">Create Ticket</button>
-          </form>
+{isTicketFormVisible && (
+  <div className="p-4 sm:ml-64">
+    <div className="my-4">
+      <h1 className="text-xl font-bold mb-4">Create New Ticket</h1>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Product Type Dropdown */}
+        <div>
+          <label htmlFor="productType" className="block mb-2 text-sm font-medium text-gray-700">Product Type</label>
+          <select
+            id="productType"
+            name="productType"
+            value={ticketData.productType}
+            onChange={handleInputChange}
+            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+          >
+            <option value="Physical">Physical</option>
+            <option value="Digital">Digital</option>
+            <option value="Service">Service</option>
+            <option value="Advance">Advance</option>
+          </select>
+          <p className="text-xs text-gray-500">Advanced products provide all available customizable options</p>
         </div>
+
+        {/* Name Input */}
+        <div>
+          <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-700">Name *</label>
+          <input
+            id="name"
+            type="text"
+            name="name"
+            value={ticketData.name}
+            onChange={handleInputChange}
+            placeholder="Ticket Name"
+            required
+            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+          />
+        </div>
+
+        {/* Slug Input */}
+        <div>
+          <label htmlFor="slug" className="block mb-2 text-sm font-medium text-gray-700">Slug *</label>
+          <input
+            id="slug"
+            type="text"
+            name="slug"
+            value={ticketData.slug}
+            onChange={handleInputChange}
+            placeholder="Slug"
+            required
+            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+          />
+          <p className="text-xs text-gray-500">www.tri-statecoach.com/product/{ticketData.slug}</p>
+        </div>
+
+        {/* Description TextArea */}
+        <div>
+          <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            value={ticketData.description}
+            onChange={handleInputChange}
+            placeholder="Description"
+            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+          ></textarea>
+        </div>
+
+        {/* Categories Select */}
+        <div>
+          <label htmlFor="categories" className="block mb-2 text-sm font-medium text-gray-700">Categories</label>
+          <p className="text-xs text-gray-500 mb-2">Add this product to one or more categories</p>
+          <select
+            id="categories"
+            name="categories"
+            onChange={handleInputChange}
+            multiple
+            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+          >
+            {lines.map((line) => (
+              <option key={line._id} value={line.name}>
+                {line.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Media Section */}
+        <div>
+      <label htmlFor="media" className="block mb-2 text-sm font-medium text-gray-700">Media</label>
+      <div className="flex items-center space-x-4 mb-2">
+         {ticketData.image && (
+            <img src={ticketData.image} alt="Ticket" className="w-32 h-32 object-cover rounded-md" />
+         )}
+         <div>
+            <button type="button" className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md">Replace</button>
+            <button type="button" className="px-4 py-2 text-sm bg-red-600 text-white rounded-md mt-2">Delete</button>
+         </div>
+      </div>
+      </div>
+
+         {/* More Images */}
+         <div>
+         <label htmlFor="moreImages" className="block mb-2 text-sm font-medium text-gray-700">More Images</label>
+         <input
+            type="file"
+            id="moreImages"
+            name="moreImages"
+            multiple
+            onChange={handleInputChange}
+            className="block w-full text-sm text-gray-500
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-md file:border-0
+            file:text-sm file:font-semibold
+            file:bg-blue-50 file:text-blue-700
+            hover:file:bg-blue-100
+         "/>
+         </div>
+
+{/* Billing Section */}
+  <div>
+    <label htmlFor="price" className="block mb-2 text-sm font-medium text-gray-700">Price</label>
+    <input
+      id="price"
+      type="text"
+      name="price"
+      value={ticketData.price}
+      onChange={handleInputChange}
+      placeholder="Price in dollars"
+      className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+    />
+  </div>
+
+{/* Product Tax Class */}
+<div>
+  <label htmlFor="productTaxClass" className="block mb-2 text-sm font-medium text-gray-700">Product Tax Class</label>
+  <select
+    id="productTaxClass"
+    name="productTaxClass"
+    value={ticketData.productTaxClass}
+    onChange={handleInputChange}
+    className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+  >
+    <option value="Standard">Standard automatic tax calculation</option>
+    <option value="Exempt">Exempt from taxes</option>
+    {/* Additional tax class options */}
+  </select>
+  <p className="text-xs text-gray-500">Enable tax calculation to collect sales tax from your customers.</p>
 </div>
+
+{/* Identifiers Section */}
+<div>
+  <label htmlFor="sku" className="block mb-2 text-sm font-medium text-gray-700">SKU</label>
+  <input
+    id="sku"
+    type="text"
+    name="sku"
+    value={ticketData.sku}
+    onChange={handleInputChange}
+    className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+  />
+</div>
+
+{/* Inventory Section */}
+<div>
+  <label className="block mb-2 text-sm font-medium text-gray-700">
+    Track Inventory
+  </label>
+  <input
+    type="checkbox"
+    id="trackInventory"
+    name="trackInventory"
+    checked={ticketData.trackInventory}
+    onChange={e => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
+    className="rounded text-blue-600 focus:ring-blue-500"
+  />
+  <label htmlFor="trackInventory" className="ml-2 text-sm font-medium text-gray-700">
+    {ticketData.trackInventory ? 'Yes' : 'No'}
+  </label>
+</div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-4">
+          <button type="submit" className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md">Create Ticket</button>
+          <button type="button" className="px-4 py-2 text-sm text-white bg-gray-500 rounded-md">Archive</button>
+          <button type="button" className="px-4 py-2 text-sm text-white bg-red-600 rounded-md">Delete</button>
+          <button type="button" className="px-4 py-2 text-sm text-white bg-green-600 rounded-md">Duplicate</button>
+        </div>
+      </form>
+    </div>
+  </div>
 )}
+``
+
+
 
 {isLineFormVisible && (
   <div className="p-4 sm:ml-64">
