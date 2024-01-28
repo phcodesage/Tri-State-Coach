@@ -5,9 +5,13 @@ function AdminDashboard() {
    const navigate = useNavigate();
    const [lines, setLines] = useState([]);
   const navigateRef = useRef(navigate);
+  const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
    const [isLineFormVisible, setIsLineFormVisible] = useState(false);
    const toggleLineFormVisibility = () => {
       setIsLineFormVisible(!isLineFormVisible);
+    };
+    const toggleTicketFormVisibility = () => {
+      setIsTicketFormVisible(!isTicketFormVisible);
     };
     const authToken = localStorage.getItem('token'); // or your state management
     const [creationTime, setCreationTime] = useState(new Date().toISOString());
@@ -161,7 +165,7 @@ function AdminDashboard() {
             </a>
          </li>
          <li>
-            <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+            <a href="#" onClick={toggleTicketFormVisibility} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
             <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#000000"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#000000"> </path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Tickets</span>
             </a>
@@ -199,7 +203,7 @@ function AdminDashboard() {
    </div>
 </aside>
 
-<div className="p-4 sm:ml-64">
+{isTicketFormVisible && (<div className="p-4 sm:ml-64">
    
    <div className="my-4">
           <h1>Create New Ticket</h1>
@@ -274,6 +278,7 @@ function AdminDashboard() {
           </form>
         </div>
 </div>
+)}
 
 {isLineFormVisible && (
   <div className="p-4 sm:ml-64">
