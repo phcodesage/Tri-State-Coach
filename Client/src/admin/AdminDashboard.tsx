@@ -2,22 +2,52 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function AdminDashboard() {
-   const navigate = useNavigate();
-   const [lines, setLines] = useState([]);
-  const navigateRef = useRef(navigate);
-  const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
-   const [isLineFormVisible, setIsLineFormVisible] = useState(false);
-   const toggleLineFormVisibility = () => {
-      setIsLineFormVisible(!isLineFormVisible);
-    };
-    const toggleTicketFormVisibility = () => {
-      setIsTicketFormVisible(!isTicketFormVisible);
-    };
-    const authToken = localStorage.getItem('token'); // or your state management
-    const [creationTime, setCreationTime] = useState(new Date().toISOString());
-   const [lastEditedTime, setLastEditedTime] = useState('');
-   const [lastPublishedTime, setLastPublishedTime] = useState('');
-   const [ticketData, setTicketData] = useState({
+const navigate = useNavigate();
+const [lines, setLines] = useState([]);
+const navigateRef = useRef(navigate);
+const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
+const [isLineFormVisible, setIsLineFormVisible] = useState(false);
+const [selectedCategories, setSelectedCategories] = useState([]);
+const handleCategorySelect = (event) => {
+   const value = Array.from(
+     event.target.selectedOptions,
+     (option) => option.value
+   );
+   setSelectedCategories(value);
+ };
+
+ const handleRemoveCategory = (category) => {
+   setSelectedCategories(selectedCategories.filter((c) => c !== category));
+ };
+ 
+ 
+const toggleLineFormVisibility = () => {
+   setIsLineFormVisible(!isLineFormVisible);
+   };
+const toggleTicketFormVisibility = () => {
+   setIsTicketFormVisible(!isTicketFormVisible);
+   };
+const authToken = localStorage.getItem('token'); // or your state management
+const [creationTime, setCreationTime] = useState(new Date().toISOString());
+const [lastEditedTime, setLastEditedTime] = useState('');
+const [lastPublishedTime, setLastPublishedTime] = useState('');
+const [showCreateOptions, setShowCreateOptions] = useState(false);
+
+  const handleCreateClick = () => {
+    setShowCreateOptions(!showCreateOptions);
+  };
+
+  const handleSaveOption = (option) => {
+   console.log(`Save as: ${option}`);
+   // Implement save functionality based on the option
+   setShowCreateOptions(false);
+ };
+
+ const handleCancel = () => {
+   setIsTicketFormVisible(false);
+ };
+
+const [ticketData, setTicketData] = useState({
       productType: '',
       name: '',
       slug: '',
@@ -205,6 +235,44 @@ function AdminDashboard() {
 
 {isTicketFormVisible && (
   <div className="p-4 sm:ml-64">
+   {/* Header starts here */}
+      <div className="flex items-center justify-between bg-gray-800 p-4">
+        {/* Back button and Title */}
+        <div className="flex items-center">
+          <button className="text-gray-300 hover:text-white">
+            {/* SVG for back arrow here */}
+          </button>
+          <h1 className="text-lg font-semibold text-white ml-4">{isTicketFormVisible ? 'New Ticket' : 'Dashboard'}</h1>
+        </div>
+
+        {/* Right side buttons */}
+        <div className="flex items-center">
+          {isTicketFormVisible && (
+            <>
+              <button className="text-gray-300 hover:text-white mr-3" onClick={handleCancel}>
+                Cancel
+              </button>
+              <div className="relative">
+                <button className="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-md font-medium flex items-center" onClick={handleCreateClick}>
+                  Create
+                  {/* SVG for dropdown arrow here */}
+                </button>
+                {showCreateOptions && (
+                  <div className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                    <button onClick={() => handleSaveOption('Publish')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Publish
+                    </button>
+                    <button onClick={() => handleSaveOption('Draft')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Save to Drafts
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+      {/* Header ends here */}
     <div className="my-4">
       <h1 className="text-xl font-bold mb-4">Create New Ticket</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -271,23 +339,47 @@ function AdminDashboard() {
         </div>
 
         {/* Categories Select */}
-        <div>
-          <label htmlFor="categories" className="block mb-2 text-sm font-medium text-gray-700">Categories</label>
-          <p className="text-xs text-gray-500 mb-2">Add this product to one or more categories</p>
-          <select
-            id="categories"
-            name="categories"
-            onChange={handleInputChange}
-            multiple
-            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
-          >
-            {lines.map((line) => (
-              <option key={line._id} value={line.name}>
-                {line.name}
-              </option>
-            ))}
-          </select>
-        </div>
+<div className="my-4">
+  <label htmlFor="categories" className="block mb-2 text-sm font-medium text-gray-700">
+    Categories
+  </label>
+  <p className="text-xs text-gray-500 mb-4">
+    Add this product to one or more categories.
+  </p>
+  <select
+    id="categories"
+    name="categories"
+    multiple
+    value={selectedCategories}
+    onChange={handleCategorySelect}
+    className="w-full p-2 mb-2 text-sm border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+  >
+    {lines.map((line) => (
+      <option key={line._id} value={line.name}>
+        {line.name}
+      </option>
+    ))}
+  </select>
+  {/* Display selected categories */}
+  <div className="flex flex-wrap gap-2">
+    {selectedCategories.map((category) => (
+      <span
+        key={category}
+        className="flex items-center px-3 py-1 text-sm text-gray-700 bg-gray-200 rounded-full"
+      >
+        {category}
+        <button
+          type="button"
+          onClick={() => handleRemoveCategory(category)}
+          className="flex items-center justify-center w-4 h-4 ml-2 text-gray-500 rounded-full hover:text-gray-700"
+        >
+          &times;
+        </button>
+      </span>
+    ))}
+  </div>
+</div>
+
 
         {/* Media Section */}
 <div className="mb-4">
