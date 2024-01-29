@@ -7,6 +7,27 @@ const [lines, setLines] = useState([]);
 const navigateRef = useRef(navigate);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
+const [tickets, setTickets] = useState([]); // State to store tickets data
+const fetchTickets = async () => {
+   try {
+     const response = await fetch('/api/tickets', {
+       headers: {
+         'Authorization': `Bearer ${authToken}`
+       }
+     });
+     if (!response.ok) throw new Error('Error fetching tickets');
+     const data = await response.json();
+     setTickets(data);
+   } catch (error) {
+     console.error('Error fetching tickets:', error);
+     // Handle errors, e.g., by showing an alert to the user
+   }
+ };
+ useEffect(() => {
+   fetchTickets();
+ }, []);
+
+const [selectedTicket, setSelectedTicket] = useState(null);
 const [selectedCategories, setSelectedCategories] = useState([]);
 const handleCategorySelect = (event) => {
    const value = Array.from(
@@ -21,12 +42,16 @@ const handleCategorySelect = (event) => {
  };
  
  
-const toggleLineFormVisibility = () => {
-   setIsLineFormVisible(!isLineFormVisible);
-   };
+ const toggleLineFormVisibility = () => {
+  setIsLineFormVisible(!isLineFormVisible);
+  setIsTicketFormVisible(false); // Hide the ticket form when toggling the line form
+};
+
 const toggleTicketFormVisibility = () => {
-   setIsTicketFormVisible(!isTicketFormVisible);
-   };
+  setIsTicketFormVisible(!isTicketFormVisible);
+  setIsLineFormVisible(false); // Hide the line form when toggling the ticket form
+};
+
 const authToken = localStorage.getItem('token'); // or your state management
 const [creationTime, setCreationTime] = useState(new Date().toISOString());
 const [lastEditedTime, setLastEditedTime] = useState('');
@@ -172,9 +197,20 @@ const [ticketData, setTicketData] = useState({
    navigate('/'); // Redirect to home page
  };
 
+
+const handleTicketSelect = (ticket) => {
+    setSelectedTicket(ticket);
+    setIsTicketFormVisible(true);
+  };
+
+  const handleNewTicketClick = () => {
+    setSelectedTicket(null);
+    setIsTicketFormVisible(true);
+  };
  
   return (
     <>
+    <div className="flex flex-row">
 <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
    <span className="sr-only">Open sidebar</span>
    <svg className="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -182,8 +218,8 @@ const [ticketData, setTicketData] = useState({
    </svg>
 </button>
 
-<aside id="default-sidebar" className="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
-   <div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+<aside id="default-sidebar" className="w-1/4 h-screen overflow-y-auto" aria-label="Sidebar">
+   <div className="relative h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <ul className="space-y-2 font-medium">
          <li>
             <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
@@ -233,10 +269,24 @@ const [ticketData, setTicketData] = useState({
    </div>
 </aside>
 
+{/* List of tickets */}
 {isTicketFormVisible && (
-  <div className="p-4 sm:ml-64">
+<aside className="w-1/4 overflow-y-auto">
+        <ul>
+          {tickets.map(ticket => (
+            <li key={ticket.id} onClick={() => handleTicketSelect(ticket)}>
+              {ticket.name}
+            </li>
+          ))}
+          <button onClick={handleNewTicketClick}>+ New Ticket</button>
+        </ul>
+      </aside>
+)}
+
+{isTicketFormVisible && (
+   <main className="flex-1">
    {/* Header starts here */}
-      <div className="flex items-center justify-between bg-gray-800 p-4">
+        <div className="flex justify-between items-center bg-gray-800 p-4 text-white">
         {/* Back button and Title */}
         <div className="flex items-center">
           <button className="text-gray-300 hover:text-white">
@@ -274,7 +324,8 @@ const [ticketData, setTicketData] = useState({
       </div>
       {/* Header ends here */}
     <div className="my-4">
-      <h1 className="text-xl font-bold mb-4">Create New Ticket</h1>
+      <h1 className="text-xl font-bold mb-4">{selectedTicket ? 'Edit Ticket' : 'Create New Ticket'}</h1>
+      
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Product Type Dropdown */}
         <div>
@@ -301,7 +352,7 @@ const [ticketData, setTicketData] = useState({
             id="name"
             type="text"
             name="name"
-            value={ticketData.name}
+            value={selectedTicket ? selectedTicket.name : ticketData.name}
             onChange={handleInputChange}
             placeholder="Ticket Name"
             required
@@ -384,31 +435,28 @@ const [ticketData, setTicketData] = useState({
         {/* Media Section */}
 <div className="mb-4">
   <label htmlFor="media" className="block text-sm font-medium text-gray-700 mb-2">Media</label>
-  <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
-    <div className="flex items-center">
-      {ticketData.image && (
-        <img src={ticketData.image} alt="Main" className="w-16 h-16 rounded mr-4" />
+  <div className="flex items-center">
+    {/* SVG for back arrow */}
+    <span className="cursor-pointer mr-4">{'<'}</span>
+    <span>{selectedTicket ? selectedTicket.name : 'New Ticket'}</span>
+  </div>
+  <div className="flex">
+    <button className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-md mr-2" onClick={handleCancel}>Cancel</button>
+    <div className="relative">
+      <button className="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-md" onClick={handleCreateClick}>
+        Create
+        {/* SVG for dropdown arrow */}
+        <span className="ml-2">▼</span>
+      </button>
+      {showCreateOptions && (
+        <div className="absolute right-0 mt-2 py-2 w-40 bg-white rounded-md shadow-xl z-20">
+          <button onClick={() => handleSaveOption('Publish')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Publish</button>
+          <button onClick={() => handleSaveOption('Draft')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Save to Drafts</button>
+        </div>
       )}
-      <div>
-        <p className="text-sm font-medium">{ticketData.image ? ticketData.imageName : "No image selected"}</p>
-        <p className="text-xs text-gray-500">{ticketData.image ? `${ticketData.imageWidth} x ${ticketData.imageHeight} - ${ticketData.imageSize}KB` : ""}</p>
-      </div>
-    </div>
-    <div className="flex space-x-2">
-      <button type="button" className="flex items-center px-2 py-1 bg-white text-gray-800 text-sm font-medium rounded hover:bg-gray-200 focus:outline-none">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-        </svg>
-        Replace
-      </button>
-      <button type="button" className="flex items-center px-2 py-1 bg-white text-gray-800 text-sm font-medium rounded hover:bg-gray-200 focus:outline-none">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        Delete
-      </button>
     </div>
   </div>
+</div>
   
   <label htmlFor="moreImages" className="block text-sm font-medium text-gray-700 mt-4 mb-2">More Images</label>
   <div className="flex justify-center items-center w-full">
@@ -422,9 +470,8 @@ const [ticketData, setTicketData] = useState({
       <input type="file" className="opacity-0" multiple />
     </label>
   </div>
+  </form> 
 </div>
-
-
          {/* More Images */}
          <div>
          <label htmlFor="moreImages" className="block mb-2 text-sm font-medium text-gray-700">More Images</label>
@@ -442,7 +489,6 @@ const [ticketData, setTicketData] = useState({
             hover:file:bg-blue-100
          "/>
          </div>
-
 {/* Billing Section */}
   <div>
     <label htmlFor="price" className="block mb-2 text-sm font-medium text-gray-700">Price</label>
@@ -456,7 +502,6 @@ const [ticketData, setTicketData] = useState({
       className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
     />
   </div>
-
 {/* Product Tax Class */}
 <div>
   <label htmlFor="productTaxClass" className="block mb-2 text-sm font-medium text-gray-700">Product Tax Class</label>
@@ -473,7 +518,6 @@ const [ticketData, setTicketData] = useState({
   </select>
   <p className="text-xs text-gray-500">Enable tax calculation to collect sales tax from your customers.</p>
 </div>
-
 {/* Identifiers Section */}
 <div>
   <label htmlFor="sku" className="block mb-2 text-sm font-medium text-gray-700">SKU</label>
@@ -486,7 +530,6 @@ const [ticketData, setTicketData] = useState({
     className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
   />
 </div>
-
 {/* Inventory Section */}
 <div>
   <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -504,23 +547,26 @@ const [ticketData, setTicketData] = useState({
     {ticketData.trackInventory ? 'Yes' : 'No'}
   </label>
 </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-4">
-          <button type="submit" className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md">Create Ticket</button>
-          <button type="button" className="px-4 py-2 text-sm text-white bg-gray-500 rounded-md">Archive</button>
-          <button type="button" className="px-4 py-2 text-sm text-white bg-red-600 rounded-md">Delete</button>
-          <button type="button" className="px-4 py-2 text-sm text-white bg-green-600 rounded-md">Duplicate</button>
-        </div>
-      </form>
-    </div>
-  </div>
+{/* Action Buttons */}
+<div className="flex gap-4">
+  <button type="submit" className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md">{selectedTicket ? 'Update Ticket' : 'Create Ticket'}</button>
+  {selectedTicket && (
+        <>
+  <button type="button" className="px-4 py-2 text-sm text-white bg-gray-500 rounded-md">Archive</button>
+  <button type="button" className="px-4 py-2 text-sm text-white bg-red-600 rounded-md">Delete</button>
+  <button type="button" className="px-4 py-2 text-sm text-white bg-green-600 rounded-md">Duplicate</button>
+    </>
+  )}
+</div>
+           
+</main>
 )}
 ``
 
 
 
 {isLineFormVisible && (
+   <main className="flex-1">
   <div className="p-4 sm:ml-64">
     <div className="bg-white shadow rounded-lg p-6">
       <h1 className="text-xl font-semibold mb-4">Create New Line</h1>
@@ -541,7 +587,6 @@ const [ticketData, setTicketData] = useState({
             onChange={(e) => setNewLine({ ...newLine, name: e.target.value })}
           />
         </div>
-
         {/* Status Select */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="status">
@@ -558,7 +603,6 @@ const [ticketData, setTicketData] = useState({
             <option value="Unpublished">Unpublished</option>
           </select>
         </div>
-
         {/* Dates and Buttons */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div>
@@ -577,7 +621,6 @@ const [ticketData, setTicketData] = useState({
           </div>
           {/* Add inputs for 'Last edited' and 'Last published' similarly */}
         </div>
-
         {/* Action Buttons */}
         <div className="flex justify-start space-x-4">
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -594,6 +637,7 @@ const [ticketData, setTicketData] = useState({
           </button>
         </div>
       </form>
+    </div>
     </div>
     <div className="p-4 sm:ml-64">
         <div className="overflow-x-auto">
@@ -621,13 +665,13 @@ const [ticketData, setTicketData] = useState({
           </table>
         </div>
       </div>
-  </div>
-  
+
+  </main>
   
 )}
-
+</div>
     </>
   );
-              }
+}
   
 export default AdminDashboard;
