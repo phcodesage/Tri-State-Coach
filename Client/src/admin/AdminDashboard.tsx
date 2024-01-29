@@ -10,11 +10,23 @@ const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [creationTime, setCreationTime] = useState(new Date().toISOString());
 const [selectedImage, setSelectedImage] = useState(null);
 const handleImageChange = (e) => {
-  if (e.target.files) {
-    const imageUrls = Array.from(e.target.files).map(file => URL.createObjectURL(file));
-    setTicketData({ ...ticketData, images: [...ticketData.images, ...imageUrls] });
+  if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      // Set the preview image
+      setSelectedImage(reader.result);
+
+      // Append the new image file to the ticketData images array
+      setTicketData((prevData) => ({
+        ...prevData,
+        images: [...prevData.images, file],
+      }));
+    };
+    reader.readAsDataURL(file);
   }
 };
+
 
 const [tickets, setTickets] = useState([]); // State to store tickets data
 
@@ -273,13 +285,39 @@ useEffect(() => {
    navigate('/'); // Redirect to home page
  };
 
-
-const handleTicketSelect = (ticket) => {
-    setSelectedTicket(ticket);
-    setIsTicketFormVisible(true);
-  };
- 
+ const handleTicketSelect = (ticket) => {
+   setSelectedTicket(ticket);
+   setIsTicketFormVisible(true);
+   // Update form fields with the selected ticket data
+   setTicketData({
+     productType: ticket.productType || '',
+     name: ticket.name || '',
+     slug: ticket.slug || '',
+     description: ticket.description || '',
+     categories: ticket.categories || [],
+     images: ticket.images || [],
+     price: ticket.price || '',
+     compareAtPrice: ticket.compareAtPrice || '',
+     sku: ticket.sku || '',
+     trackInventory: ticket.trackInventory || false,
+     inventoryQuantity: ticket.inventoryQuantity || 0,
+     inventoryPolicy: ticket.inventoryPolicy || '',
+     requiresShipping: ticket.requiresShipping || false,
+     createdOn: ticket.createdOn || new Date().toISOString(),
+     updatedOn: ticket.updatedOn || new Date().toISOString(),
+     publishedOn: ticket.publishedOn || new Date().toISOString(),
+   });
   
+   // If the ticket has categories, set the selected categories state
+  if (ticket.categories) {
+    setSelectedCategories(ticket.categories);
+  }
+
+  // If the ticket has an image, set the selected image for preview
+  if (ticket.images && ticket.images.length > 0) {
+    setSelectedImage(ticket.images[0]);
+  }
+};
   return (
     <>
     <div className="flex flex-row min-h-screen bg-gray-100">
@@ -469,9 +507,15 @@ const handleTicketSelect = (ticket) => {
 
         {/* Media Section */}
 <div className="mb-4">
+{/* Inside your form JSX */}
 {selectedImage && (
+  <div>
     <img src={selectedImage} alt="Selected" className="h-32 w-auto" />
-  )}
+    <button type="button" onClick={() => setSelectedImage(null)}>Remove</button>
+    {/* Add other controls like 'Replace' or 'Delete' as needed */}
+  </div>
+)}
+
   <label htmlFor="media" className="block text-sm font-medium text-gray-700 mb-2">Media</label>
 </div>
   

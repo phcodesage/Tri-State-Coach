@@ -13,6 +13,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const jwt = require('jsonwebtoken');
 const Ticket = require('./models/Ticket');
 const Line = require('./models/Line')
+const authenticateToken = require('./middleware/authenticateToken')
 
 function calculateOrderAmount(items) {
   // For simplicity, let's assume each item has a 'price' field
@@ -185,12 +186,17 @@ app.get('/api/tickets', async (req, res) => {
 // Endpoint to update a ticket
 app.put('/api/tickets/:id', async (req, res) => {
   try {
-    const ticket = await Ticket.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const ticket = await Ticket.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true // Make sure validators run on update
+    });
     res.status(200).send(ticket);
   } catch (error) {
-    res.status(400).send('Error updating ticket');
+    console.error(error);
+    res.status(400).send({ message: 'Error updating ticket', error: error.message });
   }
 });
+
 
 // Endpoint to delete a ticket
 app.delete('/api/tickets/:id', async (req, res) => {
