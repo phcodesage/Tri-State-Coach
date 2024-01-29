@@ -4,9 +4,18 @@ import { useNavigate } from 'react-router-dom';
 function AdminDashboard() {
 const navigate = useNavigate();
 const [lines, setLines] = useState([]);
-const navigateRef = useRef(navigate);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
+const [creationTime, setCreationTime] = useState(new Date().toISOString());
+const [selectedImage, setSelectedImage] = useState(null);
+const handleImageChange = (e) => {
+  if (e.target.files && e.target.files[0]) {
+    let img = e.target.files[0];
+    setSelectedImage(URL.createObjectURL(img)); // This creates a URL for the selected image file
+  }
+};
+
+
 const [tickets, setTickets] = useState([]); // State to store tickets data
 const fetchTickets = async () => {
    try {
@@ -17,6 +26,7 @@ const fetchTickets = async () => {
      });
      if (!response.ok) throw new Error('Error fetching tickets');
      const data = await response.json();
+     console.log(data)
      setTickets(data);
    } catch (error) {
      console.error('Error fetching tickets:', error);
@@ -53,9 +63,6 @@ const toggleTicketFormVisibility = () => {
 };
 
 const authToken = localStorage.getItem('token'); // or your state management
-const [creationTime, setCreationTime] = useState(new Date().toISOString());
-const [lastEditedTime, setLastEditedTime] = useState('');
-const [lastPublishedTime, setLastPublishedTime] = useState('');
 const [showCreateOptions, setShowCreateOptions] = useState(false);
 
   const handleCreateClick = () => {
@@ -96,7 +103,7 @@ const [ticketData, setTicketData] = useState({
     
       if (!authToken) {
         console.error('Auth token is not available.');
-        navigateRef.current('/login');
+        navigate('/login');
         return;
       }
     
@@ -114,7 +121,7 @@ const [ticketData, setTicketData] = useState({
     
         if (response.status === 403) {
           localStorage.removeItem('token');
-          navigateRef.current('/login');
+          navigate('/login');
           return;
         } else if (!response.ok) {
           const errorText = await response.text();
@@ -131,15 +138,28 @@ const [ticketData, setTicketData] = useState({
    
     
     // Fetch lines when the component mounts
-  useEffect(() => {
-   async function fetchLines() {
-     const response = await fetch('http://localhost:5000/api/lines');
-     const data = await response.json();
-     setLines(data);
-   }
+    const fetchLines = async () => {
+      const authToken = localStorage.getItem('token'); // Retrieve the auth token
+      try {
+        const response = await fetch('/api/lines', {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        if (!response.ok) throw new Error('Error fetching lines');
+        const data = await response.json();
+        setLines(data); // Update the state with the fetched lines
+      } catch (error) {
+        console.error('Error fetching lines:', error);
+        // Handle errors, e.g., by showing an alert to the user
+      }
+    };
 
-   fetchLines();
- }, []);
+    useEffect(() => {
+      if (isLineFormVisible) {
+        fetchLines();
+      }
+    }, [isLineFormVisible]);
 }
        const handleInputChangeLine = (e) => {
          const { name, value } = e.target;
@@ -202,15 +222,11 @@ const handleTicketSelect = (ticket) => {
     setSelectedTicket(ticket);
     setIsTicketFormVisible(true);
   };
-
-  const handleNewTicketClick = () => {
-    setSelectedTicket(null);
-    setIsTicketFormVisible(true);
-  };
  
+  
   return (
     <>
-    <div className="flex flex-row">
+    <div className="flex flex-row min-h-screen bg-gray-100">
 <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
    <span className="sr-only">Open sidebar</span>
    <svg className="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -218,16 +234,13 @@ const handleTicketSelect = (ticket) => {
    </svg>
 </button>
 
-<aside id="default-sidebar" className="w-1/4 h-screen overflow-y-auto" aria-label="Sidebar">
+<aside id="default-sidebar" className="w-1/6 bg-gray-800" aria-label="Sidebar">
    <div className="relative h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <ul className="space-y-2 font-medium">
          <li>
-            <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg className="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
-                  <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z"/>
-                  <path d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z"/>
-               </svg>
-               <span className="ms-3">Ecommerce</span>
+            <a href="/admin" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+              
+               <span className="ms-3 font-xl font-bold">Ecommerce</span>
             </a>
          </li>
          <li>
@@ -272,13 +285,14 @@ const handleTicketSelect = (ticket) => {
 {/* List of tickets */}
 {isTicketFormVisible && (
 <aside className="w-1/4 overflow-y-auto">
+  <h2>Tickets</h2>
         <ul>
           {tickets.map(ticket => (
             <li key={ticket.id} onClick={() => handleTicketSelect(ticket)}>
               {ticket.name}
             </li>
           ))}
-          <button onClick={handleNewTicketClick}>+ New Ticket</button>
+          
         </ul>
       </aside>
 )}
@@ -434,12 +448,10 @@ const handleTicketSelect = (ticket) => {
 
         {/* Media Section */}
 <div className="mb-4">
+{selectedImage && (
+    <img src={selectedImage} alt="Selected" className="h-32 w-auto" />
+  )}
   <label htmlFor="media" className="block text-sm font-medium text-gray-700 mb-2">Media</label>
-  <div className="flex items-center">
-    {/* SVG for back arrow */}
-    <span className="cursor-pointer mr-4">{'<'}</span>
-    <span>{selectedTicket ? selectedTicket.name : 'New Ticket'}</span>
-  </div>
   <div className="flex">
     <button className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-md mr-2" onClick={handleCancel}>Cancel</button>
     <div className="relative">
@@ -458,7 +470,7 @@ const handleTicketSelect = (ticket) => {
   </div>
 </div>
   
-  <label htmlFor="moreImages" className="block text-sm font-medium text-gray-700 mt-4 mb-2">More Images</label>
+  <label htmlFor="moreImages" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Image</label>
   <div className="flex justify-center items-center w-full">
     <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-gray-100 hover:border-gray-300 rounded-lg group">
       <div className="flex flex-col items-center justify-center pt-7">
@@ -467,7 +479,15 @@ const handleTicketSelect = (ticket) => {
           Drag your images here or click to browse files
         </p>
       </div>
-      <input type="file" className="opacity-0" multiple />
+      <input
+  type="file"
+  id="media"
+  name="media"
+  onChange={handleImageChange}
+  className="opacity-0"
+  multiple
+/>
+
     </label>
   </div>
   </form> 
@@ -489,6 +509,7 @@ const handleTicketSelect = (ticket) => {
             hover:file:bg-blue-100
          "/>
          </div>
+
 {/* Billing Section */}
   <div>
     <label htmlFor="price" className="block mb-2 text-sm font-medium text-gray-700">Price</label>
@@ -563,10 +584,41 @@ const handleTicketSelect = (ticket) => {
 )}
 ``
 
-
-
 {isLineFormVisible && (
-   <main className="flex-1">
+  <>
+<aside className="w-1/4 overflow-y-auto">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Name</th>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Status</th>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Products</th>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Modified</th>
+                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Published</th>
+              </tr>
+            </thead>
+            <tbody>
+  {lines.map((line) => (
+    <tr key={line._id}>
+      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.name}</td>
+      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.status}</td>
+      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.products}</td>
+      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
+        {new Date(line.modified).toLocaleString()}
+      </td>
+      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
+        {new Date(line.published).toLocaleString()}
+      </td>
+    </tr>
+  ))}
+</tbody>
+          </table>
+        </div>
+
+      </aside>
+
+      <main className="flex-1">
   <div className="p-4 sm:ml-64">
     <div className="bg-white shadow rounded-lg p-6">
       <h1 className="text-xl font-semibold mb-4">Create New Line</h1>
@@ -639,36 +691,13 @@ const handleTicketSelect = (ticket) => {
       </form>
     </div>
     </div>
-    <div className="p-4 sm:ml-64">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Name</th>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Status</th>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Products</th>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Modified</th>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Published</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {lines.map((line) => (
-                <tr key={line._id}>
-                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.name}</td>
-                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.status}</td>
-                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.products}</td>
-                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{new Date(line.modified).toLocaleString()}</td>
-                  <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{new Date(line.published).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
   </main>
-  
+</>
 )}
+
+
+  
+
 </div>
     </>
   );
