@@ -41,6 +41,11 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+app.use((error, req, res, next) => {
+  console.error(error); // Log the error for debugging
+  res.status(500).json({ error: 'Internal Server Error' }); // Respond with JSON
+});
+
 app.get('/', (req, res) => {
   res.send('Welcome to the tristate-coach-backend!')
 })
@@ -75,26 +80,6 @@ app.post('/login', async (req, res) => {
     res.status(401).send('Invalid credentials');
   }
 });
-
-// Middleware to authenticate token
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (token == null) {
-    return res.sendStatus(401);
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      console.log("Error verifying token:", err.message);
-      // Instead of just sending a status, you could also send a message or a specific error code
-      return res.status(403).json({ message: 'Token is expired', code: 'TOKEN_EXPIRED' });
-    }
-    req.user = user;
-    next();
-  });
-}
 
 
 // Example of a protected route
@@ -221,11 +206,10 @@ app.post('/api/lines', authenticateToken, async (req, res) => {
   try {
     const newLine = new Line(req.body);
     await newLine.save();
-    res.status(201).send(newLine);
+    res.status(201).json(newLine); // send back the created line as JSON
   } catch (error) {
     console.error('Error creating new line:', error);
-    // Send detailed error message
-    res.status(400).send({ message: 'Error creating new line', error: error.message });
+    res.status(400).json({ message: 'Error creating new line', error: error.message });
   }
 });
 
@@ -233,9 +217,10 @@ app.post('/api/lines', authenticateToken, async (req, res) => {
 app.get('/api/lines', authenticateToken, async (req, res) => {
   try {
     const lines = await Line.find({});
-    res.status(200).send(lines);
+    res.json(lines); // respond with JSON
   } catch (error) {
-    res.status(500).send('Error fetching lines');
+    console.error("Error fetching lines:", error);
+    res.status(500).json({ error: 'Error fetching lines' });
   }
 });
 

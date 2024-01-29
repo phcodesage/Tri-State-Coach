@@ -1,4 +1,3 @@
-// models/Ticket.js
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
@@ -13,19 +12,41 @@ const ticketSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
+    required: true,
+    unique: true
+  },
+  description: {
+    type: String,
     required: true
   },
-  description: String,
-  images: [String], // assuming URLs to images
+  categories: [{
+    type: String,
+  }],
+  images: [{
+    type: String
+  }],
   price: {
     type: Number,
     required: true
   },
   compareAtPrice: Number,
-  sku: String,
-  trackInventory: Boolean,
-  requireShipping: Boolean,
-  // ... other fields as per your screenshot
+  sku: {
+    type: String,
+    unique: true
+  },
+  trackInventory: {
+    type: Boolean,
+    default: false
+  },
+  inventoryQuantity: Number,
+  inventoryPolicy: String,
+  requiresShipping: {
+    type: Boolean,
+    default: false
+  },
+  createdOn: Date,
+  updatedOn: Date,
+  publishedOn: Date,
 });
 
 const Ticket = mongoose.model('Ticket', ticketSchema);

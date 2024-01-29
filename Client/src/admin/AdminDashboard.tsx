@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function AdminDashboard() {
+const authToken = localStorage.getItem('token');
 const navigate = useNavigate();
 const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
@@ -9,34 +10,34 @@ const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [creationTime, setCreationTime] = useState(new Date().toISOString());
 const [selectedImage, setSelectedImage] = useState(null);
 const handleImageChange = (e) => {
-  if (e.target.files && e.target.files[0]) {
-    let img = e.target.files[0];
-    setSelectedImage(URL.createObjectURL(img)); // This creates a URL for the selected image file
+  if (e.target.files) {
+    const imageUrls = Array.from(e.target.files).map(file => URL.createObjectURL(file));
+    setTicketData({ ...ticketData, images: [...ticketData.images, ...imageUrls] });
   }
 };
 
-
 const [tickets, setTickets] = useState([]); // State to store tickets data
-const fetchTickets = async () => {
-   try {
-     const response = await fetch('/api/tickets', {
-       headers: {
-         'Authorization': `Bearer ${authToken}`
-       }
-     });
-     if (!response.ok) throw new Error('Error fetching tickets');
-     const data = await response.json();
-     console.log(data)
-     setTickets(data);
-   } catch (error) {
-     console.error('Error fetching tickets:', error);
-     // Handle errors, e.g., by showing an alert to the user
-   }
- };
- useEffect(() => {
-   fetchTickets();
- }, []);
 
+useEffect(() => {
+  const fetchTickets = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/tickets', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setTickets(data);
+    } catch (error) {
+      console.error('Fetch error:', error);
+    }
+  };
+
+  fetchTickets();
+}, [authToken]);
 const [selectedTicket, setSelectedTicket] = useState(null);
 const [selectedCategories, setSelectedCategories] = useState([]);
 const handleCategorySelect = (event) => {
@@ -62,7 +63,7 @@ const toggleTicketFormVisibility = () => {
   setIsLineFormVisible(false); // Hide the line form when toggling the ticket form
 };
 
-const authToken = localStorage.getItem('token'); // or your state management
+ // or your state management
 const [showCreateOptions, setShowCreateOptions] = useState(false);
 
   const handleCreateClick = () => {
@@ -79,18 +80,28 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
    setIsTicketFormVisible(false);
  };
 
-const [ticketData, setTicketData] = useState({
-      productType: '',
-      name: '',
-      slug: '',
-      description: '',
-      price: '',
-      compareAtPrice: '',
-      sku: '',
-      trackInventory: false,
-      requiresShipping: false,
-    });
-    const [newLine, setNewLine] = useState({
+ const [ticketData, setTicketData] = useState({
+  productType: '',
+  name: '',
+  slug: '',
+  description: '',
+  categories: [], // Assuming this will be an array of category names
+  images: [], // Assuming this will be an array of image URLs
+  price: '',
+  compareAtPrice: '',
+  sku: '',
+  trackInventory: false,
+  inventoryQuantity: 0,
+  inventoryPolicy: '',
+  requiresShipping: false,
+  createdOn: new Date().toISOString(),
+  updatedOn: new Date().toISOString(),
+  publishedOn: new Date().toISOString(), // You might want to adjust this based on your business logic
+});
+
+
+  
+const [newLine, setNewLine] = useState({
       name: '',
       status: 'Published', // default value
       products: 0, // default value, assuming it's a new line with no products yet
@@ -99,7 +110,6 @@ const [ticketData, setTicketData] = useState({
     });
 
     const createLine = async (lineData) => {
-      const authToken = localStorage.getItem('token');
     
       if (!authToken) {
         console.error('Auth token is not available.');
@@ -137,30 +147,46 @@ const [ticketData, setTicketData] = useState({
     }
    
     
-    // Fetch lines when the component mounts
-    const fetchLines = async () => {
-      const authToken = localStorage.getItem('token'); // Retrieve the auth token
-      try {
-        const response = await fetch('/api/lines', {
-          headers: {
-            'Authorization': `Bearer ${authToken}`
-          }
-        });
-        if (!response.ok) throw new Error('Error fetching lines');
-        const data = await response.json();
-        setLines(data); // Update the state with the fetched lines
-      } catch (error) {
-        console.error('Error fetching lines:', error);
-        // Handle errors, e.g., by showing an alert to the user
-      }
-    };
 
-    useEffect(() => {
-      if (isLineFormVisible) {
-        fetchLines();
+    
+};
+
+useEffect(() => {
+  let isMounted = true;
+
+  const fetchLines = async () => {
+    try {
+      const response = await fetch('/api/lines', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Error fetching lines');
       }
-    }, [isLineFormVisible]);
-}
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        if (isMounted) {
+          setLines(data);
+        }
+      } else {
+        console.error('Data is not an array:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching lines:', error);
+    }
+  };
+
+  if (isLineFormVisible) {
+    fetchLines();
+  }
+
+  return () => {
+    isMounted = false;
+  };
+}, [isLineFormVisible]);
+
+
        const handleInputChangeLine = (e) => {
          const { name, value } = e.target;
          setNewLine({
@@ -178,39 +204,69 @@ const [ticketData, setTicketData] = useState({
        };
 
        const handleLineSubmit = async (e) => {
-         e.preventDefault();
-         await createLine(newLine);
-         // Optionally clear the form or navigate the user to another page
-         setNewLine({
-           name: '',
-           status: 'Published',
-           products: 0,
-           modified: new Date().toISOString(),
-           published: new Date().toISOString(),
-         });
-         // No need to manually fetch lines here as createLine will update the state
-       };
+        e.preventDefault();
+        try {
+          const createdLine = await createLine(newLine);
+          setLines(prevLines => [...prevLines, createdLine]);
+          // Reset form after successful line creation
+          setNewLine({
+            name: '',
+            status: 'Published',
+            products: 0,
+            modified: new Date().toISOString(),
+            published: new Date().toISOString(),
+          });
+        } catch (error) {
+          console.error('Error submitting line:', error);
+        }
+      };
+      
+      // Save Ticket Function
+      const saveTicket = async (data, isPublished) => {
+        const url = selectedTicket ? `http://localhost:5000/api/tickets/${selectedTicket._id}` : 'http://localhost:5000/api/tickets';
+        const method = selectedTicket ? 'PUT' : 'POST';
+        
+        if (isPublished) {
+          data.publishedOn = new Date().toISOString();
+        }
+      
+        try {
+          const response = await fetch(url, {
+            method: method,
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+      
+          if (response.ok) {
+            const updatedTicket = await response.json();
+            console.log('Ticket saved:', updatedTicket);
+            if (!selectedTicket) {
+              setTickets(prevTickets => [...prevTickets, updatedTicket]);
+            } else {
+              setTickets(prevTickets => prevTickets.map(ticket => ticket._id === updatedTicket._id ? updatedTicket : ticket));
+              setSelectedTicket(updatedTicket); // Update the selected ticket with the new details
+            }
+          } else {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+        } catch (error) {
+          console.error('There was a problem saving the ticket:', error);
+        }
+      };
+    
+      const handlePublish = () => {
+        // Collect the form data and call saveTicket with isPublished = true
+        saveTicket(ticketData, true);
+      };
 
-       const handleSubmit = async (e) => {
-         e.preventDefault();
-         // Here you would typically make an HTTP request to your backend API
-         // to create the new ticket, using the state `ticketData`.
-         console.log(ticketData);
-     
-         // After submitting, you might want to navigate the user to a different page
-         // or clear the form, depending on your UX needs.
-         setTicketData({
-           productType: '',
-           name: '',
-           slug: '',
-           description: '',
-           price: '',
-           compareAtPrice: '',
-           sku: '',
-           trackInventory: false,
-           requiresShipping: false,
-         });
-       };
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        saveTicket(ticketData, false);
+      };
+      
 
   const handleLogout = () => {
    localStorage.removeItem('token'); // Remove the token
@@ -287,12 +343,11 @@ const handleTicketSelect = (ticket) => {
 <aside className="w-1/4 overflow-y-auto">
   <h2>Tickets</h2>
         <ul>
-          {tickets.map(ticket => (
-            <li key={ticket.id} onClick={() => handleTicketSelect(ticket)}>
-              {ticket.name}
-            </li>
-          ))}
-          
+        {tickets.map(ticket => (
+        <li key={ticket._id} onClick={() => handleTicketSelect(ticket)}>
+          {ticket.name}
+        </li>
+      ))}
         </ul>
       </aside>
 )}
@@ -300,41 +355,10 @@ const handleTicketSelect = (ticket) => {
 {isTicketFormVisible && (
    <main className="flex-1">
    {/* Header starts here */}
-        <div className="flex justify-between items-center bg-gray-800 p-4 text-white">
-        {/* Back button and Title */}
-        <div className="flex items-center">
-          <button className="text-gray-300 hover:text-white">
-            {/* SVG for back arrow here */}
-          </button>
-          <h1 className="text-lg font-semibold text-white ml-4">{isTicketFormVisible ? 'New Ticket' : 'Dashboard'}</h1>
-        </div>
-
-        {/* Right side buttons */}
-        <div className="flex items-center">
-          {isTicketFormVisible && (
-            <>
-              <button className="text-gray-300 hover:text-white mr-3" onClick={handleCancel}>
-                Cancel
-              </button>
-              <div className="relative">
-                <button className="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-md font-medium flex items-center" onClick={handleCreateClick}>
-                  Create
-                  {/* SVG for dropdown arrow here */}
-                </button>
-                {showCreateOptions && (
-                  <div className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-                    <button onClick={() => handleSaveOption('Publish')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Publish
-                    </button>
-                    <button onClick={() => handleSaveOption('Draft')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Save to Drafts
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+   <div className="flex justify-between items-center">
+        <button className="mr-3" onClick={handleCancel}>Cancel</button>
+        <button onClick={handleSubmit}>Save</button> {/* Save without publishing */}
+        <button onClick={handlePublish}>Publish</button> {/* Save and publish */}
       </div>
       {/* Header ends here */}
     <div className="my-4">
@@ -356,9 +380,7 @@ const handleTicketSelect = (ticket) => {
             <option value="Service">Service</option>
             <option value="Advance">Advance</option>
           </select>
-          <p className="text-xs text-gray-500">Advanced products provide all available customizable options</p>
         </div>
-
         {/* Name Input */}
         <div>
           <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-700">Name *</label>
@@ -366,7 +388,7 @@ const handleTicketSelect = (ticket) => {
             id="name"
             type="text"
             name="name"
-            value={selectedTicket ? selectedTicket.name : ticketData.name}
+            value={ticketData.name}
             onChange={handleInputChange}
             placeholder="Ticket Name"
             required
@@ -387,7 +409,6 @@ const handleTicketSelect = (ticket) => {
             required
             className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
           />
-          <p className="text-xs text-gray-500">www.tri-statecoach.com/product/{ticketData.slug}</p>
         </div>
 
         {/* Description TextArea */}
@@ -452,22 +473,6 @@ const handleTicketSelect = (ticket) => {
     <img src={selectedImage} alt="Selected" className="h-32 w-auto" />
   )}
   <label htmlFor="media" className="block text-sm font-medium text-gray-700 mb-2">Media</label>
-  <div className="flex">
-    <button className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-md mr-2" onClick={handleCancel}>Cancel</button>
-    <div className="relative">
-      <button className="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-md" onClick={handleCreateClick}>
-        Create
-        {/* SVG for dropdown arrow */}
-        <span className="ml-2">▼</span>
-      </button>
-      {showCreateOptions && (
-        <div className="absolute right-0 mt-2 py-2 w-40 bg-white rounded-md shadow-xl z-20">
-          <button onClick={() => handleSaveOption('Publish')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Publish</button>
-          <button onClick={() => handleSaveOption('Draft')} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Save to Drafts</button>
-        </div>
-      )}
-    </div>
-  </div>
 </div>
   
   <label htmlFor="moreImages" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Image</label>
@@ -582,7 +587,7 @@ const handleTicketSelect = (ticket) => {
            
 </main>
 )}
-``
+
 
 {isLineFormVisible && (
   <>
@@ -599,8 +604,10 @@ const handleTicketSelect = (ticket) => {
               </tr>
             </thead>
             <tbody>
-  {lines.map((line) => (
-    <tr key={line._id}>
+            {lines && lines.length > 0 ? (
+              lines.map((line, index) => (
+                line && line.name ? (
+                <tr key={line._id || index}> 
       <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.name}</td>
       <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.status}</td>
       <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.products}</td>
@@ -611,7 +618,22 @@ const handleTicketSelect = (ticket) => {
         {new Date(line.published).toLocaleString()}
       </td>
     </tr>
-  ))}
+    ) : (
+        <tr key={`empty-${index}`}>
+          <td colSpan="5" className="text-center py-2 text-gray-700">Line data is missing</td>
+        </tr>
+      )
+    ))
+  
+  
+  ) : (
+    <tr>
+                <td colSpan="5" className="text-center py-2 text-gray-700">
+                  No lines available.
+                </td>
+              </tr>
+            )}
+
 </tbody>
           </table>
         </div>
