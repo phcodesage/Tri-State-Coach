@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function AdminDashboard() {
@@ -39,6 +39,8 @@ const [finalPickUpLocationReturn, setFinalPickUpLocationReturn] = useState('');
 const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('');
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
+const [isModalVisible, setIsModalVisible] = useState(false);
+
 
 
 const handleImageChange = (e) => {
@@ -433,16 +435,33 @@ useEffect(() => {
 {isTicketFormVisible && (
   <main className="flex-1">
   {/* Header starts here */}
-  <div className="flex justify-between items-center">
-    <button className="mr-3" onClick={handleCancel}>Cancel</button>
-    <button onClick={handleSubmit}>Save</button> {/* Save without publishing */}
-    <button onClick={handlePublish}>Publish</button> {/* Save and publish */}
+
+
+  <div className="bg-gray-800 px-4 py-2 flex justify-between items-center">
+  <h1 className="text-white text-xl font-bold">New Ticket</h1>
+  <div>
+    <button className="text-blue-500 hover:bg-blue-700 hover:text-white px-3 py-1 rounded" onClick={handlePublish}>Publish</button>
+    <button className="bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white px-3 py-1 rounded ml-2" onClick={() => setIsModalVisible(true)}>Cancel</button>
   </div>
+</div>
   {/* Header ends here */}
 
-  <div className="my-4">
-    <h1 className="text-xl font-bold mb-4">{selectedTicket ? 'Edit Ticket' : 'Create New Ticket'}</h1>
+{isModalVisible && (
+  <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
+    <div className="bg-white rounded-lg max-w-sm mx-auto p-4">
+      <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
+      <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
+      <div className="flex justify-end mt-4">
+        <button onClick={() => setIsModalVisible(false)} className="bg-gray-900 hover:bg-gray-400 text-white font-bold py-2 px-4 rounded-l">
+          Keep editing
+        </button>
+        <button onClick={handleCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
+          Exit Without Saving
+        </button>
+      </div>
+    </div>
   </div>
+)}
 
   <form onSubmit={handleSubmit} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
     {/* Product Type Dropdown */}
@@ -676,37 +695,25 @@ useEffect(() => {
 </div>
 
 {/* Inventory Section */}
-<div className="bg-gray-800 p-4 rounded text-white">
-  <h4 className="text-lg font-semibold mb-4">Inventory</h4>
-  
-  <div className="mb-4 flex items-center">
-    <label htmlFor="trackInventory" className="block text-sm font-medium mb-1 mr-4">Track inventory</label>
+<div className="mb-4 flex items-center justify-between">
+  <span className="text-sm font-medium text-white">Track inventory</span>
+  <label htmlFor="trackInventory" className="relative inline-flex items-center cursor-pointer">
     <input
       type="checkbox"
       id="trackInventory"
       name="trackInventory"
+      className="sr-only peer"
       checked={ticketData.trackInventory}
-      onChange={e => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
-      className="focus:ring-0 text-blue-600 rounded cursor-pointer"
+      onChange={(e) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
     />
-    <label htmlFor="trackInventory" className="ml-2 text-sm font-medium">
+    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+    <span className="ml-3 text-sm font-medium text-white dark:text-white">
       {ticketData.trackInventory ? 'YES' : 'NO'}
-    </label>
-  </div>
-  
-  <div className="mb-4">
-    <label htmlFor="inventoryQuantity" className="block text-sm font-medium mb-1">Quantity</label>
-    <input
-      type="number"
-      id="inventoryQuantity"
-      name="inventoryQuantity"
-      value={ticketData.inventoryQuantity}
-      onChange={handleInputChange}
-      min="0"
-      className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
-    />
-  </div>
+    </span>
+  </label>
 </div>
+
+
 
 
 {/* Custom Fields Section */}
@@ -1038,17 +1045,6 @@ useEffect(() => {
 </div>
 
   </div>
-{/* Action Buttons */}
-<div className="flex gap-4">
-  <button type="submit" className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md">{selectedTicket ? 'Update Ticket' : 'Create Ticket'}</button>
-  {selectedTicket && (
-        <>
-  <button type="button" className="px-4 py-2 text-sm text-white bg-gray-500 rounded-md">Archive</button>
-  <button type="button" className="px-4 py-2 text-sm text-white bg-red-600 rounded-md">Delete</button>
-  <button type="button" className="px-4 py-2 text-sm text-white bg-green-600 rounded-md">Duplicate</button>
-    </>
-  )}
-</div>
   </form>
 </main>
 
