@@ -8,6 +8,7 @@ const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isTicketListVisible, setIsTicketListVisible] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
+const [isLineListVisible, setIsLineListVisible] = useState(false);
 const [creationTime, setCreationTime] = useState(new Date().toISOString());
 const [tripType, setTripType] = useState('');
 const [lineName, setLineName] = useState('');
@@ -44,7 +45,7 @@ const [pinnedTickets, setPinnedTickets] = useState([]);
 
 
 
-const handleImageChange = (e) => {
+const handleImageChange = (e:any) => {
   if (e.target.files && e.target.files[0]) {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -104,15 +105,18 @@ const handleCategorySelect = (event) => {
    setSelectedCategories(selectedCategories.filter((c) => c !== category));
  };
  
- 
+
  const toggleLineFormVisibility = () => {
-  setIsLineFormVisible(!isLineFormVisible);
-  setIsTicketListVisible(false); // Hide the ticket form when toggling the line form
+  setIsLineFormVisible(false);
+  setIsLineListVisible(true)
+  setIsTicketListVisible(false);
+  setIsTicketFormVisible(false) // Hide the ticket form when toggling the line form
 };
 
 const toggleTicketFormVisibility = () => {
   setIsTicketListVisible(!isTicketFormVisible);
-  setIsLineFormVisible(false); // Hide the line form when toggling the ticket form
+  setIsLineFormVisible(false); // Hide the line form when toggling the ticket form\
+  setIsLineListVisible(false);
 };
 
  // or your state management
@@ -242,7 +246,7 @@ useEffect(() => {
 }, [isLineFormVisible]);
 
 
-       const handleInputChangeLine = (e) => {
+       const handleInputChangeLine = (e:any) => {
          const { name, value } = e.target;
          setNewLine({
            ...newLine,
@@ -250,7 +254,7 @@ useEffect(() => {
          });
        };
      
-       const handleInputChange = (e) => {
+       const handleInputChange = (e:any) => {
          const { name, value } = e.target;
          setTicketData({
            ...ticketData,
@@ -258,7 +262,7 @@ useEffect(() => {
          });
        };
 
-       const handleLineSubmit = async (e) => {
+       const handleLineSubmit = async (e:any) => {
         e.preventDefault();
         try {
           const createdLine = await createLine(newLine);
@@ -321,7 +325,7 @@ useEffect(() => {
         saveTicket(ticketData, true);
       };
 
-      const handleSubmit = (e) => {
+      const handleSubmit = (e:any) => {
         e.preventDefault();
         saveTicket(ticketData, false);
       };
@@ -446,36 +450,54 @@ useEffect(() => {
     )}
   </div>
     <ul className="overflow-y-auto">
-      {tickets.map((ticket) => (
-        <li
-          key={ticket._id}
-          onClick={() => handleTicketSelect(ticket)}
-          className="flex items-center justify-between p-2 hover:bg-gray-700 rounded cursor-pointer"
-        >
-          <span>{ticket.name}</span>
-          <div className="flex items-center">
-            <span
-              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                ticket.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-gray-300 text-gray-800'
-              }`}
+    <div className="overflow-x-auto">
+      <table className="min-w-full">
+        <thead>
+          <tr>
+            <th className="text-left font-medium">Name</th>
+            {!isTicketFormVisible && (
+              <>
+            <th className="text-left font-medium">Status</th>
+            <th className="text-left font-medium">Price</th>
+            <th className="text-left font-medium">Product Type</th>
+            <th className="text-left font-medium">Modified</th>
+            <th className="text-left font-medium">Published</th>
+            <th className="text-left font-medium">Actions</th>
+            </>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {tickets.map((ticket) => (
+            <tr
+              key={ticket._id}
+              onClick={() => handleTicketSelect(ticket)}
+              className="hover:bg-gray-700 cursor-pointer"
             >
-              {ticket.status}
-            </span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                pinTicket(ticket._id);
-              }}
-              className="ml-3"
-              disabled={isTicketFormVisible}
-            >
-              {/* SVG or Font Icon for Pin */}
-              📌
-            </button>
-          </div>
-        </li>
-      ))}
+              <td className="p-2">{ticket.name}</td>
+              <td className={`p-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-gray-300 text-gray-800'}`}>
+                {ticket.status}
+              </td>
+              {/* Other cells... */}
+              <td className="p-2 text-left">
+                <button
+                  type="button"
+                  onClick={(e:any) => {
+                    e.stopPropagation();
+                    pinTicket(ticket._id);
+                  }}
+                  disabled={isTicketFormVisible}
+                  className="text-indigo-600 hover:text-indigo-900"
+                >
+                  {/* SVG or Font Icon for Pin */}
+                  📌
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
     </ul>
   </div>
 )}
@@ -765,7 +787,7 @@ useEffect(() => {
       name="trackInventory"
       className="sr-only peer"
       checked={ticketData.trackInventory}
-      onChange={(e) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
+      onChange={(e:any) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
     />
     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
     <span className="ml-3 text-sm font-medium text-white dark:text-white">
@@ -1231,136 +1253,154 @@ useEffect(() => {
 )}
 
 
-{isLineFormVisible && (
+{isLineListVisible && (
   <>
-<aside className="w-1/4 overflow-y-auto">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Name</th>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Status</th>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Products</th>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Modified</th>
-                <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Published</th>
+   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/3' : 'w-full'} bg-gray-800 text-white`}>
+      {/* Header with buttons */}
+      {!isLineFormVisible && (
+      <div className="flex justify-between items-center p-4">
+        <h2 className="text-xl font-bold">Lines</h2>
+        <div className="flex space-x-2">
+          <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-gray-700" />
+          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Filter</button>
+          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Select</button>
+          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Export</button>
+          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Import</button>
+          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Settings</button>
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            onClick={() => setIsLineFormVisible(true)}
+          >
+            + New Line
+          </button>
+        </div>
+      </div>
+    )}
+
+      {/* Lines table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Name</th>
+              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Status</th>
+              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Products</th>
+              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Modified</th>
+              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Published</th>
+            </tr>
+          </thead>
+      <tbody>
+        {lines && lines.length > 0 ? (
+          lines.map((line, index) => (
+            line && line.name ? (
+              <tr key={line._id || index}>
+                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.name}</td>
+                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.status}</td>
+                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.products}</td>
+                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
+                  {new Date(line.modified).toLocaleString()}
+                </td>
+                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
+                  {new Date(line.published).toLocaleString()}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-            {lines && lines.length > 0 ? (
-              lines.map((line, index) => (
-                line && line.name ? (
-                <tr key={line._id || index}> 
-      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.name}</td>
-      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.status}</td>
-      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.products}</td>
-      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
-        {new Date(line.modified).toLocaleString()}
-      </td>
-      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
-        {new Date(line.published).toLocaleString()}
-      </td>
-    </tr>
-    ) : (
-        <tr key={`empty-${index}`}>
-          <td colSpan="5" className="text-center py-2 text-gray-700">Line data is missing</td>
-        </tr>
-      )
-    ))
-  
-  
-  ) : (
-    <tr>
-  <td colSpan="5" className="text-center py-2 text-gray-700">
-    No lines available.
-  </td>
-</tr>
+            ) : (
+              <tr key={`empty-${index}`}>
+                <td colSpan="5" className="text-center py-2 text-gray-700">Line data is missing</td>
+              </tr>
+            )
+          ))
+        ) : (
+          <tr>
+            <td colSpan="5" className="text-center py-2 text-gray-700">
+              No lines available.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</div> 
+</>
 )}
 
-</tbody>
-          </table>
-        </div>
+{isLineFormVisible && (
+  <main className="w-full bg-gray-800 text-white p-4 overflow-y-auto">
+    <div className="h-full bg-gray-800 p-6 rounded-lg shadow-lg">
+      <div className="flex items-center mb-4">
+        <button
+          className="text-gray-800 mr-4"
+          onClick={() => setIsLineFormVisible(false)}
+        >
+          {/* Back arrow icon */}
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h2 className="text-xl font-semibold text-white">New Line</h2>
+      </div>
 
-      </aside>
-
-      <main className="flex-1">
-  <div className="p-4 sm:ml-64">
-    <div className="bg-white shadow rounded-lg p-6">
-      <h1 className="text-xl font-semibold mb-4">Create New Line</h1>
       <form onSubmit={handleLineSubmit} className="space-y-6">
         {/* Line Name Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="line-name">
-            Name *
-          </label>
+          <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name *</label>
           <input
             id="line-name"
             type="text"
             name="name"
             required
-            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Line Name"
             value={newLine.name}
-            onChange={(e) => setNewLine({ ...newLine, name: e.target.value })}
+            onChange={(e:any) => setNewLine({ ...newLine, name: e.target.value })}
           />
         </div>
-        {/* Status Select */}
+
+        {/* Slug Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="status">
-            Status
-          </label>
-          <select
-            id="status"
-            name="status"
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-            value={newLine.status}
-            onChange={(e) => setNewLine({ ...newLine, status: e.target.value })}
-          >
-            <option value="Published">Published</option>
-            <option value="Unpublished">Unpublished</option>
-          </select>
+          <label className="block text-sm font-medium text-white mb-1" htmlFor="line-slug">Slug *</label>
+          <input
+            id="line-slug"
+            type="text"
+            name="slug"
+            required
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Slug"
+            value={newLine.slug}
+            onChange={(e:any) => setNewLine({ ...newLine, slug: e.target.value })}
+          />
+          <p className="mt-1 text-xs text-gray-500">www.tri-statecoach.com/category/{newLine.slug}</p>
         </div>
-        {/* Dates and Buttons */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="created">
-              Created
-            </label>
-            <input
-              id="created"
-              type="datetime-local"
-              name="created"
-              value={creationTime.slice(0, -1)}
-              readOnly
-              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"// Here you might need to adjust the logic to get the created date
-              onChange={(e) => setNewLine({ ...newLine, created: e.target.value })}
-            />
-          </div>
-          {/* Add inputs for 'Last edited' and 'Last published' similarly */}
-        </div>
+
+        {/* Products Dropdown */}
+        <div>
+      <label className="block text-sm font-medium text-white mb-1" htmlFor="products">Products</label>
+      <select
+        id="products"
+        name="products"
+        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        value={newLine.products}
+        onChange={(e:any) => setNewLine({ ...newLine, products: e.target.value })}
+      >
+        {/* Dynamically populate options based on tickets */}
+        {tickets.map((ticket, index) => (
+          // Ensure each option has a unique key
+          <option key={`ticket-${index}`} value={ticket.id}> 
+            {ticket.name}
+          </option>
+        ))}
+      </select>
+    </div>
+
         {/* Action Buttons */}
-        <div className="flex justify-start space-x-4">
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-          Create Line
-        </button>
-          <button type="button" className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-            Archive
-          </button>
-          <button type="button" className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-            Delete
-          </button>
-          <button type="button" className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-            Duplicate
-          </button>
+        <div className="flex items-center justify-end space-x-2">
+          <button type="button" className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 focus:outline-none">Cancel</button>
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none">Create</button>
         </div>
       </form>
     </div>
-    </div>
   </main>
-</>
 )}
-
-
-  
 
 </div>
     </>
