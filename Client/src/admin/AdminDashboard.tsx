@@ -1282,11 +1282,11 @@ useEffect(() => {
         <table className="min-w-full text-sm divide-y divide-gray-200">
           <thead>
             <tr>
-              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Name</th>
-              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Status</th>
-              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Products</th>
-              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Modified</th>
-              <th className="px-4 py-2 font-medium text-left text-gray-900 whitespace-nowrap">Published</th>
+              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Name</th>
+              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
+              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Products</th>
+              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Modified</th>
+              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Published</th>
             </tr>
           </thead>
       <tbody>
@@ -1329,7 +1329,7 @@ useEffect(() => {
     <div className="h-full bg-gray-800 p-6 rounded-lg shadow-lg">
       <div className="flex items-center mb-4">
         <button
-          className="text-gray-800 mr-4"
+          className="text-white mr-4"
           onClick={() => setIsLineFormVisible(false)}
         >
           {/* Back arrow icon */}
@@ -1343,7 +1343,7 @@ useEffect(() => {
       <form onSubmit={handleLineSubmit} className="space-y-6">
         {/* Line Name Input */}
         <div>
-          <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name *</label>
+          <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name <span className="text-red-700">*</span></label>
           <input
             id="line-name"
             type="text"
@@ -1358,7 +1358,7 @@ useEffect(() => {
 
         {/* Slug Input */}
         <div>
-          <label className="block text-sm font-medium text-white mb-1" htmlFor="line-slug">Slug *</label>
+          <label className="block text-sm font-medium text-white mb-1" htmlFor="line-slug">Slug <span className="text-red-700">*</span></label>
           <input
             id="line-slug"
             type="text"
@@ -1385,7 +1385,7 @@ useEffect(() => {
         {/* Dynamically populate options based on tickets */}
         {tickets.map((ticket, index) => (
           // Ensure each option has a unique key
-          <option key={`ticket-${index}`} value={ticket.id}> 
+          <option key={`ticket-${index}`} value={ticket.id} className='text-gray-800'> 
             {ticket.name}
           </option>
         ))}
