@@ -6,6 +6,7 @@ const authToken = localStorage.getItem('token');
 const navigate = useNavigate();
 const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
+const [isTicketListVisible, setIsTicketListVisible] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [creationTime, setCreationTime] = useState(new Date().toISOString());
 const [tripType, setTripType] = useState('');
@@ -40,6 +41,7 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
+const [pinnedTickets, setPinnedTickets] = useState([]);
 
 
 
@@ -106,11 +108,11 @@ const handleCategorySelect = (event) => {
  
  const toggleLineFormVisibility = () => {
   setIsLineFormVisible(!isLineFormVisible);
-  setIsTicketFormVisible(false); // Hide the ticket form when toggling the line form
+  setIsTicketListVisible(false); // Hide the ticket form when toggling the line form
 };
 
 const toggleTicketFormVisibility = () => {
-  setIsTicketFormVisible(!isTicketFormVisible);
+  setIsTicketListVisible(!isTicketFormVisible);
   setIsLineFormVisible(false); // Hide the line form when toggling the ticket form
 };
 
@@ -274,7 +276,11 @@ useEffect(() => {
           console.error('Error submitting line:', error);
         }
       };
-      
+      const pinTicket = (ticketId) => {
+        // Implement the logic to pin the ticket
+        setPinnedTickets([...pinnedTickets, ticketId]);
+      };
+
       // Save Ticket Function
       const saveTicket = async (data, isPublished) => {
         const url = selectedTicket ? `http://localhost:5000/api/tickets/${selectedTicket._id}` : 'http://localhost:5000/api/tickets';
@@ -419,21 +425,66 @@ useEffect(() => {
 </aside>
 
 {/* List of tickets */}
-{isTicketFormVisible && (
-<aside className="w-1/4 overflow-y-auto">
-  <h2>Tickets</h2>
-        <ul>
-        {tickets.map(ticket => (
-        <li key={ticket._id} onClick={() => handleTicketSelect(ticket)}>
-          {ticket.name}
+
+{/* List of tickets */}
+{isTicketListVisible && (
+  <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/3' : 'w-full'} bg-gray-800 text-white`}>
+    <div className="p-4 flex justify-between items-center">
+      <h2 className="text-xl font-bold">Tickets</h2>
+      <div className="flex items-center">
+        <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-gray-700" disabled={isTicketFormVisible} />
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Filter</button>
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Select</button>
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Export</button>
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Import</button>
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Settings</button>
+        <button
+          className="ml-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          onClick={() => setIsTicketFormVisible(true)}
+          disabled={isTicketFormVisible}
+        >
+          + New Ticket
+        </button>
+      </div>
+    </div>
+    <ul className="overflow-y-auto">
+      {tickets.map((ticket) => (
+        <li
+          key={ticket._id}
+          onClick={() => handleTicketSelect(ticket)}
+          className="flex items-center justify-between p-2 hover:bg-gray-700 rounded cursor-pointer"
+        >
+          <span>{ticket.name}</span>
+          <div className="flex items-center">
+            <span
+              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                ticket.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-gray-300 text-gray-800'
+              }`}
+            >
+              {ticket.status}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                pinTicket(ticket._id);
+              }}
+              className="ml-3"
+              disabled={isTicketFormVisible}
+            >
+              {/* SVG or Font Icon for Pin */}
+              📌
+            </button>
+          </div>
         </li>
       ))}
-        </ul>
-      </aside>
+    </ul>
+  </div>
 )}
 
+
 {isTicketFormVisible && (
-  <main className="flex-1">
+  <main className="w-2/3 bg-gray-800 text-white p-4 overflow-y-auto">
   {/* Header starts here */}
 
 
@@ -713,7 +764,18 @@ useEffect(() => {
   </label>
 </div>
 
-
+<div className="mb-4">
+    <label htmlFor="inventoryQuantity" className="block text-sm font-medium mb-1">Quantity</label>
+    <input
+      type="number"
+      id="inventoryQuantity"
+      name="inventoryQuantity"
+      value={ticketData.inventoryQuantity}
+      onChange={handleInputChange}
+      min="0"
+      className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
+    />
+  </div>
 
 
 {/* Custom Fields Section */}
@@ -755,7 +817,7 @@ useEffect(() => {
 
 {/* Departure Date */}
 <div className="mb-4">
-  <label htmlFor="departureDate" className="block text-sm font-medium text-gray-700 mb-2">Departure Date</label>
+  <label htmlFor="departureDate" className="block text-sm font-medium text-white mb-2">Departure Date</label>
   <input
     id="departureDate"
     type="datetime-local"
@@ -768,7 +830,7 @@ useEffect(() => {
 
 {/* Return Date */}
 <div className="mb-4">
-  <label htmlFor="returnDate" className="block text-sm font-medium text-gray-700 mb-2">Return Date</label>
+  <label htmlFor="returnDate" className="block text-sm font-medium text-white mb-2">Return Date</label>
   <input
     id="returnDate"
     type="datetime-local"
