@@ -25,6 +25,20 @@ const [secondDropOffLocation, setSecondDropOffLocation] = useState('');
 const [thirdDropOffLocation, setThirdDropOffLocation] = useState('');
 const [finalDropOffLocation, setFinalDropOffLocation] = useState('');
 const [suggestedTip, setSuggestedTip] = useState('');
+const [firstPickUpTimeReturn, setFirstPickUpTimeReturn] = useState('');
+const [firstPickUpLocationReturn, setFirstPickUpLocationReturn] = useState('');
+const [firstDropOffLocationReturn, setFirstDropOffLocationReturn] = useState('');
+const [secondPickUpTimeReturn, setSecondPickUpTimeReturn] = useState('');
+const [secondPickUpLocationReturn, setSecondPickUpLocationReturn] = useState('');
+const [secondDropOffLocationReturn, setSecondDropOffLocationReturn] = useState('');
+const [thirdPickUpTimeReturn, setThirdPickUpTimeReturn] = useState('');
+const [thirdPickUpLocationReturn, setThirdPickUpLocationReturn] = useState('');
+const [thirdDropOffLocationReturn, setThirdDropOffLocationReturn] = useState('');
+const [finalPickUpTimeReturn, setFinalPickUpTimeReturn] = useState('');
+const [finalPickUpLocationReturn, setFinalPickUpLocationReturn] = useState('');
+const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('');
+const [suggestedTipReturn, setSuggestedTipReturn] = useState('');
+
 const handleImageChange = (e) => {
   if (e.target.files && e.target.files[0]) {
     const file = e.target.files[0];
@@ -903,7 +917,7 @@ useEffect(() => {
     name="secondDropOffLocationReturn"
     value={secondDropOffLocationReturn}
     onChange={e => setSecondDropOffLocationReturn(e.target.value)}
-    placeholder="Enter the first drop off location for the return journey"
+    placeholder="Enter the second drop off location for the return journey"
     rows="3"
     className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
   ></textarea>
@@ -917,7 +931,7 @@ useEffect(() => {
     name="thirdDropOffLocationReturn"
     value={thirdDropOffLocationReturn}
     onChange={e => setThirdDropOffLocationReturn(e.target.value)}
-    placeholder="Enter the first drop off location for the return journey"
+    placeholder="Enter the third drop off location for the return journey"
     rows="3"
     className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
   ></textarea>
@@ -931,7 +945,7 @@ useEffect(() => {
     name="finalDropOffLocationReturn"
     value={finalDropOffLocationReturn}
     onChange={e => setFinalDropOffLocationReturn(e.target.value)}
-    placeholder="Enter the first drop off location for the return journey"
+    placeholder="Enter the final drop off location for the return journey"
     rows="3"
     className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
   ></textarea>
