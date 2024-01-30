@@ -8,7 +8,12 @@ const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [creationTime, setCreationTime] = useState(new Date().toISOString());
+const [tripType, setTripType] = useState('');
+const [lineName, setLineName] = useState('');
+const [departureDate, setDepartureDate] = useState('');
+const [returnDate, setReturnDate] = useState('');
 const [selectedImage, setSelectedImage] = useState(null);
+const [tickets, setTickets] = useState([]); // State to store tickets data
 const handleImageChange = (e) => {
   if (e.target.files && e.target.files[0]) {
     const file = e.target.files[0];
@@ -18,17 +23,22 @@ const handleImageChange = (e) => {
       setSelectedImage(reader.result);
 
       // Append the new image file to the ticketData images array
-      setTicketData((prevData) => ({
-        ...prevData,
-        images: [...prevData.images, file],
-      }));
+      setTicketData({
+        ...ticketData,
+        images: [...ticketData.images, newImageURL] // newImageURL should be a string
+      });
     };
     reader.readAsDataURL(file);
   }
 };
 
+const deleteImage = () => {
+  // Implement the logic to delete the image
+  setSelectedImage(null);
+  // If you also need to remove the image from the ticketData state, adjust accordingly
+  setTicketData({ ...ticketData, images: ticketData.images.filter((img) => img !== selectedImage) });
+};
 
-const [tickets, setTickets] = useState([]); // State to store tickets data
 
 useEffect(() => {
   const fetchTickets = async () => {
@@ -102,6 +112,9 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
   price: '',
   compareAtPrice: '',
   sku: '',
+  stops: '',
+  firstPickUpTime: '',
+  firstPickUpLocation: '',
   trackInventory: false,
   inventoryQuantity: 0,
   inventoryPolicy: '',
@@ -391,187 +404,209 @@ useEffect(() => {
 )}
 
 {isTicketFormVisible && (
-   <main className="flex-1">
-   {/* Header starts here */}
-   <div className="flex justify-between items-center">
-        <button className="mr-3" onClick={handleCancel}>Cancel</button>
-        <button onClick={handleSubmit}>Save</button> {/* Save without publishing */}
-        <button onClick={handlePublish}>Publish</button> {/* Save and publish */}
-      </div>
-      {/* Header ends here */}
-    <div className="my-4">
-      <h1 className="text-xl font-bold mb-4">{selectedTicket ? 'Edit Ticket' : 'Create New Ticket'}</h1>
-      
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {/* Product Type Dropdown */}
-        <div>
-          <label htmlFor="productType" className="block mb-2 text-sm font-medium text-gray-700">Product Type</label>
-          <select
-            id="productType"
-            name="productType"
-            value={ticketData.productType}
-            onChange={handleInputChange}
-            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
-          >
-            <option value="Physical">Physical</option>
-            <option value="Digital">Digital</option>
-            <option value="Service">Service</option>
-            <option value="Advance">Advance</option>
-          </select>
-        </div>
-        {/* Name Input */}
-        <div>
-          <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-700">Name *</label>
-          <input
-            id="name"
-            type="text"
-            name="name"
-            value={ticketData.name}
-            onChange={handleInputChange}
-            placeholder="Ticket Name"
-            required
-            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
-          />
-        </div>
+  <main className="flex-1">
+  {/* Header starts here */}
+  <div className="flex justify-between items-center">
+    <button className="mr-3" onClick={handleCancel}>Cancel</button>
+    <button onClick={handleSubmit}>Save</button> {/* Save without publishing */}
+    <button onClick={handlePublish}>Publish</button> {/* Save and publish */}
+  </div>
+  {/* Header ends here */}
 
-        {/* Slug Input */}
-        <div>
-          <label htmlFor="slug" className="block mb-2 text-sm font-medium text-gray-700">Slug *</label>
-          <input
-            id="slug"
-            type="text"
-            name="slug"
-            value={ticketData.slug}
-            onChange={handleInputChange}
-            placeholder="Slug"
-            required
-            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
-          />
-        </div>
+  <div className="my-4">
+    <h1 className="text-xl font-bold mb-4">{selectedTicket ? 'Edit Ticket' : 'Create New Ticket'}</h1>
+  </div>
 
-        {/* Description TextArea */}
-        <div>
-          <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-700">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            value={ticketData.description}
-            onChange={handleInputChange}
-            placeholder="Description"
-            className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
-          ></textarea>
-        </div>
-
-        {/* Categories Select */}
-<div className="my-4">
-  <label htmlFor="categories" className="block mb-2 text-sm font-medium text-gray-700">
-    Categories
-  </label>
-  <p className="text-xs text-gray-500 mb-4">
-    Add this product to one or more categories.
-  </p>
-  <select
-    id="categories"
-    name="categories"
-    multiple
-    value={selectedCategories}
-    onChange={handleCategorySelect}
-    className="w-full p-2 mb-2 text-sm border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-  >
-    {lines.map((line) => (
-      <option key={line._id} value={line.name}>
-        {line.name}
-      </option>
-    ))}
-  </select>
-  {/* Display selected categories */}
-  <div className="flex flex-wrap gap-2">
-    {selectedCategories.map((category) => (
-      <span
-        key={category}
-        className="flex items-center px-3 py-1 text-sm text-gray-700 bg-gray-200 rounded-full"
+  <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
+    {/* Product Type Dropdown */}
+    <div className="mb-4">
+      <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
+      <select
+        id="productType"
+        name="productType"
+        value={ticketData.productType}
+        onChange={handleInputChange}
+        className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
       >
-        {category}
-        <button
-          type="button"
-          onClick={() => handleRemoveCategory(category)}
-          className="flex items-center justify-center w-4 h-4 ml-2 text-gray-500 rounded-full hover:text-gray-700"
-        >
-          &times;
-        </button>
-      </span>
-    ))}
-  </div>
-</div>
+        <option value="Physical">Physical</option>
+        <option value="Digital">Digital</option>
+        <option value="Service">Service</option>
+        <option value="Advance">Advance</option>
+      </select>
+      <p className="text-xs mt-1">
+        Service products do not require a shipping address during checkout (e.g., classes, consultations).
+      </p>
+    </div>
 
-
-        {/* Media Section */}
-<div className="mb-4">
-{/* Inside your form JSX */}
-{selectedImage && (
-  <div>
-    <img src={selectedImage} alt="Selected" className="h-32 w-auto" />
-    <button type="button" onClick={() => setSelectedImage(null)}>Remove</button>
-    {/* Add other controls like 'Replace' or 'Delete' as needed */}
-  </div>
-)}
-
-  <label htmlFor="media" className="block text-sm font-medium text-gray-700 mb-2">Media</label>
-</div>
-  
-  <label htmlFor="moreImages" className="block text-sm font-medium text-gray-700 mt-4 mb-2">Image</label>
-  <div className="flex justify-center items-center w-full">
-    <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-gray-100 hover:border-gray-300 rounded-lg group">
-      <div className="flex flex-col items-center justify-center pt-7">
-        <svg className="w-10 h-10 text-gray-400 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
-        <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
-          Drag your images here or click to browse files
-        </p>
-      </div>
+    {/* Name Input */}
+    <div className="mb-4">
+      <label htmlFor="name" className="block text-sm font-medium mb-2">Name *</label>
       <input
-  type="file"
-  id="media"
-  name="media"
-  onChange={handleImageChange}
-  className="opacity-0"
-  multiple
-/>
+        id="name"
+        type="text"
+        name="name"
+        value={ticketData.name}
+        onChange={handleInputChange}
+        placeholder="Ticket Name"
+        required
+        className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      />
+    </div>
 
-    </label>
-  </div>
-  </form> 
-</div>
-         {/* More Images */}
-         <div>
-         <label htmlFor="moreImages" className="block mb-2 text-sm font-medium text-gray-700">More Images</label>
-         <input
+    {/* Slug Input */}
+    <div className="mb-4">
+      <label htmlFor="slug" className="block text-sm font-medium mb-2">Slug *</label>
+      <input
+        id="slug"
+        type="text"
+        name="slug"
+        value={ticketData.slug}
+        onChange={handleInputChange}
+        placeholder="Slug"
+        required
+        className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      />
+      <p className="text-xs mt-1">
+        www.tri-statecoach.com/product/{ticketData.slug}
+      </p>
+    </div>
+
+    {/* Description TextArea */}
+    <div className="mb-4">
+      <label htmlFor="description" className="block text-sm font-medium mb-2">Description</label>
+      <textarea
+        id="description"
+        name="description"
+        value={ticketData.description}
+        onChange={handleInputChange}
+        placeholder="Description"
+        className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      ></textarea>
+    </div>
+
+    {/* Categories Select */}
+    <div className="mb-4">
+      <label htmlFor="categories" className="block text-sm font-medium mb-2">
+        Categories
+      </label>
+      <p className="text-xs mb-4">
+        Add this product to one or more categories.
+      </p>
+      <select
+        id="categories"
+        name="categories"
+        multiple
+        value={selectedCategories}
+        onChange={handleCategorySelect}
+        className="w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      >
+        {lines.map((line) => (
+          <option key={line._id} value={line.name}>
+            {line.name}
+          </option>
+        ))}
+      </select>
+      {/* Display selected categories */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        {selectedCategories.map((category) => (
+          <span
+            key={category}
+            className="flex items-center px-3 py-1 text-sm bg-gray-600 rounded-full"
+          >
+            {category}
+            <button
+              type="button"
+              onClick={() => handleRemoveCategory(category)}
+              className="flex items-center justify-center w-4 h-4 ml-2 rounded-full hover:text-gray-300"
+            >
+              &times;
+            </button>
+          </span>
+        ))}
+      </div>
+    </div>
+
+
+{/* Media Section */}
+<div className="mb-4 bg-gray-100 p-4 rounded">
+  <div className="mb-4">
+    <label className="block text-sm font-medium text-gray-700 mb-2">Main image</label>
+    {selectedImage ? (
+      <div className="flex items-center space-x-2 mb-2">
+        <img src={selectedImage} alt="Selected" className="h-20 w-20 object-cover rounded" />
+        <div className="flex flex-col">
+          <span className="text-xs font-medium">Filename: {selectedImage.name}</span>
+          <span className="text-xs text-gray-500">Size: {selectedImage.size} KB</span>
+        </div>
+        <button type="button" onClick={() => setSelectedImage(null)} className="text-gray-500 hover:text-gray-700">
+          Replace
+        </button>
+        <button type="button" onClick={deleteImage} className="text-gray-500 hover:text-gray-700">
+          Delete
+        </button>
+      </div>
+    ) : (
+      <div className="flex justify-center items-center w-full">
+        <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-gray-200 hover:border-gray-400 rounded-lg group">
+          <div className="flex flex-col items-center justify-center pt-7">
+            <svg className="w-10 h-10 text-gray-400 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
+            <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
+              Click to browse for files
+            </p>
+          </div>
+          <input
             type="file"
-            id="moreImages"
-            name="moreImages"
-            multiple
-            onChange={handleInputChange}
-            className="block w-full text-sm text-gray-500
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-md file:border-0
-            file:text-sm file:font-semibold
-            file:bg-blue-50 file:text-blue-700
-            hover:file:bg-blue-100
-         "/>
-         </div>
+            id="mainImage"
+            name="mainImage"
+            onChange={handleImageChange}
+            className="opacity-0"
+          />
+        </label>
+      </div>
+    )}
+  </div>
+</div>
+
 
 {/* Billing Section */}
-  <div>
-    <label htmlFor="price" className="block mb-2 text-sm font-medium text-gray-700">Price</label>
-    <input
-      id="price"
-      type="text"
-      name="price"
-      value={ticketData.price}
-      onChange={handleInputChange}
-      placeholder="Price in dollars"
-      className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
-    />
+<div className="bg-gray-800 p-4 rounded text-white">
+  <h4 className="text-lg font-semibold mb-4">Billing</h4>
+  <div className="flex items-center gap-4 mb-4">
+    <div className="flex-1">
+      <label htmlFor="price" className="block text-sm font-medium mb-1">Price *</label>
+      <div className="flex items-center bg-gray-700 rounded">
+        <span className="pl-2 text-gray-300">$</span>
+        <input
+          id="price"
+          type="text"
+          name="price"
+          value={ticketData.price}
+          onChange={handleInputChange}
+          placeholder="0.00"
+          className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
+        />
+      </div>
+    </div>
+    <div className="flex-1">
+      <label htmlFor="compareAtPrice" className="block text-sm font-medium mb-1">Compare-at price</label>
+      <div className="flex items-center bg-gray-700 rounded">
+        <span className="pl-2 text-gray-300">$</span>
+        <input
+          id="compareAtPrice"
+          type="text"
+          name="compareAtPrice"
+          value={ticketData.compareAtPrice}
+          onChange={handleInputChange}
+          placeholder="0.00"
+          className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
+        />
+      </div>
+    </div>
   </div>
+</div>
+
+
+
 {/* Product Tax Class */}
 <div>
   <label htmlFor="productTaxClass" className="block mb-2 text-sm font-medium text-gray-700">Product Tax Class</label>
@@ -600,23 +635,138 @@ useEffect(() => {
     className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
   />
 </div>
+
 {/* Inventory Section */}
-<div>
-  <label className="block mb-2 text-sm font-medium text-gray-700">
-    Track Inventory
-  </label>
-  <input
-    type="checkbox"
-    id="trackInventory"
-    name="trackInventory"
-    checked={ticketData.trackInventory}
-    onChange={e => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
-    className="rounded text-blue-600 focus:ring-blue-500"
-  />
-  <label htmlFor="trackInventory" className="ml-2 text-sm font-medium text-gray-700">
-    {ticketData.trackInventory ? 'Yes' : 'No'}
-  </label>
+<div className="bg-gray-800 p-4 rounded text-white">
+  <h4 className="text-lg font-semibold mb-4">Inventory</h4>
+  
+  <div className="mb-4 flex items-center">
+    <label htmlFor="trackInventory" className="block text-sm font-medium mb-1 mr-4">Track inventory</label>
+    <input
+      type="checkbox"
+      id="trackInventory"
+      name="trackInventory"
+      checked={ticketData.trackInventory}
+      onChange={e => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
+      className="focus:ring-0 text-blue-600 rounded cursor-pointer"
+    />
+    <label htmlFor="trackInventory" className="ml-2 text-sm font-medium">
+      {ticketData.trackInventory ? 'YES' : 'NO'}
+    </label>
+  </div>
+  
+  <div className="mb-4">
+    <label htmlFor="inventoryQuantity" className="block text-sm font-medium mb-1">Quantity</label>
+    <input
+      type="number"
+      id="inventoryQuantity"
+      name="inventoryQuantity"
+      value={ticketData.inventoryQuantity}
+      onChange={handleInputChange}
+      min="0"
+      className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
+    />
+  </div>
 </div>
+
+
+{/* Custom Fields Section */}
+<div className="bg-gray-800 text-white p-4 rounded">
+  <div className="mb-4">
+    <label htmlFor="tripType" className="block text-sm font-medium mb-2">Trip Type</label>
+    <select
+      id="tripType"
+      name="tripType"
+      value={tripType}
+      onChange={e => setTripType(e.target.value)}
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    >
+      <option value="" disabled>Select an option</option>
+      <option value="Round Trip">Round Trip</option>
+      <option value="One Way">One Way</option>
+      <option value="Charter">Charter</option>
+      {/* More options can be added here */}
+    </select>
+  </div>
+
+  <div className="mb-4">
+    <label htmlFor="lineName" className="block text-sm font-medium mb-2">Line Name *</label>
+    <select
+      id="lineName"
+      name="lineName"
+      value={lineName}
+      onChange={e => setLineName(e.target.value)}
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    >
+      {/* Options will be fetched from the backend */}
+      {lines.map((line) => (
+        <option key={line._id} value={line.name}>
+          {line.name}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <div className="mb-4">
+    <label htmlFor="departureDate" className="block text-sm font-medium mb-2">Departure Date</label>
+    <input
+      id="departureDate"
+      type="datetime-local"
+      name="departureDate"
+      value={departureDate}
+      onChange={e => setDepartureDate(e.target.value)}
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    />
+  </div>
+
+  {/* Stops Input */}
+<div className="mb-4">
+  <label htmlFor="stops" className="block text-sm font-medium mb-2">Stops</label>
+  <input
+    id="stops"
+    type="text"
+    name="stops"
+    value={ticketData.stops} // Assuming you have 'stops' state in ticketData
+    onChange={handleInputChange}
+    placeholder="e.g., Commack, Hicksville, Fresh Meadows"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* 1st Pick Up Time */}
+<div className="mb-4">
+  <label htmlFor="firstPickUpTime" className="block text-sm font-medium mb-2">1st Pick Up Time</label>
+  <input
+    id="firstPickUpTime"
+    type="datetime-local"
+    name="firstPickUpTime"
+    value={ticketData.firstPickUpTime} // Assuming you have 'firstPickUpTime' state in ticketData
+    onChange={handleInputChange}
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* 1st Pick Up Location Text Area */}
+<div className="mb-4">
+  <label htmlFor="firstPickUpLocation" className="block text-sm font-medium mb-2">1st Pick Up Location</label>
+  <textarea
+    id="firstPickUpLocation"
+    name="firstPickUpLocation"
+    value={ticketData.firstPickUpLocation} // Assuming you have 'firstPickUpLocation' state in ticketData
+    onChange={handleInputChange}
+    placeholder="Enter the first pick up location"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
+</div>
+
+
+</div>
+
+
+
+
+
 {/* Action Buttons */}
 <div className="flex gap-4">
   <button type="submit" className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md">{selectedTicket ? 'Update Ticket' : 'Create Ticket'}</button>
@@ -628,8 +778,9 @@ useEffect(() => {
     </>
   )}
 </div>
-           
+  </form>
 </main>
+
 )}
 
 
@@ -672,11 +823,11 @@ useEffect(() => {
   
   ) : (
     <tr>
-                <td colSpan="5" className="text-center py-2 text-gray-700">
-                  No lines available.
-                </td>
-              </tr>
-            )}
+  <td colSpan="5" className="text-center py-2 text-gray-700">
+    No lines available.
+  </td>
+</tr>
+)}
 
 </tbody>
           </table>
