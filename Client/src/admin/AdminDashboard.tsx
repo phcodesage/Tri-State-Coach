@@ -1,5 +1,7 @@
 import { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
 
 function AdminDashboard() {
 const authToken = localStorage.getItem('token');
@@ -74,20 +76,17 @@ const deleteImage = () => {
 useEffect(() => {
   const fetchTickets = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/tickets', {
+      const response = await axios.get('http://localhost:5000/api/tickets', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
       });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
-      setTickets(data);
+      setTickets(response.data);
     } catch (error) {
       console.error('Fetch error:', error);
     }
   };
+  
 
   fetchTickets();
 }, [authToken]);
@@ -179,14 +178,13 @@ const [newLine, setNewLine] = useState({
       console.log("Sending line data:", lineData); // Log the data being sent
     
       try {
-        const response = await fetch('http://localhost:5000/api/lines', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify(lineData)
-        });
+        const response = await axios.post('http://localhost:5000/api/lines', lineData, {
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${authToken}`
+  }
+});
+
     
         if (response.status === 403) {
           localStorage.removeItem('token');
@@ -294,14 +292,16 @@ useEffect(() => {
         }
       
         try {
-          const response = await fetch(url, {
+          const response = await axios({
             method: method,
+            url: url,
             headers: {
               'Authorization': `Bearer ${authToken}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            data: data
           });
+          
       
           if (response.ok) {
             const updatedTicket = await response.json();

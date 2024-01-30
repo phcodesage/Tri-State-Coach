@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -10,7 +11,6 @@ if (!process.env.STRIPE_SECRET_KEY) {
   process.exit(1);
 }
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const jwt = require('jsonwebtoken');
 const Ticket = require('./models/Ticket');
 const Line = require('./models/Line')
 const authenticateToken = require('./middleware/authenticateToken')
