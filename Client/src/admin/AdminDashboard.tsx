@@ -423,30 +423,29 @@ useEffect(() => {
       </ul>
    </div>
 </aside>
-
-{/* List of tickets */}
-
 {/* List of tickets */}
 {isTicketListVisible && (
   <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/3' : 'w-full'} bg-gray-800 text-white`}>
-    <div className="p-4 flex justify-between items-center">
-      <h2 className="text-xl font-bold">Tickets</h2>
+  <div className="p-4 flex justify-between items-center">
+    <h2 className="text-xl font-bold">Tickets</h2>
+    {!isTicketFormVisible && (
       <div className="flex items-center">
-        <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-gray-700" disabled={isTicketFormVisible} />
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Filter</button>
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Select</button>
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Export</button>
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Import</button>
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" disabled={isTicketFormVisible}>Settings</button>
+        {/* Buttons go here */}
+        <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-gray-700" />
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Filter</button>
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Select</button>
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Export</button>
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Import</button>
+        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Settings</button>
         <button
           className="ml-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
           onClick={() => setIsTicketFormVisible(true)}
-          disabled={isTicketFormVisible}
         >
           + New Ticket
         </button>
       </div>
-    </div>
+    )}
+  </div>
     <ul className="overflow-y-auto">
       {tickets.map((ticket) => (
         <li
@@ -489,17 +488,29 @@ useEffect(() => {
 
 
   <div className="bg-gray-800 px-4 py-2 flex justify-between items-center">
-  <h1 className="text-white text-xl font-bold">New Ticket</h1>
+  <div className="flex items-center">
+    <button
+      className="text-white hover:text-blue-500 mr-4"
+      onClick={() => setIsTicketFormVisible(false)} // This will close the ticket form
+    >
+      {/* SVG icon for "back" arrow */}
+      <svg fill="#FFFFFF" width="24px" height="24px" viewBox="0 0 52 52">
+        <path d="M50,24H6.83L27.41,3.41a2,2,0,0,0,0-2.82,2,2,0,0,0-2.82,0l-24,24a1.79,1.79,0,0,0-.25.31A1.19,1.19,0,0,0,.25,25c0,.07-.07.13-.1.2l-.06.2a.84.84,0,0,0,0,.17,2,2,0,0,0,0,.78.84.84,0,0,0,0,.17l.06.2c0,.07.07.13.1.2a1.19,1.19,0,0,0,.09.15,1.79,1.79,0,0,0,.25.31l24,24a2,2,0,1,0,2.82-2.82L6.83,28H50a2,2,0,0,0,0-4Z"></path>
+      </svg>
+    </button>
+    <h1 className="text-white text-xl font-bold">New Ticket</h1>
+  </div>
   <div>
     <button className="text-blue-500 hover:bg-blue-700 hover:text-white px-3 py-1 rounded" onClick={handlePublish}>Publish</button>
     <button className="bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white px-3 py-1 rounded ml-2" onClick={() => setIsModalVisible(true)}>Cancel</button>
   </div>
 </div>
+
   {/* Header ends here */}
 
 {isModalVisible && (
   <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
-    <div className="bg-white rounded-lg max-w-sm mx-auto p-4">
+    <div className="bg-gray rounded-lg max-w-sm mx-auto p-4">
       <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
       <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
       <div className="flex justify-end mt-4">
