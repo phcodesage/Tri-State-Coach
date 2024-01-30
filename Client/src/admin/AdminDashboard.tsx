@@ -438,38 +438,50 @@ useEffect(() => {
       </p>
     </div>
 
-    {/* Name Input */}
-    <div className="mb-4">
-      <label htmlFor="name" className="block text-sm font-medium mb-2">Name *</label>
-      <input
-        id="name"
-        type="text"
-        name="name"
-        value={ticketData.name}
-        onChange={handleInputChange}
-        placeholder="Ticket Name"
-        required
-        className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
-      />
-    </div>
+{/* Name Input */}
+<div className="mb-4">
+  <label htmlFor="name" className="block text-sm font-medium mb-2">
+    Name <span className="text-red-500">*</span>
+  </label>
+  <input
+    id="name"
+    type="text"
+    name="name"
+    value={ticketData.name}
+    onChange={handleInputChange}
+    placeholder="Ticket Name"
+    required
+    className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
+  />
+</div>
 
-    {/* Slug Input */}
-    <div className="mb-4">
-      <label htmlFor="slug" className="block text-sm font-medium mb-2">Slug *</label>
-      <input
-        id="slug"
-        type="text"
-        name="slug"
-        value={ticketData.slug}
-        onChange={handleInputChange}
-        placeholder="Slug"
-        required
-        className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
-      />
-      <p className="text-xs mt-1">
-        www.tri-statecoach.com/product/{ticketData.slug}
-      </p>
-    </div>
+{/* Slug Input */}
+<div className="mb-4">
+  <label htmlFor="slug" className="block text-sm font-medium mb-2">
+    Slug <span className="text-red-500">*</span>
+  </label>
+  <div className="flex items-center">
+    <input
+      id="slug"
+      type="text"
+      name="slug"
+      value={ticketData.slug}
+      onChange={handleInputChange}
+      placeholder="Slug"
+      required
+      className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
+    />
+    <button
+      onClick={() => navigator.clipboard.writeText(`https://www.tri-statecoach.com/product/${ticketData.slug}`)}
+      className="ml-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 focus:outline-none"
+    >
+      Copy
+    </button>
+  </div>
+  <p className="text-xs mt-1">
+    www.tri-statecoach.com/product/{ticketData.slug}
+  </p>
+</div>
 
     {/* Description TextArea */}
     <div className="mb-4">
