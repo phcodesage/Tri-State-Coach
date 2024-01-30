@@ -37,7 +37,9 @@ const [thirdDropOffLocationReturn, setThirdDropOffLocationReturn] = useState('')
 const [finalPickUpTimeReturn, setFinalPickUpTimeReturn] = useState('');
 const [finalPickUpLocationReturn, setFinalPickUpLocationReturn] = useState('');
 const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('');
-const [suggestedTipReturn, setSuggestedTipReturn] = useState('');
+const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
+const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
+
 
 const handleImageChange = (e) => {
   if (e.target.files && e.target.files[0]) {
@@ -610,7 +612,7 @@ useEffect(() => {
   <h4 className="text-lg font-semibold mb-4">Billing</h4>
   <div className="flex items-center gap-4 mb-4">
     <div className="flex-1">
-      <label htmlFor="price" className="block text-sm font-medium mb-1">Price *</label>
+      <label htmlFor="price" className="block text-sm font-medium mb-1">Price <span className='text-red-500'>*</span></label>
       <div className="flex items-center bg-gray-700 rounded">
         <span className="pl-2 text-gray-300">$</span>
         <input
@@ -727,7 +729,7 @@ useEffect(() => {
   </div>
 
   <div className="mb-4">
-    <label htmlFor="lineName" className="block text-sm font-medium mb-2">Line Name *</label>
+    <label htmlFor="lineName" className="block text-sm font-medium mb-2">Line Name <span className='text-red-500'>*</span></label>
     <select
       id="lineName"
       name="lineName"
@@ -956,7 +958,7 @@ useEffect(() => {
   <label htmlFor="suggestedTipForDriver" className="block text-sm font-medium mb-2">Suggested Tip For Driver</label>
   <input
     id="suggestedTipForDriver"
-    type="text"
+    type="number"
     name="suggestedTipForDriver"
     value={suggestedTipForDriver}
     onChange={e => setSuggestedTipForDriver(e.target.value)}
@@ -1019,6 +1021,20 @@ useEffect(() => {
     rows="3"
     className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
   ></textarea>
+</div>
+
+{/* Suggested Tip for Driver (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="suggestedTipForDriverReturn" className="block text-sm font-medium mb-2">Suggested Tip For Driver (Return)</label>
+  <input
+    id="suggestedTipForDriverReturn"
+    type="number"
+    name="suggestedTipForDriverReturn"
+    value={suggestedTipForDriverReturn}
+    onChange={e => setSuggestedTipForDriverReturn(e.target.value)}
+    placeholder="Suggested tip amount for the return journey"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
 </div>
 
   </div>
