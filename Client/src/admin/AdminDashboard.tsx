@@ -25,7 +25,6 @@ const [firstDropOffLocation, setFirstDropOffLocation] = useState('');
 const [secondDropOffLocation, setSecondDropOffLocation] = useState('');
 const [thirdDropOffLocation, setThirdDropOffLocation] = useState('');
 const [finalDropOffLocation, setFinalDropOffLocation] = useState('');
-const [suggestedTip, setSuggestedTip] = useState('');
 const [firstPickUpTimeReturn, setFirstPickUpTimeReturn] = useState('');
 const [firstPickUpLocationReturn, setFirstPickUpLocationReturn] = useState('');
 const [firstDropOffLocationReturn, setFirstDropOffLocationReturn] = useState('');
@@ -494,7 +493,7 @@ useEffect(() => {
       onClick={() => setIsTicketFormVisible(false)} // This will close the ticket form
     >
       {/* SVG icon for "back" arrow */}
-      <svg fill="#FFFFFF" width="24px" height="24px" viewBox="0 0 52 52">
+      <svg fill="#FFFFFF" width="15px" height="24px" viewBox="0 0 52 52">
         <path d="M50,24H6.83L27.41,3.41a2,2,0,0,0,0-2.82,2,2,0,0,0-2.82,0l-24,24a1.79,1.79,0,0,0-.25.31A1.19,1.19,0,0,0,.25,25c0,.07-.07.13-.1.2l-.06.2a.84.84,0,0,0,0,.17,2,2,0,0,0,0,.78.84.84,0,0,0,0,.17l.06.2c0,.07.07.13.1.2a1.19,1.19,0,0,0,.09.15,1.79,1.79,0,0,0,.25.31l24,24a2,2,0,1,0,2.82-2.82L6.83,28H50a2,2,0,0,0,0-4Z"></path>
       </svg>
     </button>
@@ -1045,6 +1044,114 @@ useEffect(() => {
     placeholder="Suggested tip amount"
     className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
   />
+</div>
+
+{/* 1st Pick Up Time (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="firstPickUpTimeReturn" className="block text-sm font-medium mb-2">1st Pick Up Time (Return)</label>
+  <input
+    id="firstPickUpTimeReturn"
+    type="datetime-local"
+    name="firstPickUpTimeReturn"
+    value={firstPickUpTimeReturn} // Update this with your state
+    onChange={e => setFirstPickUpTimeReturn(e.target.value)} // Update this with your handler
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* 1st Pick Up Location (Return) Text Area */}
+<div className="mb-4">
+  <label htmlFor="firstPickUpLocationReturn" className="block text-sm font-medium mb-2">1st Pick Up Location (Return)</label>
+  <textarea
+    id="firstPickUpLocationReturn"
+    name="firstPickUpLocationReturn"
+    value={firstPickUpLocationReturn} // Update this with your state
+    onChange={e => setFirstPickUpLocationReturn(e.target.value)} // Update this with your handler
+    placeholder="Enter the first pick up location for the return journey"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
+</div>
+
+{/* 2nd Pick Up Time (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">2nd Pick Up Time (Return)</label>
+  <input
+    id="secondPickUpTimeReturn"
+    type="datetime-local"
+    name="secondPickUpTimeReturn"
+    value={secondPickUpTimeReturn} // Update this with your state
+    onChange={e => setSecondPickUpTimeReturn(e.target.value)} // Update this with your handler
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* 2nd Pick Up Location (Return) Text Area */}
+<div className="mb-4">
+  <label htmlFor="secondPickUpLocationReturn" className="block text-sm font-medium mb-2">2nd Pick Up Location (Return)</label>
+  <textarea
+    id="secondPickUpLocationReturn"
+    name="secondPickUpLocationReturn"
+    value={secondPickUpLocationReturn} // Update this with your state
+    onChange={e => setSecondPickUpLocationReturn(e.target.value)} // Update this with your handler
+    placeholder="Enter the second pick up location for the return journey"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
+</div>
+
+{/* 3rd Pick Up Time (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">3rd Pick Up Time (Return)</label>
+  <input
+    id="thirdPickUpTimeReturn"
+    type="datetime-local"
+    name="thirdPickUpTimeReturn"
+    value={thirdPickUpTimeReturn} // Update this with your state
+    onChange={e => setThirdPickUpTimeReturn(e.target.value)} // Update this with your handler
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* 3rd Pick Up Location (Return) Text Area */}
+<div className="mb-4">
+  <label htmlFor="thirdPickUpLocationReturn" className="block text-sm font-medium mb-2">3rd Pick Up Location (Return)</label>
+  <textarea
+    id="thirdPickUpLocationReturn"
+    name="thirdPickUpLocationReturn"
+    value={thirdPickUpLocationReturn} // Update this with your state
+    onChange={e => setThirdPickUpLocationReturn(e.target.value)} // Update this with your handler
+    placeholder="Enter the second pick up location for the return journey"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
+</div>
+
+{/* Final Pick Up Time (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">Final Pick Up Time (Return)</label>
+  <input
+    id="finalPickUpTimeReturn"
+    type="datetime-local"
+    name="finalPickUpTimeReturn"
+    value={finalPickUpTimeReturn} // Update this with your state
+    onChange={e => setFinalPickUpTimeReturn(e.target.value)} // Update this with your handler
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* Final Pick Up Location (Return) Text Area */}
+<div className="mb-4">
+  <label htmlFor="thirdPickUpLocationReturn" className="block text-sm font-medium mb-2">Final Pick Up Location (Return)</label>
+  <textarea
+    id="finalPickUpLocationReturn"
+    name="finalPickUpLocationReturn"
+    value={finalPickUpLocationReturn} // Update this with your state
+    onChange={e => setFinalPickUpLocationReturn(e.target.value)} // Update this with your handler
+    placeholder="Enter the second pick up location for the return journey"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
 </div>
 
   {/* 1st Drop Off Location (Return) Input */}
