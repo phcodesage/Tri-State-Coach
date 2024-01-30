@@ -895,6 +895,76 @@ useEffect(() => {
     ></textarea>
   </div>
 
+  {/* First Drop Off Location Input */}
+<div className="mb-4">
+  <label htmlFor="firstDropOffLocation" className="block text-sm font-medium mb-2">1st Drop Off Location</label>
+  <input
+    id="firstDropOffLocation"
+    type="text"
+    name="firstDropOffLocation"
+    value={firstDropOffLocation}
+    onChange={e => setFirstDropOffLocation(e.target.value)}
+    placeholder="Enter the first drop off location"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* Second Drop Off Location Input */}
+<div className="mb-4">
+  <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">2nd Drop Off Location</label>
+  <input
+    id="secondDropOffLocation"
+    type="text"
+    name="secondDropOffLocation"
+    value={secondDropOffLocation}
+    onChange={e => setSecondDropOffLocation(e.target.value)}
+    placeholder="Enter the first drop off location"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* 3rd Drop Off Location Input */}
+<div className="mb-4">
+  <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">3rd Drop Off Location</label>
+  <input
+    id="thirdDropOffLocation"
+    type="text"
+    name="thirdDropOffLocation"
+    value={thirdDropOffLocation}
+    onChange={e => setThirdDropOffLocation(e.target.value)}
+    placeholder="Enter the first drop off location"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* Final Drop Off Location Input */}
+<div className="mb-4">
+  <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">Final Drop Off Location</label>
+  <input
+    id="finalDropOffLocation"
+    type="text"
+    name="finalDropOffLocation"
+    value={finalDropOffLocation}
+    onChange={e => setFinalDropOffLocation(e.target.value)}
+    placeholder="Enter the first drop off location"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* Suggested Tip for Driver Input */}
+<div className="mb-4">
+  <label htmlFor="suggestedTipForDriver" className="block text-sm font-medium mb-2">Suggested Tip For Driver</label>
+  <input
+    id="suggestedTipForDriver"
+    type="text"
+    name="suggestedTipForDriver"
+    value={suggestedTipForDriver}
+    onChange={e => setSuggestedTipForDriver(e.target.value)}
+    placeholder="Suggested tip amount"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
   {/* 1st Drop Off Location (Return) Input */}
 <div className="mb-4">
   <label htmlFor="firstDropOffLocationReturn" className="block text-sm font-medium mb-2">1st Drop Off Location (Return)</label>
