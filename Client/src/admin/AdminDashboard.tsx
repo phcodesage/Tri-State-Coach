@@ -14,6 +14,17 @@ const [departureDate, setDepartureDate] = useState('');
 const [returnDate, setReturnDate] = useState('');
 const [selectedImage, setSelectedImage] = useState(null);
 const [tickets, setTickets] = useState([]); // State to store tickets data
+const [secondPickUpTime, setSecondPickUpTime] = useState('');
+const [secondPickUpLocation, setSecondPickUpLocation] = useState('');
+const [thirdPickUpTime, setThirdPickUpTime] = useState('');
+const [thirdPickUpLocation, setThirdPickUpLocation] = useState('');
+const [finalPickUpTime, setFinalPickUpTime] = useState('');
+const [finalPickUpLocation, setFinalPickUpLocation] = useState('');
+const [firstDropOffLocation, setFirstDropOffLocation] = useState('');
+const [secondDropOffLocation, setSecondDropOffLocation] = useState('');
+const [thirdDropOffLocation, setThirdDropOffLocation] = useState('');
+const [finalDropOffLocation, setFinalDropOffLocation] = useState('');
+const [suggestedTip, setSuggestedTip] = useState('');
 const handleImageChange = (e) => {
   if (e.target.files && e.target.files[0]) {
     const file = e.target.files[0];
@@ -417,7 +428,7 @@ useEffect(() => {
     <h1 className="text-xl font-bold mb-4">{selectedTicket ? 'Edit Ticket' : 'Create New Ticket'}</h1>
   </div>
 
-  <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
+  <form onSubmit={handleSubmit} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
     {/* Product Type Dropdown */}
     <div className="mb-4">
       <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
@@ -719,17 +730,33 @@ useEffect(() => {
     </select>
   </div>
 
-  <div className="mb-4">
-    <label htmlFor="departureDate" className="block text-sm font-medium mb-2">Departure Date</label>
-    <input
-      id="departureDate"
-      type="datetime-local"
-      name="departureDate"
-      value={departureDate}
-      onChange={e => setDepartureDate(e.target.value)}
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
-    />
-  </div>
+{/* Departure Date */}
+<div className="mb-4">
+  <label htmlFor="departureDate" className="block text-sm font-medium text-gray-700 mb-2">Departure Date</label>
+  <input
+    id="departureDate"
+    type="datetime-local"
+    name="departureDate"
+    value={departureDate}
+    onChange={e => setDepartureDate(e.target.value)}
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+{/* Return Date */}
+<div className="mb-4">
+  <label htmlFor="returnDate" className="block text-sm font-medium text-gray-700 mb-2">Return Date</label>
+  <input
+    id="returnDate"
+    type="datetime-local"
+    name="returnDate"
+    value={returnDate}
+    onChange={e => setReturnDate(e.target.value)}
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  />
+</div>
+
+
 
   {/* Stops Input */}
 <div className="mb-4">
@@ -772,13 +799,145 @@ useEffect(() => {
   ></textarea>
 </div>
 
+ {/* Second Pick Up Time Input */}
+ <div className="mb-4">
+    <label htmlFor="secondPickUpTime" className="block text-sm font-medium mb-2">2nd Pick Up Time</label>
+    <input
+      id="secondPickUpTime"
+      type="datetime-local"
+      name="secondPickUpTime"
+      value={secondPickUpTime}
+      onChange={e => setSecondPickUpTime(e.target.value)}
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    />
+  </div>
 
+  {/* Second Pick Up Location Input */}
+  <div className="mb-4">
+    <label htmlFor="secondPickUpLocation" className="block text-sm font-medium mb-2">2nd Pick Up Location</label>
+    <textarea
+      id="secondPickUpLocation"
+      name="secondPickUpLocation"
+      value={secondPickUpLocation}
+      onChange={e => setSecondPickUpLocation(e.target.value)}
+      placeholder="Enter the second pick up location"
+      rows="3"
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+
+ {/* 3rd Pick Up Time Input */}
+ <div className="mb-4">
+    <label htmlFor="thirdPickUpTime" className="block text-sm font-medium mb-2">3rd Pick Up Time</label>
+    <input
+      id="thirdPickUpTime"
+      type="datetime-local"
+      name="thirdPickUpTime"
+      value={secondPickUpTime}
+      onChange={e => setThirdPickUpTime(e.target.value)}
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    />
+  </div>
+
+  {/* 3rd Pick Up Location Input */}
+  <div className="mb-4">
+    <label htmlFor="thirdPickUpLocation" className="block text-sm font-medium mb-2">3rd Pick Up Location</label>
+    <textarea
+      id="thirdPickUpLocation"
+      name="thirdPickUpLocation"
+      value={thirdPickUpLocation}
+      onChange={e => setThirdPickUpLocation(e.target.value)}
+      placeholder="Enter the second pick up location"
+      rows="3"
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+
+
+ {/* Final Pick Up Time Input */}
+ <div className="mb-4">
+    <label htmlFor="finalPickUpTime" className="block text-sm font-medium mb-2">Final Pick Up Time</label>
+    <input
+      id="finalPickUpTime"
+      type="datetime-local"
+      name="finalPickUpTime"
+      value={finalPickUpTime}
+      onChange={e => setSecondPickUpTime(e.target.value)}
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    />
+  </div>
+
+  {/* Final Pick Up Location Input */}
+  <div className="mb-4">
+    <label htmlFor="finalPickUpLocation" className="block text-sm font-medium mb-2">Final Pick Up Location</label>
+    <textarea
+      id="finalPickUpLocation"
+      name="finalPickUpLocation"
+      value={secondPickUpLocation}
+      onChange={e => setFinalPickUpLocation(e.target.value)}
+      placeholder="Enter the Final pick up location"
+      rows="3"
+      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+
+  {/* 1st Drop Off Location (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="firstDropOffLocationReturn" className="block text-sm font-medium mb-2">1st Drop Off Location (Return)</label>
+  <textarea
+    id="firstDropOffLocationReturn"
+    name="firstDropOffLocationReturn"
+    value={firstDropOffLocationReturn}
+    onChange={e => setFirstDropOffLocationReturn(e.target.value)}
+    placeholder="Enter the first drop off location for the return journey"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
 </div>
 
+{/* 2nd Drop Off Location (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="secondDropOffLocationReturn" className="block text-sm font-medium mb-2">2nd Drop Off Location (Return)</label>
+  <textarea
+    id="secondDropOffLocationReturn"
+    name="secondDropOffLocationReturn"
+    value={secondDropOffLocationReturn}
+    onChange={e => setSecondDropOffLocationReturn(e.target.value)}
+    placeholder="Enter the first drop off location for the return journey"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
+</div>
 
+{/* 3rd Drop Off Location (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="thirdDropOffLocationReturn" className="block text-sm font-medium mb-2">3rd Drop Off Location (Return)</label>
+  <textarea
+    id="thirdDropOffLocationReturn"
+    name="thirdDropOffLocationReturn"
+    value={thirdDropOffLocationReturn}
+    onChange={e => setThirdDropOffLocationReturn(e.target.value)}
+    placeholder="Enter the first drop off location for the return journey"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
+</div>
 
+{/* Final Drop Off Location (Return) Input */}
+<div className="mb-4">
+  <label htmlFor="finalDropOffLocationReturn" className="block text-sm font-medium mb-2">Final Drop Off Location (Return)</label>
+  <textarea
+    id="finalDropOffLocationReturn"
+    name="finalDropOffLocationReturn"
+    value={finalDropOffLocationReturn}
+    onChange={e => setFinalDropOffLocationReturn(e.target.value)}
+    placeholder="Enter the first drop off location for the return journey"
+    rows="3"
+    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+  ></textarea>
+</div>
 
-
+  </div>
 {/* Action Buttons */}
 <div className="flex gap-4">
   <button type="submit" className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md">{selectedTicket ? 'Update Ticket' : 'Create Ticket'}</button>
