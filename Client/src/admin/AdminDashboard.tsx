@@ -1373,22 +1373,24 @@ useEffect(() => {
             </tr>
           </thead>
           <tbody>
-          {loading ? (
-                  // Render skeleton rows if loading is true
-                  <tr>
-      <td colSpan="5" className="text-center py-4">
-        <div role="status" className="animate-pulse">
-          <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-48 mb-4"></div>
-          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px] mb-2.5"></div>
-          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
-          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[330px] mb-2.5"></div>
-          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[300px] mb-2.5"></div>
-          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px]"></div>
-          <span className="sr-only">Loading...</span>
-        </div>
-      </td>
-    </tr>
-                ) : lines && lines.length > 0 ? (
+  {loading ? (
+    // Render multiple skeleton rows to match the expected number of data rows
+    [...Array(5)].map((_, index) => (
+      <tr key={`skeleton-${index}`}>
+        <td colSpan="5" className="text-center py-4">
+          <div role="status" className="animate-pulse">
+            <div className="h-3.5 bg-gray-200 rounded-full dark:bg-gray-700 w-48 mb-4"></div>
+            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[800px] mb-2.5"></div>
+            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
+            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[900px] mb-2.5"></div>
+            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[950px] mb-2.5"></div>
+            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[750px]"></div>
+            <span className="sr-only">Loading...</span>
+          </div>
+        </td>
+      </tr>
+    ))
+  ) : lines && lines.length > 0 ? (
     lines.map((line, index) => (
       line && line.name ? (
         <tr key={line.itemId || index}>
@@ -1416,6 +1418,7 @@ useEffect(() => {
     </tr>
   )}
 </tbody>
+
 
     </table>
   </div>
