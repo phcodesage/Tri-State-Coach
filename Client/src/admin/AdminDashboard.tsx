@@ -2,6 +2,10 @@ import { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
+import { useForm } from 'react-hook-form';
+import { v4 as uuidv4 } from 'uuid'
+import Skeleton from 'react-loading-skeleton';
+
 
 function AdminDashboard() {
 const authToken = localStorage.getItem('token');
@@ -11,7 +15,6 @@ const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isTicketListVisible, setIsTicketListVisible] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isLineListVisible, setIsLineListVisible] = useState(false);
-const [creationTime, setCreationTime] = useState(new Date().toISOString());
 const [tripType, setTripType] = useState('');
 const [lineName, setLineName] = useState('');
 const [departureDate, setDepartureDate] = useState('');
@@ -43,7 +46,36 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
+const [loading, setLoading] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
+// State to manage selected products for a line
+const [selectedProducts, setSelectedProducts] = useState([]);
+const [lineStatus, setLineStatus] = useState('Draft');
+const [automatedValues, setAutomatedValues] = useState({
+  itemId: '',
+  created: '',
+  lastEdited: '',
+  lastPublished: '',
+});
+
+const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
+useState(() => {
+  const newItemId = uuidv4(); // Generate a unique Item ID
+  const timestamp = new Date().toISOString(); // Get the current timestamp
+
+  setAutomatedValues({
+    itemId: newItemId,
+    created: timestamp,
+    lastEdited: timestamp,
+    lastPublished: timestamp,
+  });
+}, []);
+
+const handleProductChange = (selectedOptions) => {
+  // Assuming 'selectedOptions' is an array of selected product objects
+  setSelectedProducts(selectedOptions);
+};
 
 // Function to check if the token is expired and redirect to login
 const checkTokenExpiration = (response) => {
@@ -100,6 +132,17 @@ const refreshTokenIfNeeded = async () => {
     localStorage.removeItem('refreshToken');
     navigate('/login');
   }
+};
+
+const saveAsDraft = () => {
+  setLineStatus('Draft');
+  handleLineSubmit();
+};
+
+// Function to publish the line
+const publishLine = () => {
+  setLineStatus('Published');
+  handleLineSubmit();
 };
 
 useEffect(() => {
@@ -239,38 +282,57 @@ const createLine = async (lineData) => {
 
 useEffect(() => {
   let isMounted = true;
-  
+  let timeoutId = null;
+
   const fetchLines = async () => {
-    try {
-      const response = await fetch('/api/lines', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Error fetching lines');
-      }
-      const data = await response.json();
-      if (Array.isArray(data)) {
+    if (isLineListVisible) {
+      setLoading(true); // Start the loading (skeleton animation)
+
+      // Set a minimum display time for the loading animation
+      timeoutId = setTimeout(() => {
         if (isMounted) {
-          setLines(data);
+          setLoading(false);
         }
-      } else {
-        console.error('Data is not an array:', data);
+      }, 5000);
+
+      try {
+        const response = await axios.get('http://localhost:5000/api/lines', {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+
+        clearTimeout(timeoutId); // Clear the timeout as data has been fetched
+
+        if (response.status !== 200) {
+          throw new Error('Error fetching lines');
+        }
+
+        if (Array.isArray(response.data)) {
+          if (isMounted) {
+            setLines(response.data);
+            setLoading(false); // Stop the loading if data is fetched
+          }
+        } else {
+          console.error('Data is not an array:', response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching lines:', error);
+        // Keep loading state as is to continue showing animation
       }
-    } catch (error) {
-      console.error('Error fetching lines:', error);
     }
   };
 
-  if (isLineFormVisible) {
-    fetchLines();
-  }
+  fetchLines();
 
   return () => {
     isMounted = false;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   };
-}, [isLineFormVisible]);
+}, [isLineListVisible, authToken]);// Use isLineListVisible instead of isLineFormVisible if it's the correct dependency
+
 
   const handleInputChangeLine = (e:any) => {
     const { name, value } = e.target;
@@ -288,76 +350,45 @@ useEffect(() => {
     });
   };
 
-  const handleLineSubmit = async (e:any) => {
-  e.preventDefault();
-  try {
-    const createdLine = await createLine(newLine);
-    setLines(prevLines => [...prevLines, createdLine]);
-    // Reset form after successful line creation
-    setNewLine({
-      name: '',
-      status: 'Published',
-      products: 0,
-      modified: new Date().toISOString(),
-      published: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Error submitting line:', error);
+ // Form submission handler
+ const handleLineSubmit = handleSubmit(async (data) => {
+  if (!authToken) {
+    console.error('Auth token is not available.');
+    navigate('/login');
+    return;
   }
-};
-  const pinTicket = (ticketId) => {
-    // Implement the logic to pin the ticket
-    setPinnedTickets([...pinnedTickets, ticketId]);
-  };
 
-      // Save Ticket Function
-  const saveTicket = async (data, isPublished) => {
-    const url = selectedTicket ? `http://localhost:5000/api/tickets/${selectedTicket._id}` : 'http://localhost:5000/api/tickets';
-    const method = selectedTicket ? 'PUT' : 'POST';
-    
-    if (isPublished) {
-      data.publishedOn = new Date().toISOString();
-    }
-  
-    try {
-      const response = await axios({
-        method: method,
-        url: url,
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        data: data
-      });
-      
-  
-      if (response.ok) {
-        const updatedTicket = await response.json();
-        console.log('Ticket saved:', updatedTicket);
-        if (!selectedTicket) {
-          setTickets(prevTickets => [...prevTickets, updatedTicket]);
-        } else {
-          setTickets(prevTickets => prevTickets.map(ticket => ticket._id === updatedTicket._id ? updatedTicket : ticket));
-          setSelectedTicket(updatedTicket); // Update the selected ticket with the new details
-        }
-      } else {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('There was a problem saving the ticket:', error);
-    }
+  const lineData = {
+    ...data,
+    ...automatedValues,
   };
+  // You can use data directly as it matches the Line schema from the model
+  try {
+    const response = await axios.post('http://localhost:5000/api/lines', data, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    // Handle response status codes accordingly
+    if (response.status === 201) {
+      setLines(prevLines => [...prevLines, response.data]);
+      reset(); // Reset form fields after successful submission
+    } else {
+      // handle errors
+    }
+  } catch (error) {
+    console.error('Error creating line:', error);
+  }
+});
     
   const handlePublish = () => {
     // Collect the form data and call saveTicket with isPublished = true
-    saveTicket(ticketData, true);
+    setTickets(ticketData, true);
   };
 
-  const handleSubmit = (e:any) => {
-    e.preventDefault();
-    saveTicket(ticketData, false);
-  };
-      
+
 
   const handleLogout = () => {
    localStorage.removeItem('token'); // Remove the token
@@ -1341,35 +1372,51 @@ useEffect(() => {
               <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Published</th>
             </tr>
           </thead>
-      <tbody>
-        {lines && lines.length > 0 ? (
-          lines.map((line, index) => (
-            line && line.name ? (
-              <tr key={line._id || index}>
-                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.name}</td>
-                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.status}</td>
-                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{line.products}</td>
-                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
-                  {new Date(line.modified).toLocaleString()}
-                </td>
-                <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
-                  {new Date(line.published).toLocaleString()}
-                </td>
-              </tr>
-            ) : (
-              <tr key={`empty-${index}`}>
-                <td colSpan="5" className="text-center py-2 text-gray-700">Line data is missing</td>
-              </tr>
-            )
-          ))
-        ) : (
-          <tr>
-            <td colSpan="5" className="text-center py-2 text-gray-700">
-              No lines available.
-            </td>
-          </tr>
-        )}
-      </tbody>
+          <tbody>
+          {loading ? (
+                  // Render skeleton rows if loading is true
+                  <tr>
+      <td colSpan="5" className="text-center py-4">
+        <div role="status" className="animate-pulse">
+          <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-48 mb-4"></div>
+          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px] mb-2.5"></div>
+          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
+          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[330px] mb-2.5"></div>
+          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[300px] mb-2.5"></div>
+          <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px]"></div>
+          <span className="sr-only">Loading...</span>
+        </div>
+      </td>
+    </tr>
+                ) : lines && lines.length > 0 ? (
+    lines.map((line, index) => (
+      line && line.name ? (
+        <tr key={line.itemId || index}>
+          <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
+          <td className="px-4 py-2 text-white whitespace-nowrap">{line.status}</td>
+          <td className="px-4 py-2 text-white whitespace-nowrap">{line.productsCount}</td>
+          <td className="px-4 py-2 text-white whitespace-nowrap">
+            {line.lastEdited ? new Date(line.lastEdited).toLocaleString() : 'Not Edited'}
+          </td>
+          <td className="px-4 py-2 text-white whitespace-nowrap">
+            {line.lastPublished ? new Date(line.lastPublished).toLocaleString() : 'Not Published'}
+          </td>
+        </tr>
+      ) : (
+        <tr key={`empty-${index}`}>
+          <td colSpan="5" className="text-center py-2 text-white">Line data is missing</td>
+        </tr>
+      )
+    ))
+  ) : (
+    <tr>
+      <td colSpan="5" className="text-center py-2 text-white">
+        No lines available.
+      </td>
+    </tr>
+  )}
+</tbody>
+
     </table>
   </div>
 </div> 
@@ -1398,31 +1445,27 @@ useEffect(() => {
           <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name <span className="text-red-700">*</span></label>
           <input
             id="line-name"
-            type="text"
-            name="name"
+            {...register('name', { required: 'Name is required' })}
             required
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Line Name"
             value={newLine.name}
             onChange={(e:any) => setNewLine({ ...newLine, name: e.target.value })}
           />
+          {errors.name && <p className="text-red-500">{errors.name.message}</p>}
         </div>
 
         {/* Slug Input */}
         <div>
-          <label className="block text-sm font-medium text-white mb-1" htmlFor="line-slug">Slug <span className="text-red-700">*</span></label>
-          <input
-            id="line-slug"
-            type="text"
-            name="slug"
-            required
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Slug"
-            value={newLine.slug}
-            onChange={(e:any) => setNewLine({ ...newLine, slug: e.target.value })}
-          />
-          <p className="mt-1 text-xs text-gray-500">www.tri-statecoach.com/category/{newLine.slug}</p>
-        </div>
+            <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
+            <input
+              id="slug"
+              {...register('slug', { required: 'Slug is required' })}
+              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="slug"
+            />
+            {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
+          </div>
 
         {/* Products Dropdown */}
         <div>
@@ -1445,10 +1488,29 @@ useEffect(() => {
     </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end space-x-2">
-          <button type="button" className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 focus:outline-none">Cancel</button>
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none">Create</button>
-        </div>
+<div className="flex items-center justify-end space-x-2">
+  <button
+    type="button"
+    onClick={() => {/* logic to handle cancellation */}}
+    className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 focus:outline-none"
+  >
+    Cancel
+  </button>
+  <button
+    type="button"
+    onClick={() => {/* logic to handle saving as draft */}}
+    className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 focus:outline-none"
+  >
+    Save as Draft
+  </button>
+  <button
+    type="submit"
+    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none"
+  >
+    Create
+  </button>
+</div>
+
       </form>
     </div>
   </main>

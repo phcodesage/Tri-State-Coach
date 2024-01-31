@@ -19,7 +19,8 @@
     "mongodb": "^6.3.0",
     "mongoose": "^8.0.3",
     "nodemailer": "^6.9.8",
-    "stripe": "^14.13.0"
+    "stripe": "^14.13.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
