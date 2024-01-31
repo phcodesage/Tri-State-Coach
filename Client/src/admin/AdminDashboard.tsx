@@ -1,7 +1,7 @@
 import { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+import { jwtDecode } from "jwt-decode";
 
 function AdminDashboard() {
 const authToken = localStorage.getItem('token');
@@ -45,7 +45,13 @@ const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
 
-
+// Function to check if the token is expired and redirect to login
+const checkTokenExpiration = (response) => {
+  if (response.status === 401 || response.data?.message === "jwt expired") {
+    localStorage.removeItem('token'); // Remove the expired token
+    navigate('http://localhost:5173/login'); // Redirect to the login page
+  }
+};
 
 const handleImageChange = (e:any) => {
   if (e.target.files && e.target.files[0]) {
@@ -73,6 +79,34 @@ const deleteImage = () => {
 };
 
 
+const refreshTokenIfNeeded = async () => {
+  const authToken = localStorage.getItem('token');
+  const refreshToken = localStorage.getItem('refreshToken');
+  console.log(authToken)
+  if (!authToken || !refreshToken) {
+    navigate('/login');
+    return;
+  }
+
+  try {
+    const decodedToken = jwtDecode(authToken);
+    if (decodedToken.exp * 1000 < Date.now()) {
+      const response = await axios.post('http://localhost:5000/refresh-token', { refreshToken });
+      localStorage.setItem('token', response.data.accessToken);
+    }
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    navigate('/login');
+  }
+};
+
+useEffect(() => {
+  refreshTokenIfNeeded();
+}, []);
+
+
 useEffect(() => {
   const fetchTickets = async () => {
     try {
@@ -81,15 +115,17 @@ useEffect(() => {
           'Authorization': `Bearer ${authToken}`
         }
       });
+      checkTokenExpiration(response); // Check if token has expired
       setTickets(response.data);
     } catch (error) {
       console.error('Fetch error:', error);
+      checkTokenExpiration(error.response); // Check if token has expired
     }
   };
-  
 
   fetchTickets();
-}, [authToken]);
+}, [authToken, navigate]);
+
 const [selectedTicket, setSelectedTicket] = useState(null);
 const [selectedCategories, setSelectedCategories] = useState([]);
 const handleCategorySelect = (event) => {
@@ -160,23 +196,20 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
 
   
 const [newLine, setNewLine] = useState({
-      name: '',
-      status: 'Published', // default value
-      products: 0, // default value, assuming it's a new line with no products yet
-      modified: new Date().toISOString(),
-      published: new Date().toISOString(),
-    });
+  name: '',
+  status: 'Published', // default value
+  products: 0, // default value, assuming it's a new line with no products yet
+  modified: new Date().toISOString(),
+  published: new Date().toISOString(),
+});
 
-    const createLine = async (lineData) => {
-    
+const createLine = async (lineData) => { 
       if (!authToken) {
         console.error('Auth token is not available.');
         navigate('/login');
         return;
-      }
-    
+      } 
       console.log("Sending line data:", lineData); // Log the data being sent
-    
       try {
         const response = await axios.post('http://localhost:5000/api/lines', lineData, {
   headers: {
@@ -184,7 +217,6 @@ const [newLine, setNewLine] = useState({
     'Authorization': `Bearer ${authToken}`
   }
 });
-
     
         if (response.status === 403) {
           localStorage.removeItem('token');
@@ -202,15 +234,12 @@ const [newLine, setNewLine] = useState({
     } catch (error) {
       console.error('Error creating line:', error);
     }
-   
-    
-
     
 };
 
 useEffect(() => {
   let isMounted = true;
-
+  
   const fetchLines = async () => {
     try {
       const response = await fetch('/api/lines', {
@@ -243,92 +272,91 @@ useEffect(() => {
   };
 }, [isLineFormVisible]);
 
-
-       const handleInputChangeLine = (e:any) => {
-         const { name, value } = e.target;
-         setNewLine({
-           ...newLine,
-           [name]: value,
-         });
-       };
+  const handleInputChangeLine = (e:any) => {
+    const { name, value } = e.target;
+    setNewLine({
+      ...newLine,
+      [name]: value,
+    });
+  };
      
-       const handleInputChange = (e:any) => {
-         const { name, value } = e.target;
-         setTicketData({
-           ...ticketData,
-           [name]: value,
-         });
-       };
+  const handleInputChange = (e:any) => {
+    const { name, value } = e.target;
+    setTicketData({
+      ...ticketData,
+      [name]: value,
+    });
+  };
 
-       const handleLineSubmit = async (e:any) => {
-        e.preventDefault();
-        try {
-          const createdLine = await createLine(newLine);
-          setLines(prevLines => [...prevLines, createdLine]);
-          // Reset form after successful line creation
-          setNewLine({
-            name: '',
-            status: 'Published',
-            products: 0,
-            modified: new Date().toISOString(),
-            published: new Date().toISOString(),
-          });
-        } catch (error) {
-          console.error('Error submitting line:', error);
-        }
-      };
-      const pinTicket = (ticketId) => {
-        // Implement the logic to pin the ticket
-        setPinnedTickets([...pinnedTickets, ticketId]);
-      };
+  const handleLineSubmit = async (e:any) => {
+  e.preventDefault();
+  try {
+    const createdLine = await createLine(newLine);
+    setLines(prevLines => [...prevLines, createdLine]);
+    // Reset form after successful line creation
+    setNewLine({
+      name: '',
+      status: 'Published',
+      products: 0,
+      modified: new Date().toISOString(),
+      published: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error submitting line:', error);
+  }
+};
+  const pinTicket = (ticketId) => {
+    // Implement the logic to pin the ticket
+    setPinnedTickets([...pinnedTickets, ticketId]);
+  };
 
       // Save Ticket Function
-      const saveTicket = async (data, isPublished) => {
-        const url = selectedTicket ? `http://localhost:5000/api/tickets/${selectedTicket._id}` : 'http://localhost:5000/api/tickets';
-        const method = selectedTicket ? 'PUT' : 'POST';
-        
-        if (isPublished) {
-          data.publishedOn = new Date().toISOString();
-        }
-      
-        try {
-          const response = await axios({
-            method: method,
-            url: url,
-            headers: {
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json'
-            },
-            data: data
-          });
-          
-      
-          if (response.ok) {
-            const updatedTicket = await response.json();
-            console.log('Ticket saved:', updatedTicket);
-            if (!selectedTicket) {
-              setTickets(prevTickets => [...prevTickets, updatedTicket]);
-            } else {
-              setTickets(prevTickets => prevTickets.map(ticket => ticket._id === updatedTicket._id ? updatedTicket : ticket));
-              setSelectedTicket(updatedTicket); // Update the selected ticket with the new details
-            }
-          } else {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-        } catch (error) {
-          console.error('There was a problem saving the ticket:', error);
-        }
-      };
+  const saveTicket = async (data, isPublished) => {
+    const url = selectedTicket ? `http://localhost:5000/api/tickets/${selectedTicket._id}` : 'http://localhost:5000/api/tickets';
+    const method = selectedTicket ? 'PUT' : 'POST';
     
-      const handlePublish = () => {
-        // Collect the form data and call saveTicket with isPublished = true
-        saveTicket(ticketData, true);
-      };
+    if (isPublished) {
+      data.publishedOn = new Date().toISOString();
+    }
+  
+    try {
+      const response = await axios({
+        method: method,
+        url: url,
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        },
+        data: data
+      });
+      
+  
+      if (response.ok) {
+        const updatedTicket = await response.json();
+        console.log('Ticket saved:', updatedTicket);
+        if (!selectedTicket) {
+          setTickets(prevTickets => [...prevTickets, updatedTicket]);
+        } else {
+          setTickets(prevTickets => prevTickets.map(ticket => ticket._id === updatedTicket._id ? updatedTicket : ticket));
+          setSelectedTicket(updatedTicket); // Update the selected ticket with the new details
+        }
+      } else {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('There was a problem saving the ticket:', error);
+    }
+  };
+    
+  const handlePublish = () => {
+    // Collect the form data and call saveTicket with isPublished = true
+    saveTicket(ticketData, true);
+  };
 
-      const handleSubmit = (e:any) => {
-        e.preventDefault();
-        saveTicket(ticketData, false);
-      };
+  const handleSubmit = (e:any) => {
+    e.preventDefault();
+    saveTicket(ticketData, false);
+  };
       
 
   const handleLogout = () => {
@@ -369,6 +397,30 @@ useEffect(() => {
     setSelectedImage(ticket.images[0]);
   }
 };
+
+useEffect(() => {
+  let logoutTimer = setTimeout(() => {
+    // Logout user after 2 hours
+    handleLogout();
+  }, 2 * 60 * 60 * 1000); // 2 hours
+
+  const resetTimer = () => {
+    clearTimeout(logoutTimer);
+    logoutTimer = setTimeout(() => {
+      handleLogout();
+    }, 2 * 60 * 60 * 1000);
+  };
+
+  window.addEventListener('mousemove', resetTimer);
+  window.addEventListener('keypress', resetTimer);
+
+  return () => {
+    clearTimeout(logoutTimer);
+    window.removeEventListener('mousemove', resetTimer);
+    window.removeEventListener('keypress', resetTimer);
+  };
+}, []);
+
   return (
     <>
     <div className="flex flex-row min-h-screen bg-gray-100">

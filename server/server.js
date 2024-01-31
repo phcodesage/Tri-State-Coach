@@ -6,6 +6,14 @@ const nodemailer = require('nodemailer');
 const QuoteRequest = require('./models/QuoteRequest');
 const ContactForm = require('./models/ContactForm');
 require('dotenv').config();
+const result = require('dotenv').config()
+
+
+if (result.error) {
+  throw result.error
+}
+
+
 if (!process.env.STRIPE_SECRET_KEY) {
   console.error('Stripe secret key is missing.');
   process.exit(1);
@@ -51,36 +59,49 @@ app.get('/', (req, res) => {
   res.send('Welcome to the tristate-coach-backend!')
 })
 
-// Middleware to check if the user is already authenticated
-function checkAlreadyAuthenticated(req, res, next) {
-  const token = req.headers['authorization']?.split(' ')[1];
-
-  if (!token) {
-    return next(); // No token, user not authenticated yet, proceed to login
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return next(); // Invalid token, proceed to login
-    }
-
-    // Valid token, user already authenticated
-    return res.status(403).send('You are already logged in');
-  });
-}
 
 // Login Route
 app.post('/login', async (req, res) => {
+  // Log the environment variable for debugging purposes (consider removing this in production)
+  console.log('JWT_SECRET:', process.env.JWT_SECRET);
+
+  // Destructure username and password from request body
   const { username, password } = req.body;
-  
-  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    // User authenticated, create a token
-    const token = jwt.sign({ userId: 1 }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token });
-  } else {
-    res.status(401).send('Invalid credentials');
+
+  // Log incoming credentials for debugging (remove sensitive data logging in production)
+  console.log('Attempting login with:', { username, password });
+
+  try {
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+      // User authenticated, create a token
+      const accessToken = jwt.sign({ userId: 1 }, process.env.JWT_SECRET, { expiresIn: '15m' }); // short-lived
+      const refreshToken = jwt.sign({ userId: 1 }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' }); // long-lived
+      res.json({ accessToken, refreshToken });
+    } else {
+      // Log invalid login attempt
+      console.log('Invalid credentials attempt:', { username });
+      res.status(401).send('Invalid credentials');
+    }
+  } catch (error) {
+    // Log the error
+    console.error('Error during login:', error.message);
+    // Send a generic error message client-side
+    res.status(500).send('An error occurred during the login process');
   }
 });
+
+
+app.post('/refresh-token', (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.sendStatus(401);
+
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    const newAccessToken = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    res.json({ accessToken: newAccessToken });
+  });
+});
+
 
 
 // Example of a protected route
@@ -270,6 +291,6 @@ app.listen(PORT, () => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI, {})
   .then(() => console.log("MongoDB successfully connected"))
   .catch(err => console.log(err));

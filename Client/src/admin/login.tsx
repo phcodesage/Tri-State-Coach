@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 
 function login() {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [ token, setToken ] = useState(localStorage.getItem('token'));
 
   // Check if the user is already authenticated
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/admin'); // Redirect to admin dashboard
+    if (token && location.pathname !== '/admin') {
+      navigate('/admin');
     }
-  }, [navigate]);
+  }, [navigate, location.pathname, token]);
 
   const onSubmit = async (data) => {
     try {
@@ -30,8 +32,10 @@ function login() {
       }
 
       const responseData = await response.json();
-      localStorage.setItem('token', responseData.token); // Store the token
-      navigate('/admin'); // Redirect to admin route
+      localStorage.setItem('token', responseData.accessToken); // Store the access token
+      localStorage.setItem('refreshToken', responseData.refreshToken); // Store the refresh token
+      setToken(responseData.accessToken);
+      navigate('/admin');// Redirect to admin route
     } catch (error) {
       console.error('Error submitting form:', error);
       // Display error to user
