@@ -52,6 +52,7 @@ const [dropdownOpen, setDropdownOpen] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
+const [selectedList, setSelectedList] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
 const dropdownRef = useRef(null);
 const inputRef = useRef(null);
@@ -81,6 +82,7 @@ const handleSelectChange = (productId, productName) => {
   });
 };
 const handleSelectProduct = (selectedList, selectedItem) => {
+  console.log('Selected item:', selectedItem);
   // This function now only deals with adding a single selected item
   const newProduct = {
     id: selectedItem.id, // Assuming your items have an 'id' property
@@ -1731,23 +1733,23 @@ const handleBlur = (e) => {
   <div>
     <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
     <Multiselect
-      options={tickets} // Options to display in the dropdown
-      selectedValues={selectedProducts} // Preselected value to persist in dropdown
-      onSelect={(selectedList, selectedItem) => handleSelectProduct(selectedItem)} // Function will trigger on select event
-      onRemove={(selectedList, removedItem) => handleSelectProduct(removedItem)} // Function will trigger on remove event
-      displayValue="name" // Property name to display in the dropdown options
-      style={{
-        multiselectContainer: {
-          width: '100%',
-        },
-        searchBox: {
-          border: 'none',
-          borderBottom: '1px solid blue',
-          borderRadius: '0px',
-        },
-      }}
-      
-    />
+  options={tickets} // Options to display in the dropdown
+  selectedValues={selectedProducts} // Preselected value to persist in dropdown
+  onSelect={(selectedList, selectedItem) => handleSelectProduct(selectedList, selectedItem)} // Corrected to pass both params
+  onRemove={(selectedList, removedItem) => handleSelectProduct(selectedList, removedItem)} // Corrected to pass both params
+  displayValue="name" // Property name to display in the dropdown options
+  style={{
+    multiselectContainer: {
+      width: '100%',
+    },
+    searchBox: {
+      border: 'none',
+      borderBottom: '1px solid blue',
+      borderRadius: '0px',
+    },
+  }}
+/>
+
   </div>
 </div>
 
