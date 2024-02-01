@@ -10,7 +10,7 @@ import Multiselect from 'multiselect-react-dropdown';
 function AdminDashboard() {
 const authToken = localStorage.getItem('token');
 const navigate = useNavigate();
-const [selectedTickets, setSelectedTickets] = useState([]);
+const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isTicketListVisible, setIsTicketListVisible] = useState(false);
@@ -18,6 +18,7 @@ const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isLineListVisible, setIsLineListVisible] = useState(false);
 const [tripType, setTripType] = useState('');
 const [lineName, setLineName] = useState('');
+const [productsCount, setProductsCount] = useState(0);
 const [departureDate, setDepartureDate] = useState('');
 const [returnDate, setReturnDate] = useState('');
 const [selectedImage, setSelectedImage] = useState(null);
@@ -80,13 +81,39 @@ const handleSelectChange = (productId, productName) => {
   });
 };
 const handleSelectProduct = (selectedList, selectedItem) => {
-  // Ensure selectedList is an array
-  if (!Array.isArray(selectedList)) {
-    console.error("selectedList is not an array");
-    return;
-  }
-  setSelectedProducts(selectedList);
+  // This function now only deals with adding a single selected item
+  const newProduct = {
+    id: selectedItem.id, // Assuming your items have an 'id' property
+    count: 1, // Default to 1, adjust based on your logic
+    // include any other item properties you need here
+  };
+
+  setSelectedProducts(prevSelectedProducts => {
+    // Check if the product is already in the selectedProducts
+    const isProductSelected = prevSelectedProducts.some(product => product.id === selectedItem.id);
+    if (isProductSelected) {
+      // If already selected, return the previous state without changes
+      return prevSelectedProducts;
+    } else {
+      // If it's a new selection, add it to the state
+      return [...prevSelectedProducts, newProduct];
+    }
+  });
+
+  // Update the products count
+  setProductsCount(prevCount => prevCount + 1);
 };
+
+// Make sure to adjust the onRemove prop handler accordingly
+const handleRemoveProduct = (selectedList, removedItem) => {
+  setSelectedProducts(prevSelectedProducts =>
+    prevSelectedProducts.filter(product => product.id !== removedItem.id)
+  );
+
+  // Update the products count
+  setProductsCount(prevCount => prevCount - 1);
+};
+
 
 
 const addProduct = (product) => {
@@ -465,14 +492,18 @@ useEffect(() => {
     return;
   }
 
+  setLineStatus(selectedList.length > 0 ? 'Published' : 'Draft');
+  await new Promise(resolve => setTimeout(resolve, 0));
+
   const lineData = {
-    ...FormData,
+    ...data,
     products: selectedProducts.map(product => ({
       id: product.id,
       count: product.count
-    })), // Add the count of selected products
+    })),
+    productsCount: productsCount,
     ...automatedValues,
-    status: lineStatus // Include the status of the line (Draft or Published)
+    status: lineStatus // Now this should have the updated value
   };
   // You can use data directly as it matches the Line schema from the model
   try {
@@ -489,6 +520,7 @@ useEffect(() => {
       reset(); // Reset form fields after successful submission
     } else {
       // handle errors
+      console.error('Response error:', response);
     }
   } catch (error) {
     console.error('Error creating line:', error);
@@ -563,6 +595,15 @@ useEffect(() => {
     window.removeEventListener('keypress', resetTimer);
   };
 }, []);
+
+useEffect(() => {
+  // Sum the counts of all selected products
+  const totalProductsCount = selectedProducts.reduce((sum, product) => {
+    return sum + product.count;
+  }, 0);
+
+  setProductsCount(totalProductsCount);
+}, [selectedProducts]);
 
 const renderSelectedTickets = () => {
   // Check if selectedProducts is an array
@@ -753,7 +794,10 @@ const handleBlur = (e) => {
     <h1 className="text-white text-xl font-bold">New Ticket</h1>
   </div>
   <div>
-    <button className="text-blue-500 hover:bg-blue-700 hover:text-white px-3 py-1 rounded" onClick={handlePublish}>Publish</button>
+    <button className="text-blue-500 hover:bg-blue-700 hover:text-white px-3 py-1 rounded" onClick={() => {
+    setLineStatus('Published');
+    handleLineSubmit(FormData); // Replace formData with actual data if needed
+  }}>Publish</button>
     <button className="bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white px-3 py-1 rounded ml-2" onClick={() => setIsModalVisible(true)}>Cancel</button>
   </div>
 </div>
@@ -1593,30 +1637,60 @@ const handleBlur = (e) => {
   </div>
 
   {/* Action Buttons */}
-  <div className="flex items-center space-x-2">
-    <button
-      type="button"
-      onClick={() => setIsLineFormVisible(false)}
-      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 focus:outline-none"
-    >
-      Cancel
-    </button>
-    <div className="relative">
-      <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center" type="button">
-        Create <svg className="ml-2 w-4 h-4" aria-hidden="true" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 9l6 6 6-6"></path></svg>
+<div className="relative inline-block text-left">
+  <button
+    type="button"
+    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-500 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500"
+    id="menu-button"
+    aria-expanded="true"
+    aria-haspopup="true"
+  >
+    Create
+    <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+    </svg>
+  </button>
+
+  {/* Dropdown menu, show/hide based on menu state. */}
+  <div
+    className={`${isDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none`}
+    role="menu"
+    aria-orientation="vertical"
+    aria-labelledby="menu-button"
+    tabIndex="-1"
+  >
+    <div className="py-1" role="none">
+      {/* Active: "bg-gray-100", Not Active: "" */}
+      <button
+        onClick={() => {
+          setLineStatus('Published');
+          handleLineSubmit(); // Assuming handleLineSubmit is the correct function to call
+          setIsDropdownOpen(false);
+        }}
+        className="text-gray-700 block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+        role="menuitem"
+        tabIndex="-1"
+        id="menu-item-0"
+      >
+        Publish
       </button>
-      <div id="dropdown" className="hidden z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
-        <ul className="py-1 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
-          <li>
-            <button type="submit" onClick={() => setLineStatus('Published')} className="block w-full px-4 py-2 text-left hover:bg-gray-100">Publish</button>
-          </li>
-          <li>
-            <button type="submit" onClick={() => setLineStatus('Draft')} className="block w-full px-4 py-2 text-left hover:bg-gray-100">Save as draft</button>
-          </li>
-        </ul>
-      </div>
+      <button
+        onClick={() => {
+          setLineStatus('Draft');
+          setIsDropdownOpen(false);
+        }}
+        className="text-gray-700 block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+        role="menuitem"
+        tabIndex="-1"
+        id="menu-item-1"
+      >
+        Save as draft
+      </button>
     </div>
   </div>
+</div>
+
 </div>
 
 
