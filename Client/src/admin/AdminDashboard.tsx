@@ -4,12 +4,12 @@ import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 import { useForm } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid'
-import Skeleton from 'react-loading-skeleton';
 
 
 function AdminDashboard() {
 const authToken = localStorage.getItem('token');
 const navigate = useNavigate();
+const [selectedTickets, setSelectedTickets] = useState([]);
 const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isTicketListVisible, setIsTicketListVisible] = useState(false);
@@ -46,7 +46,7 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
-const [loading, setLoading] = useState(false);
+const [dropdownOpen, setDropdownOpen] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
@@ -58,7 +58,110 @@ const [automatedValues, setAutomatedValues] = useState({
   lastPublished: '',
 });
 
-const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
+const { register, handleSubmit, watch, formState: { errors }, reset } = useForm();
+const slugValue = watch('slug')
+const handleSelectChange = (productId, productName) => {
+  // Check if the product is already selected
+  const isAlreadySelected = selectedProducts.some(product => product.id === productId);
+
+  // Toggle the product selection
+  setSelectedProducts(currentSelectedProducts => {
+    if (isAlreadySelected) {
+      // If it's already selected, remove it from the selection
+      return currentSelectedProducts.filter(product => product.id !== productId);
+    } else {
+      // If it's not selected, add it to the selection
+      return [...currentSelectedProducts, { id: productId, name: productName }];
+    }
+  });
+};
+const handleSelectProduct = (ticket) => {
+  // Check if the ticket is already selected
+  if (selectedProducts.some(product => product.id === ticket.id)) {
+    // If already selected, remove it
+    setSelectedProducts(selectedProducts.filter(product => product.id !== ticket.id));
+  } else {
+    // If not selected, add it
+    setSelectedProducts([...selectedProducts, ticket]);
+  }
+};
+
+const addProduct = (product) => {
+  setSelectedProducts((prevProducts) => {
+    const existingProduct = prevProducts.find(p => p.id === product.id);
+    if (existingProduct) {
+      // Increment count if product already exists
+      return prevProducts.map(p => p.id === product.id ? { ...p, count: p.count + 1 } : p);
+    } else {
+      // Add new product with count of 1
+      return [...prevProducts, { ...product, count: 1 }];
+    }
+  });
+};
+
+
+// Remove product from the selected list
+const removeProduct = (productId) => {
+  setSelectedProducts(prev => prev.filter(p => p.id !== productId));
+};
+
+
+const removeTicket = (ticketId) => {
+  setSelectedProducts(selectedProducts.filter(ticket => ticket.id !== ticketId));
+};
+
+const [loading, setLoading] = useState(false);
+// Create an Axios instance
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api',
+});
+
+// Function to refresh token
+const refreshToken = async () => {
+  const refreshToken = localStorage.getItem('refreshToken');
+  try {
+    const response = await axios.post('http://localhost:5000/refresh-token', { refreshToken });
+    const { accessToken } = response.data;
+    localStorage.setItem('token', accessToken);
+    return accessToken;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    throw new Error('Failed to refresh token');
+  }
+};
+
+// Add request interceptor to include the token in every request
+api.interceptors.request.use(async (config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+// Add response interceptor to refresh token if expired
+api.interceptors.response.use((response) => {
+  return response;
+}, async (error) => {
+  const originalRequest = error.config;
+  if (error.response.status === 401 && !originalRequest._retry) {
+    originalRequest._retry = true;
+    const newAccessToken = await refreshToken();
+    axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+    return api(originalRequest);
+  }
+  return Promise.reject(error);
+});
+;
+
+
+const closeLineForm = () => {
+  setIsLineFormVisible(false);
+  // Additional logic if needed
+};
 
 useState(() => {
   const newItemId = uuidv4(); // Generate a unique Item ID
@@ -359,12 +462,17 @@ useEffect(() => {
   }
 
   const lineData = {
-    ...data,
+    ...FormData,
+    products: selectedProducts.map(product => ({
+      id: product.id,
+      count: product.count
+    })), // Add the count of selected products
     ...automatedValues,
+    status: lineStatus // Include the status of the line (Draft or Published)
   };
   // You can use data directly as it matches the Line schema from the model
   try {
-    const response = await axios.post('http://localhost:5000/api/lines', data, {
+    const response = await axios.post('http://localhost:5000/api/lines', lineData, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
@@ -452,6 +560,30 @@ useEffect(() => {
   };
 }, []);
 
+const renderSelectedTickets = () => {
+  return selectedProducts.map(product => (
+    <div key={product.id} className="bg-gray-800 text-white px-2 py-1 rounded-full flex items-center mr-2 mb-2">
+      {product.name}
+      <button
+        className="ml-2 text-gray-400 hover:text-gray-200"
+        onClick={() => handleSelectProduct(product)}
+      >
+        &times;
+      </button>
+    </div>
+  ));
+};
+
+const handleFocus = () => {
+  setDropdownOpen(true);
+};
+
+const handleBlur = (e) => {
+  // Check if the new active element is not within the dropdown ref
+  if (!dropdownRef.current.contains(e.relatedTarget)) {
+    setDropdownOpen(false);
+  }
+};
   return (
     <>
     <div className="flex flex-row min-h-screen bg-gray-100">
@@ -1401,7 +1533,7 @@ useEffect(() => {
             {line.lastEdited ? new Date(line.lastEdited).toLocaleString() : 'Not Edited'}
           </td>
           <td className="px-4 py-2 text-white whitespace-nowrap">
-            {line.lastPublished ? new Date(line.lastPublished).toLocaleString() : 'Not Published'}
+            {line.created ? new Date(line.created).toLocaleString() : 'Not Published'}
           </td>
         </tr>
       ) : (
@@ -1429,18 +1561,48 @@ useEffect(() => {
 {isLineFormVisible && (
   <main className="w-full bg-gray-800 text-white p-4 overflow-y-auto">
     <div className="h-full bg-gray-800 p-6 rounded-lg shadow-lg">
-      <div className="flex items-center mb-4">
-        <button
-          className="text-white mr-4"
-          onClick={() => setIsLineFormVisible(false)}
-        >
-          {/* Back arrow icon */}
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h2 className="text-xl font-semibold text-white">New Line</h2>
+    <div className="flex items-center justify-between mb-4">
+  {/* Back arrow and title */}
+  <div className="flex items-center">
+    <button
+      className="text-white mr-2 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+      onClick={() => setIsLineFormVisible(false)}
+    >
+      {/* Back arrow icon */}
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    <h2 className="text-xl font-semibold text-white">New Line</h2>
+  </div>
+
+  {/* Action Buttons */}
+  <div className="flex items-center space-x-2">
+    <button
+      type="button"
+      onClick={() => setIsLineFormVisible(false)}
+      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 focus:outline-none"
+    >
+      Cancel
+    </button>
+    <div className="relative">
+      <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center" type="button">
+        Create <svg className="ml-2 w-4 h-4" aria-hidden="true" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 9l6 6 6-6"></path></svg>
+      </button>
+      <div id="dropdown" className="hidden z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
+        <ul className="py-1 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
+          <li>
+            <button type="submit" onClick={() => setLineStatus('Published')} className="block w-full px-4 py-2 text-left hover:bg-gray-100">Publish</button>
+          </li>
+          <li>
+            <button type="submit" onClick={() => setLineStatus('Draft')} className="block w-full px-4 py-2 text-left hover:bg-gray-100">Save as draft</button>
+          </li>
+        </ul>
       </div>
+    </div>
+  </div>
+</div>
+
 
       <form onSubmit={handleLineSubmit} className="space-y-6">
         {/* Line Name Input */}
@@ -1460,65 +1622,56 @@ useEffect(() => {
 
         {/* Slug Input */}
         <div>
-            <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
-            <input
-              id="slug"
-              {...register('slug', { required: 'Slug is required' })}
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="slug"
-            />
-            {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
-          </div>
+        <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
+        <input
+          id="slug"
+          {...register('slug', { required: 'Slug is required' })}
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="slug"
+        />
+        {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
+        <p className="text-white mt-2">www.tri-statecoach.com/category/{slugValue}</p>
+      </div>
 
         {/* Products Dropdown */}
-        <div>
-      <label className="block text-sm font-medium text-white mb-1" htmlFor="products">Products</label>
-      <select
-        id="products"
-        name="products"
-        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-        value={newLine.products}
-        onChange={(e:any) => setNewLine({ ...newLine, products: e.target.value })}
-      >
-        {/* Dynamically populate options based on tickets */}
-        {tickets.map((ticket, index) => (
-          // Ensure each option has a unique key
-          <option key={`ticket-${index}`} value={ticket.id} className='text-gray-800'> 
-            {ticket.name}
-          </option>
-        ))}
-      </select>
+        <div className="flex flex-col space-y-4" onBlur={handleBlur}>
+      <div className="flex flex-wrap">
+        {renderSelectedTickets()}
+      </div>
+      <div>
+        <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
+        <div className="relative" ref={dropdownRef}>
+          <input
+            ref={inputRef}
+            type="text"
+            className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
+            placeholder="Pick Products..."
+            onFocus={handleFocus}
+          />
+          {dropdownOpen && (
+            <div className="absolute z-10 w-full bg-gray-700 text-white shadow-md rounded mt-1 max-h-60 overflow-auto">
+              {tickets.map(ticket => (
+                <div
+                  key={ticket.id}
+                  className={`cursor-pointer p-2 hover:bg-gray-600 ${
+                    selectedProducts.some(product => product.id === ticket.id) ? 'bg-gray-600' : ''
+                  }`}
+                  onClick={() => handleSelectProduct(ticket)}
+                >
+                  {ticket.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
 
-        {/* Action Buttons */}
-<div className="flex items-center justify-end space-x-2">
-  <button
-    type="button"
-    onClick={() => {/* logic to handle cancellation */}}
-    className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 focus:outline-none"
-  >
-    Cancel
-  </button>
-  <button
-    type="button"
-    onClick={() => {/* logic to handle saving as draft */}}
-    className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 focus:outline-none"
-  >
-    Save as Draft
-  </button>
-  <button
-    type="submit"
-    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none"
-  >
-    Create
-  </button>
-</div>
 
       </form>
     </div>
   </main>
 )}
-
 </div>
     </>
   );
