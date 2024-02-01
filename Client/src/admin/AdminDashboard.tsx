@@ -1,9 +1,10 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 import { useForm } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid'
+import Multiselect from 'multiselect-react-dropdown';
 
 
 function AdminDashboard() {
@@ -51,6 +52,8 @@ const [pinnedTickets, setPinnedTickets] = useState([]);
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
+const dropdownRef = useRef(null);
+const inputRef = useRef(null);
 const [automatedValues, setAutomatedValues] = useState({
   itemId: '',
   created: '',
@@ -76,16 +79,15 @@ const handleSelectChange = (productId, productName) => {
     }
   });
 };
-const handleSelectProduct = (ticket) => {
-  // Check if the ticket is already selected
-  if (selectedProducts.some(product => product.id === ticket.id)) {
-    // If already selected, remove it
-    setSelectedProducts(selectedProducts.filter(product => product.id !== ticket.id));
-  } else {
-    // If not selected, add it
-    setSelectedProducts([...selectedProducts, ticket]);
+const handleSelectProduct = (selectedList, selectedItem) => {
+  // Ensure selectedList is an array
+  if (!Array.isArray(selectedList)) {
+    console.error("selectedList is not an array");
+    return;
   }
+  setSelectedProducts(selectedList);
 };
+
 
 const addProduct = (product) => {
   setSelectedProducts((prevProducts) => {
@@ -103,7 +105,9 @@ const addProduct = (product) => {
 
 // Remove product from the selected list
 const removeProduct = (productId) => {
-  setSelectedProducts(prev => prev.filter(p => p.id !== productId));
+  setSelectedProducts(prevProducts =>
+    prevProducts.filter(product => product.id !== productId)
+  );
 };
 
 
@@ -561,18 +565,28 @@ useEffect(() => {
 }, []);
 
 const renderSelectedTickets = () => {
-  return selectedProducts.map(product => (
-    <div key={product.id} className="bg-gray-800 text-white px-2 py-1 rounded-full flex items-center mr-2 mb-2">
+  // Check if selectedProducts is an array
+  if (!Array.isArray(selectedProducts)) {
+    console.error("selectedProducts is not an array");
+    return null; // or some fallback UI
+  }
+
+  return selectedProducts.map((product) => (
+    <div 
+      key={product.id} // Ensure each product has a unique 'id'
+      className="bg-gray-700 text-white px-3 py-1 rounded-full flex items-center mr-2 mb-2"
+    >
       {product.name}
       <button
         className="ml-2 text-gray-400 hover:text-gray-200"
-        onClick={() => handleSelectProduct(product)}
+        onClick={() => removeProduct(product.id)} // Assuming you have a method to remove a product
       >
         &times;
       </button>
     </div>
   ));
 };
+
 
 const handleFocus = () => {
   setDropdownOpen(true);
@@ -584,6 +598,8 @@ const handleBlur = (e) => {
     setDropdownOpen(false);
   }
 };
+
+
   return (
     <>
     <div className="flex flex-row min-h-screen bg-gray-100">
@@ -1525,7 +1541,7 @@ const handleBlur = (e) => {
   ) : lines && lines.length > 0 ? (
     lines.map((line, index) => (
       line && line.name ? (
-        <tr key={line.itemId || index}>
+        <tr key={line._id || index}>
           <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
           <td className="px-4 py-2 text-white whitespace-nowrap">{line.status}</td>
           <td className="px-4 py-2 text-white whitespace-nowrap">{line.productsCount}</td>
@@ -1634,38 +1650,33 @@ const handleBlur = (e) => {
       </div>
 
         {/* Products Dropdown */}
-        <div className="flex flex-col space-y-4" onBlur={handleBlur}>
-      <div className="flex flex-wrap">
-        {renderSelectedTickets()}
-      </div>
-      <div>
-        <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
-        <div className="relative" ref={dropdownRef}>
-          <input
-            ref={inputRef}
-            type="text"
-            className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
-            placeholder="Pick Products..."
-            onFocus={handleFocus}
-          />
-          {dropdownOpen && (
-            <div className="absolute z-10 w-full bg-gray-700 text-white shadow-md rounded mt-1 max-h-60 overflow-auto">
-              {tickets.map(ticket => (
-                <div
-                  key={ticket.id}
-                  className={`cursor-pointer p-2 hover:bg-gray-600 ${
-                    selectedProducts.some(product => product.id === ticket.id) ? 'bg-gray-600' : ''
-                  }`}
-                  onClick={() => handleSelectProduct(ticket)}
-                >
-                  {ticket.name}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+<div className="flex flex-col space-y-4">
+  <div className="flex flex-wrap">
+    {renderSelectedTickets()}
+  </div>
+  <div>
+    <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
+    <Multiselect
+      options={tickets} // Options to display in the dropdown
+      selectedValues={selectedProducts} // Preselected value to persist in dropdown
+      onSelect={(selectedList, selectedItem) => handleSelectProduct(selectedItem)} // Function will trigger on select event
+      onRemove={(selectedList, removedItem) => handleSelectProduct(removedItem)} // Function will trigger on remove event
+      displayValue="name" // Property name to display in the dropdown options
+      style={{
+        multiselectContainer: {
+          width: '100%',
+        },
+        searchBox: {
+          border: 'none',
+          borderBottom: '1px solid blue',
+          borderRadius: '0px',
+        },
+      }}
+      
+    />
+  </div>
+</div>
+
 
 
       </form>
