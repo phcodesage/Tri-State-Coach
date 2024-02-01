@@ -230,6 +230,7 @@ app.delete('/api/tickets/:id', async (req, res) => {
 });
 
 app.post('/api/lines', authenticateToken, async (req, res) => {
+  console.log('Received status:', req.body.status);
   try {
     const newLine = new Line(req.body);
     await newLine.save();

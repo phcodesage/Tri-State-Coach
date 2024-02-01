@@ -48,6 +48,7 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
+const [lastAction, setLastAction] = useState('');
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
 // State to manage selected products for a line
@@ -62,7 +63,15 @@ const [automatedValues, setAutomatedValues] = useState({
   lastEdited: '',
   lastPublished: '',
 });
+const handlePublishClick = () => {
+  setLineStatus('Published');
+  // Trigger form submission here if it's not automatically done
+};
 
+const handleDraftClick = () => {
+  setLineStatus('Draft');
+  // Trigger form submission here if it's not automatically done
+};
 
 const { register, handleSubmit, watch, formState: { errors }, reset } = useForm();
 const slugValue = watch('slug')
@@ -270,17 +279,6 @@ const refreshTokenIfNeeded = async () => {
   }
 };
 
-const saveAsDraft = () => {
-  setLineStatus('Draft');
-  handleLineSubmit();
-};
-
-// Function to publish the line
-const publishLine = () => {
-  setLineStatus('Published');
-  handleLineSubmit();
-};
-
 useEffect(() => {
   refreshTokenIfNeeded();
 }, []);
@@ -470,6 +468,7 @@ useEffect(() => {
 }, [isLineListVisible, authToken]);// Use isLineListVisible instead of isLineFormVisible if it's the correct dependency
 
 
+
   const handleInputChangeLine = (e:any) => {
     const { name, value } = e.target;
     setNewLine({
@@ -494,7 +493,7 @@ useEffect(() => {
     return;
   }
 
-  setLineStatus(selectedList.length > 0 ? 'Published' : 'Draft');
+  const status = lastAction === 'publish' ? 'Published' : 'Draft';
   await new Promise(resolve => setTimeout(resolve, 0));
 
   const lineData = {
@@ -505,7 +504,7 @@ useEffect(() => {
     })),
     productsCount: productsCount,
     ...automatedValues,
-    status: lineStatus // Now this should have the updated value
+    status // Now this should have the updated value
   };
   // You can use data directly as it matches the Line schema from the model
   try {
@@ -518,8 +517,12 @@ useEffect(() => {
 
     // Handle response status codes accordingly
     if (response.status === 201) {
-      setLines(prevLines => [...prevLines, response.data]);
+      
+      setIsLineFormVisible(false);
       reset(); // Reset form fields after successful submission
+      setSelectedProducts([]); // Clear selected products
+      setNewLine({ name: '', status: 'Published', products: 0 }); 
+      setLines(prevLines => [...prevLines, response.data]);
     } else {
       // handle errors
       console.error('Response error:', response);
@@ -529,12 +532,6 @@ useEffect(() => {
   }
 });
     
-  const handlePublish = () => {
-    // Collect the form data and call saveTicket with isPublished = true
-    setTickets(ticketData, true);
-  };
-
-
 
   const handleLogout = () => {
    localStorage.removeItem('token'); // Remove the token
@@ -797,7 +794,7 @@ const handleBlur = (e) => {
   </div>
   <div>
     <button className="text-blue-500 hover:bg-blue-700 hover:text-white px-3 py-1 rounded" onClick={() => {
-    setLineStatus('Published');
+    publishLine();
     handleLineSubmit(FormData); // Replace formData with actual data if needed
   }}>Publish</button>
     <button className="bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white px-3 py-1 rounded ml-2" onClick={() => setIsModalVisible(true)}>Cancel</button>
@@ -1666,11 +1663,10 @@ const handleBlur = (e) => {
       {/* Active: "bg-gray-100", Not Active: "" */}
       <button
         onClick={() => {
-          setLineStatus('Published');
-          handleLineSubmit(); // Assuming handleLineSubmit is the correct function to call
-          setIsDropdownOpen(false);
+          setLastAction('publish');
+          handleLineSubmit();
         }}
-        className="text-gray-700 block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+        className="text-gray-700 block w/full px-4 py-2 text-left text-sm hover:bg-gray-100"
         role="menuitem"
         tabIndex="-1"
         id="menu-item-0"
@@ -1679,8 +1675,8 @@ const handleBlur = (e) => {
       </button>
       <button
         onClick={() => {
-          setLineStatus('Draft');
-          setIsDropdownOpen(false);
+          setLastAction('draft');
+          handleLineSubmit();
         }}
         className="text-gray-700 block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
         role="menuitem"
