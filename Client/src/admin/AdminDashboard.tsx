@@ -49,6 +49,8 @@ const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
 const [lastAction, setLastAction] = useState('');
+const [lineTitle, setLineTitle] = useState(''); // State for line title
+const [lineSlug, setLineSlug] = useState('');
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
 // State to manage selected products for a line
@@ -63,33 +65,10 @@ const [automatedValues, setAutomatedValues] = useState({
   lastEdited: '',
   lastPublished: '',
 });
-const handlePublishClick = () => {
-  setLineStatus('Published');
-  // Trigger form submission here if it's not automatically done
-};
-
-const handleDraftClick = () => {
-  setLineStatus('Draft');
-  // Trigger form submission here if it's not automatically done
-};
 
 const { register, handleSubmit, watch, formState: { errors }, reset } = useForm();
 const slugValue = watch('slug')
-const handleSelectChange = (productId, productName) => {
-  // Check if the product is already selected
-  const isAlreadySelected = selectedProducts.some(product => product.id === productId);
 
-  // Toggle the product selection
-  setSelectedProducts(currentSelectedProducts => {
-    if (isAlreadySelected) {
-      // If it's already selected, remove it from the selection
-      return currentSelectedProducts.filter(product => product.id !== productId);
-    } else {
-      // If it's not selected, add it to the selection
-      return [...currentSelectedProducts, { id: productId, name: productName }];
-    }
-  });
-};
 const handleSelectProduct = (selectedList, selectedItem) => {
   console.log('Selected item:', selectedItem);
   // This function now only deals with adding a single selected item
@@ -113,44 +92,6 @@ const handleSelectProduct = (selectedList, selectedItem) => {
 
   // Update the products count
   setProductsCount(prevCount => prevCount + 1);
-};
-
-// Make sure to adjust the onRemove prop handler accordingly
-const handleRemoveProduct = (selectedList, removedItem) => {
-  setSelectedProducts(prevSelectedProducts =>
-    prevSelectedProducts.filter(product => product.id !== removedItem.id)
-  );
-
-  // Update the products count
-  setProductsCount(prevCount => prevCount - 1);
-};
-
-
-
-const addProduct = (product) => {
-  setSelectedProducts((prevProducts) => {
-    const existingProduct = prevProducts.find(p => p.id === product.id);
-    if (existingProduct) {
-      // Increment count if product already exists
-      return prevProducts.map(p => p.id === product.id ? { ...p, count: p.count + 1 } : p);
-    } else {
-      // Add new product with count of 1
-      return [...prevProducts, { ...product, count: 1 }];
-    }
-  });
-};
-
-
-// Remove product from the selected list
-const removeProduct = (productId) => {
-  setSelectedProducts(prevProducts =>
-    prevProducts.filter(product => product.id !== productId)
-  );
-};
-
-
-const removeTicket = (ticketId) => {
-  setSelectedProducts(selectedProducts.filter(ticket => ticket.id !== ticketId));
 };
 
 const [loading, setLoading] = useState(false);
@@ -199,12 +140,6 @@ api.interceptors.response.use((response) => {
 });
 ;
 
-
-const closeLineForm = () => {
-  setIsLineFormVisible(false);
-  // Additional logic if needed
-};
-
 useState(() => {
   const newItemId = uuidv4(); // Generate a unique Item ID
   const timestamp = new Date().toISOString(); // Get the current timestamp
@@ -217,10 +152,6 @@ useState(() => {
   });
 }, []);
 
-const handleProductChange = (selectedOptions) => {
-  // Assuming 'selectedOptions' is an array of selected product objects
-  setSelectedProducts(selectedOptions);
-};
 
 // Function to check if the token is expired and redirect to login
 const checkTokenExpiration = (response) => {
@@ -380,39 +311,6 @@ const [newLine, setNewLine] = useState({
   published: new Date().toISOString(),
 });
 
-const createLine = async (lineData) => { 
-      if (!authToken) {
-        console.error('Auth token is not available.');
-        navigate('/login');
-        return;
-      } 
-      console.log("Sending line data:", lineData); // Log the data being sent
-      try {
-        const response = await axios.post('http://localhost:5000/api/lines', lineData, {
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${authToken}`
-  }
-});
-    
-        if (response.status === 403) {
-          localStorage.removeItem('token');
-          navigate('/login');
-          return;
-        } else if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Response error:", response.status, errorText); // Log any non-ok response
-          alert("Error creating line: " + errorText); // Display the error to the user
-          return;
-        }
-       const newLine = await response.json();
-      // Update local state with the new line
-      setLines(prevLines => [...prevLines, newLine]);
-    } catch (error) {
-      console.error('Error creating line:', error);
-    }
-    
-};
 
 useEffect(() => {
   let isMounted = true;
@@ -467,15 +365,6 @@ useEffect(() => {
   };
 }, [isLineListVisible, authToken]);// Use isLineListVisible instead of isLineFormVisible if it's the correct dependency
 
-
-
-  const handleInputChangeLine = (e:any) => {
-    const { name, value } = e.target;
-    setNewLine({
-      ...newLine,
-      [name]: value,
-    });
-  };
      
   const handleInputChange = (e:any) => {
     const { name, value } = e.target;
@@ -487,11 +376,6 @@ useEffect(() => {
 
  // Form submission handler
  const handleLineSubmit = handleSubmit(async (data) => {
-  if (!authToken) {
-    console.error('Auth token is not available.');
-    navigate('/login');
-    return;
-  }
 
   const status = lastAction === 'publish' ? 'Published' : 'Draft';
   await new Promise(resolve => setTimeout(resolve, 0));
@@ -603,42 +487,6 @@ useEffect(() => {
 
   setProductsCount(totalProductsCount);
 }, [selectedProducts]);
-
-const renderSelectedTickets = () => {
-  // Check if selectedProducts is an array
-  if (!Array.isArray(selectedProducts)) {
-    console.error("selectedProducts is not an array");
-    return null; // or some fallback UI
-  }
-
-  return selectedProducts.map((product) => (
-    <div 
-      key={product.id} // Ensure each product has a unique 'id'
-      className="bg-gray-700 text-white px-3 py-1 rounded-full flex items-center mr-2 mb-2"
-    >
-      {product.name}
-      <button
-        className="ml-2 text-gray-400 hover:text-gray-200"
-        onClick={() => removeProduct(product.id)} // Assuming you have a method to remove a product
-      >
-        &times;
-      </button>
-    </div>
-  ));
-};
-
-
-const handleFocus = () => {
-  setDropdownOpen(true);
-};
-
-const handleBlur = (e) => {
-  // Check if the new active element is not within the dropdown ref
-  if (!dropdownRef.current.contains(e.relatedTarget)) {
-    setDropdownOpen(false);
-  }
-};
-
 
   return (
     <>
@@ -758,7 +606,7 @@ const handleBlur = (e) => {
                     pinTicket(ticket._id);
                   }}
                   disabled={isTicketFormVisible}
-                  className="text-indigo-600 hover:text-indigo-900"
+                  className="text-gray-600 hover:text-gray-900"
                 >
                   {/* SVG or Font Icon for Pin */}
                   📌
@@ -1632,7 +1480,7 @@ const handleBlur = (e) => {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
       </svg>
     </button>
-    <h2 className="text-xl font-semibold text-white">New Line</h2>
+    <h2 className="text-xl font-semibold text-white">{lineTitle || 'New Line'}</h2>
   </div>
 
   {/* Action Buttons */}
@@ -1640,7 +1488,7 @@ const handleBlur = (e) => {
   <button
     type="button"
     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-500 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500"
+    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-900 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-700"
     id="menu-button"
     aria-expanded="true"
     aria-haspopup="true"
@@ -1652,41 +1500,55 @@ const handleBlur = (e) => {
   </button>
 
   {/* Dropdown menu, show/hide based on menu state. */}
-  <div
-    className={`${isDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none`}
-    role="menu"
-    aria-orientation="vertical"
-    aria-labelledby="menu-button"
-    tabIndex="-1"
-  >
-    <div className="py-1" role="none">
-      {/* Active: "bg-gray-100", Not Active: "" */}
-      <button
-        onClick={() => {
-          setLastAction('publish');
-          handleLineSubmit();
-        }}
-        className="text-gray-700 block w/full px-4 py-2 text-left text-sm hover:bg-gray-100"
-        role="menuitem"
-        tabIndex="-1"
-        id="menu-item-0"
-      >
-        Publish
-      </button>
-      <button
-        onClick={() => {
-          setLastAction('draft');
-          handleLineSubmit();
-        }}
-        className="text-gray-700 block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-        role="menuitem"
-        tabIndex="-1"
-        id="menu-item-1"
-      >
-        Save as draft
-      </button>
+<div
+  className={`${isDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none`}
+  role="menu"
+  aria-orientation="vertical"
+  aria-labelledby="menu-button"
+  tabIndex="-1"
+>
+<div className="relative py-1" role="none">
+  {/* Button for Publish */}
+  <div className="group">
+    <button
+      onClick={() => {
+        setLastAction('publish');
+        handleLineSubmit();
+      }}
+      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
+      role="menuitem"
+      tabIndex="-1"
+      id="menu-item-0"
+    >
+      Publish
+    </button>
+    <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
+      Publish the item to your live site.
     </div>
   </div>
+
+  {/* Button for Save as draft */}
+  <div className="group mt-1">
+    <button
+      onClick={() => {
+        setLastAction('draft');
+        handleLineSubmit();
+      }}
+      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
+      role="menuitem"
+      tabIndex="-1"
+      id="menu-item-1"
+    >
+      Save as draft
+    </button>
+    <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
+      Save the item without publishing it.
+    </div>
+  </div>
+</div>
+
+</div>
+
 </div>
 
 </div>
@@ -1700,7 +1562,7 @@ const handleBlur = (e) => {
             id="line-name"
             {...register('name', { required: 'Name is required' })}
             required
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
             placeholder="Line Name"
             value={newLine.name}
             onChange={(e:any) => setNewLine({ ...newLine, name: e.target.value })}
@@ -1714,7 +1576,7 @@ const handleBlur = (e) => {
         <input
           id="slug"
           {...register('slug', { required: 'Slug is required' })}
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
           placeholder="slug"
         />
         {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
@@ -1724,27 +1586,56 @@ const handleBlur = (e) => {
         {/* Products Dropdown */}
 <div className="flex flex-col space-y-4">
   <div className="flex flex-wrap">
-    {renderSelectedTickets()}
+
   </div>
   <div>
     <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
     <Multiselect
-  options={tickets} // Options to display in the dropdown
-  selectedValues={selectedProducts} // Preselected value to persist in dropdown
-  onSelect={(selectedList, selectedItem) => handleSelectProduct(selectedList, selectedItem)} // Corrected to pass both params
-  onRemove={(selectedList, removedItem) => handleSelectProduct(selectedList, removedItem)} // Corrected to pass both params
-  displayValue="name" // Property name to display in the dropdown options
+  options={tickets}
+  selectedValues={selectedProducts}
+  onSelect={(selectedList, selectedItem) => handleSelectProduct(selectedList, selectedItem)}
+  onRemove={(selectedList, removedItem) => handleSelectProduct(selectedList, removedItem)}
+  displayValue="name"
+  className="dark:bg-gray-800 dark:text-white dark:border-gray-700 w-full" // Updated dark theme classes for the component
   style={{
     multiselectContainer: {
+      // Styles for the container of the multiselect
       width: '100%',
+      backgroundColor: '#1F2937', // Dark background color for the container
     },
     searchBox: {
-      border: 'none',
-      borderBottom: '1px solid blue',
+      // Styles for the search input box
+      minWidth: '100%',
+      border: '2px solid #4B5563', // Bottom border color for dark theme
       borderRadius: '0px',
+      backgroundColor: '#1F2937', // Dark background color for the search box
+      color: 'white', // Text color for dark theme
+      paddingLeft: '0.5rem', // Space before text
+      paddingRight: '2.5rem', // Space after text for the search icon
     },
+    optionContainer: {
+      // Styles for the dropdown options container
+      width: '100%',
+      backgroundColor: '#1F2937', // Dark background color for options container
+      borderColor: '#374151', // Border color for the options container
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // Subtle shadow for depth
+    },
+    option: {
+      // Styles for each dropdown option
+      
+      backgroundColor: 'rgb(38 38 38)', // Blue background color for selected option
+      color: 'white', // Text color for options
+      '&:hover': {
+        backgroundColor: 'black', // Lighter blue background color on hover
+      },
+    },
+    // ... add other necessary style objects
   }}
 />
+
+
+
+
 
   </div>
 </div>
