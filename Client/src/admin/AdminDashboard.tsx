@@ -66,32 +66,39 @@ const [automatedValues, setAutomatedValues] = useState({
   lastPublished: '',
 });
 
-const { register, handleSubmit, watch, formState: { errors }, reset } = useForm();
+const handleSlugChange = (e) => {
+  const newSlug = e.target.value;
+  setNewLine({ ...newLine, slug: newSlug });
+  setValue('slug', newSlug); // Update the slug in the form
+};
+
+
+
+const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
 const slugValue = watch('slug')
 
 const handleSelectProduct = (selectedList, selectedItem) => {
   console.log('Selected item:', selectedItem);
-  // This function now only deals with adding a single selected item
-  const newProduct = {
-    id: selectedItem.id, // Assuming your items have an 'id' property
-    count: 1, // Default to 1, adjust based on your logic
-    // include any other item properties you need here
-  };
 
-  setSelectedProducts(prevSelectedProducts => {
-    // Check if the product is already in the selectedProducts
-    const isProductSelected = prevSelectedProducts.some(product => product.id === selectedItem.id);
-    if (isProductSelected) {
-      // If already selected, return the previous state without changes
-      return prevSelectedProducts;
-    } else {
-      // If it's a new selection, add it to the state
-      return [...prevSelectedProducts, newProduct];
-    }
-  });
+  // Add the new selected item only if it is not already selected
+  if (!selectedList.some(product => product.id === selectedItem.id)) {
+    const newProduct = {
+      id: selectedItem.id, // Assuming your items have an 'id' property
+      count: 1, // Default count for new selection
+      // ...include any other item properties you need here
+    };
 
-  // Update the products count
-  setProductsCount(prevCount => prevCount + 1);
+    setSelectedProducts([...selectedList, newProduct]); // Use the selectedList provided by the onSelect callback
+  }
+
+  // Update the products count based on the updated selectedList
+  setProductsCount(selectedList.length);
+};
+
+const handleRemoveProduct = (selectedList, removedItem) => {
+  const newList = selectedList.filter(product => product.id !== removedItem.id);
+  setSelectedProducts(newList); // Set the filtered list
+  setProductsCount(newList.length); // Update the products count
 };
 
 const [loading, setLoading] = useState(false);
@@ -305,11 +312,37 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
   
 const [newLine, setNewLine] = useState({
   name: '',
+  slug: '',
   status: 'Published', // default value
   products: 0, // default value, assuming it's a new line with no products yet
   modified: new Date().toISOString(),
   published: new Date().toISOString(),
 });
+
+// Function to create a slug from the name
+const createSlug = (name) => {
+  if (!name) return '';
+  // Replace spaces with '-' and convert to lowercase
+  let slug = name.trim().toLowerCase().replace(/\s+/g, '-');
+  // Add '-1' suffix if the slug is one word (no spaces)
+  if (!slug.includes('-')) {
+    slug = `${slug}-1`; // You may want to adjust the logic for numbering
+  }
+  return slug;
+};
+
+
+// Handler for when the name input changes
+const handleNameChange = (e) => {
+  const name = e.target.value;
+  const slug = createSlug(name);
+  setNewLine({ ...newLine, name, slug });
+  
+  // Update form values using setValue from useForm
+  setValue('slug', slug, { shouldValidate: true });
+  // Optionally trigger validation for the slug field
+  trigger('slug');
+};
 
 
 useEffect(() => {
@@ -706,33 +739,22 @@ useEffect(() => {
   />
 </div>
 
+
 {/* Slug Input */}
-<div className="mb-4">
-  <label htmlFor="slug" className="block text-sm font-medium mb-2">
-    Slug <span className="text-red-500">*</span>
-  </label>
-  <div className="flex items-center">
-    <input
-      id="slug"
-      type="text"
-      name="slug"
-      value={ticketData.slug}
-      onChange={handleInputChange}
-      placeholder="Slug"
-      required
-      className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
-    />
-    <button
-      onClick={() => navigator.clipboard.writeText(`https://www.tri-statecoach.com/product/${ticketData.slug}`)}
-      className="ml-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 focus:outline-none"
-    >
-      Copy
-    </button>
-  </div>
-  <p className="text-xs mt-1">
-    www.tri-statecoach.com/product/{ticketData.slug}
-  </p>
+<div>
+  <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
+  <input
+    id="slug"
+    {...register('slug', { required: 'Slug is required' })}
+    className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+    placeholder='slug' // Display 'slug' if newLine.slug is empty
+    value={newLine.slug} // Set value to newLine.slug
+    onChange={handleSlugChange}
+  />
+  {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
+  <p className="text-white mt-2">www.tri-statecoach.com/category/{newLine.slug || 'slug'}</p>
 </div>
+
 
     {/* Description TextArea */}
     <div className="mb-4">
@@ -1466,25 +1488,34 @@ useEffect(() => {
 )}
 
 {isLineFormVisible && (
-  <main className="w-full bg-gray-800 text-white p-4 overflow-y-auto">
+  <main className="w-full bg-gray-900 text-white p-4 overflow-y-auto">
     <div className="h-full bg-gray-800 p-6 rounded-lg shadow-lg">
-    <div className="flex items-center justify-between mb-4">
+    <div className="flex items-center justify-between mb-8">
   {/* Back arrow and title */}
   <div className="flex items-center">
-    <button
-      className="text-white mr-2 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
-      onClick={() => setIsLineFormVisible(false)}
-    >
-      {/* Back arrow icon */}
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-      </svg>
-    </button>
+  <button
+  className="text-white p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 flex items-center justify-center"
+  onClick={() => setIsLineFormVisible(false)}
+  style={{ width: '64px', height: '64px' }} // Set the button size explicitly if you need a square button
+>
+  {/* Back arrow icon */}
+  <svg className="w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+  </svg>
+</button>
     <h2 className="text-xl font-semibold text-white">{lineTitle || 'New Line'}</h2>
   </div>
 
   {/* Action Buttons */}
-<div className="relative inline-block text-left">
+<div className="flex relative text-left">
+  {/* Cancel button */}
+  <button
+          className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2"
+          onClick={() => setIsLineFormVisible(false)}
+        >
+          Cancel
+        </button>
+
   <button
     type="button"
     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -1501,7 +1532,7 @@ useEffect(() => {
 
   {/* Dropdown menu, show/hide based on menu state. */}
 <div
-  className={`${isDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none`}
+  className={`${isDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-10 w-56 rounded-md shadow-lg bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none`}
   role="menu"
   aria-orientation="vertical"
   aria-labelledby="menu-button"
@@ -1546,11 +1577,8 @@ useEffect(() => {
     </div>
   </div>
 </div>
-
 </div>
-
 </div>
-
 </div>
 
 
@@ -1565,23 +1593,27 @@ useEffect(() => {
             className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
             placeholder="Line Name"
             value={newLine.name}
-            onChange={(e:any) => setNewLine({ ...newLine, name: e.target.value })}
+            onChange={handleNameChange}
           />
           {errors.name && <p className="text-red-500">{errors.name.message}</p>}
         </div>
 
         {/* Slug Input */}
-        <div>
+      <div>
         <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
         <input
           id="slug"
           {...register('slug', { required: 'Slug is required' })}
           className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-          placeholder="slug"
+          value={newLine.slug || ''} // Use value for controlled input
+          onChange={handleSlugChange} // Update the slug state when user edits the slug
+          placeholder="slug" // This will only show when newLine.slug is empty
         />
         {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
-        <p className="text-white mt-2">www.tri-statecoach.com/category/{slugValue}</p>
+        <p className="text-white mt-2">www.tri-statecoach.com/category/{newLine.slug || 'slug'}</p>
       </div>
+
+
 
         {/* Products Dropdown */}
 <div className="flex flex-col space-y-4">
@@ -1594,10 +1626,11 @@ useEffect(() => {
   options={tickets}
   selectedValues={selectedProducts}
   onSelect={(selectedList, selectedItem) => handleSelectProduct(selectedList, selectedItem)}
-  onRemove={(selectedList, removedItem) => handleSelectProduct(selectedList, removedItem)}
+  onRemove={(selectedList, removedItem) => handleRemoveProduct(selectedList, removedItem)}
   displayValue="name"
   className="dark:bg-gray-800 dark:text-white dark:border-gray-700 w-full" // Updated dark theme classes for the component
   style={{
+
     multiselectContainer: {
       // Styles for the container of the multiselect
       width: '100%',
@@ -1632,10 +1665,6 @@ useEffect(() => {
     // ... add other necessary style objects
   }}
 />
-
-
-
-
 
   </div>
 </div>
