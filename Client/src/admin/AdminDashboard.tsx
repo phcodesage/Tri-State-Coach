@@ -53,13 +53,14 @@ const [lineTitle, setLineTitle] = useState(''); // State for line title
 const [lineSlug, setLineSlug] = useState('');
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
+const [editingLineId, setEditingLineId] = useState(null);
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
-const [selectedList, setSelectedList] = useState([]);
-const [lineStatus, setLineStatus] = useState('Draft');
-const dropdownRef = useRef(null);
 const lineDropDownRef = useRef();
-const inputRef = useRef(null);
+const [editMode, setEditMode] = useState(false);
+const [currentLineId, setCurrentLineId] = useState(null);
+let timeoutId;
+const isMounted = useRef(true);
 const [automatedValues, setAutomatedValues] = useState({
   itemId: '',
   created: '',
@@ -97,6 +98,21 @@ const handleOutsideClick = (e) => {
     setIsDropdownOpen(false);
   }
 };
+
+const handleEditLineClick = (line) => {
+  setCurrentLineId(line._id); // Save the editing line's ID
+  setNewLine({
+    name: line.name,
+    slug: line.slug,
+    status: line.status,
+    products: line.products, // Assuming line has a products field
+    // ... set other fields you want to pre-fill
+  });
+  setSelectedProducts(line.products); // Set the selected products for the line
+  setIsLineFormVisible(true); // Show the line form for editing
+  setEditMode(true); // Enable edit mode
+};
+
 
 const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
 const slugValue = watch('slug')
@@ -368,75 +384,101 @@ const handleNameChange = (e) => {
   trigger('slug');
 };
 
+const fetchLines = async () => {
+  if (isLineListVisible) {
+    setLoading(true); // Start the loading (skeleton animation)
+
+    // Set a minimum display time for the loading animation
+    timeoutId = setTimeout(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
+    }, 5000);
+
+    try {
+      const response = await axios.get('http://localhost:5000/api/lines', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      clearTimeout(timeoutId); // Clear the timeout as data has been fetched
+
+      if (response.status !== 200) {
+        throw new Error('Error fetching lines');
+      }
+
+      if (Array.isArray(response.data)) {
+        if (isMounted) {
+          setLines(response.data);
+          setLoading(false); // Stop the loading if data is fetched
+        }
+      } else {
+        console.error('Data is not an array:', response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching lines:', error);
+      // Keep loading state as is to continue showing animation
+    }
+  }
+};
 
 useEffect(() => {
   let isMounted = true;
-  let timeoutId = null;
 
-  const fetchLines = async () => {
-    if (isLineListVisible) {
-      setLoading(true); // Start the loading (skeleton animation)
-
-      // Set a minimum display time for the loading animation
-      timeoutId = setTimeout(() => {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }, 5000);
-
-      try {
-        const response = await axios.get('http://localhost:5000/api/lines', {
-          headers: {
-            'Authorization': `Bearer ${authToken}`
-          }
-        });
-
-        clearTimeout(timeoutId); // Clear the timeout as data has been fetched
-
-        if (response.status !== 200) {
-          throw new Error('Error fetching lines');
-        }
-
-        if (Array.isArray(response.data)) {
-          if (isMounted) {
-            setLines(response.data);
-            setLoading(false); // Stop the loading if data is fetched
-          }
-        } else {
-          console.error('Data is not an array:', response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching lines:', error);
-        // Keep loading state as is to continue showing animation
+  if (isLineListVisible) {
+    setLoading(true);
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        setLoading(false);
       }
-    }
-  };
+    }, 5000);
 
-  fetchLines();
+    // Call fetchLines inside the useEffect
+    fetchLines().catch(console.error);
 
-  return () => {
-    isMounted = false;
-    if (timeoutId) {
+    return () => {
+      isMounted = false;
       clearTimeout(timeoutId);
-    }
-  };
+    };
+  }
 }, [isLineListVisible, authToken]);// Use isLineListVisible instead of isLineFormVisible if it's the correct dependency
 
-     
-  const handleInputChange = (e:any) => {
-    const { name, value } = e.target;
-    setTicketData({
-      ...ticketData,
-      [name]: value,
-    });
+
+useEffect(() => {
+    if (isLineListVisible) {
+      fetchLines();
+    }
+  }, [isLineListVisible, authToken]);
+
+  // Fetch a single line data for editing
+  const fetchLineData = async (id) => {
+    try {
+      const response = await api.get(`/lines/${id}`);
+      const lineData = response.data;
+      setNewLine(lineData);
+      // Add other necessary fields like selectedProducts, etc.
+      setSelectedProducts(lineData.products); // Assuming `products` is an array of product objects
+      // Set the edit mode to true
+      setEditMode(true);
+    } catch (error) {
+      console.error('Error fetching line data:', error);
+    }
   };
 
- // Form submission handler
- const handleLineSubmit = handleSubmit(async (data) => {
+  // Handler to initiate editing mode
+  const handleEditLine = (line) => {
+    setCurrentLineId(line._id);
+    fetchLineData(line._id);
+    setIsLineFormVisible(true); // Show the line form for editing
+  };
 
-  const status = lastAction === 'publish' ? 'Published' : 'Draft';
-  await new Promise(resolve => setTimeout(resolve, 0));
 
+// Form submission handler
+const handleLineSubmit = handleSubmit(async (data) => {
+  const url = currentLineId ? `/api/lines/${currentLineId}` : '/api/lines';
+  const method = currentLineId ? 'patch' : 'post';
+  
   const lineData = {
     ...data,
     products: selectedProducts.map(product => ({
@@ -444,32 +486,32 @@ useEffect(() => {
       count: product.count
     })),
     productsCount: productsCount,
-    ...automatedValues,
-    status // Now this should have the updated value
+    // Include automatedValues if it's a new line creation
+    ...(currentLineId ? {} : automatedValues),
   };
-  // You can use data directly as it matches the Line schema from the model
+
   try {
-    const response = await axios.post('http://localhost:5000/api/lines', lineData, {
+    const response = await axios[method](url, lineData, {
       headers: {
+        'Authorization': `Bearer ${authToken}`,
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      }
+      },
     });
 
-    // Handle response status codes accordingly
-    if (response.status === 201) {
-      
+    if (response.status === 200 || response.status === 201) {
+      const updatedLines = currentLineId
+        ? lines.map(line => (line._id === currentLineId ? response.data : line))
+        : [...lines, response.data];
+
+      setLines(updatedLines);
       setIsLineFormVisible(false);
-      reset(); // Reset form fields after successful submission
-      setSelectedProducts([]); // Clear selected products
-      setNewLine({ name: '', status: 'Published', products: 0 }); 
-      setLines(prevLines => [...prevLines, response.data]);
-    } else {
-      // handle errors
-      console.error('Response error:', response);
+      reset();
+      setEditMode(false);
+      setCurrentLineId(null);
     }
   } catch (error) {
-    console.error('Error creating line:', error);
+    console.error('Error submitting line:', error);
+    // ... handle error
   }
 });
     
@@ -537,13 +579,15 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  // Sum the counts of all selected products
-  const totalProductsCount = selectedProducts.reduce((sum, product) => {
-    return sum + product.count;
-  }, 0);
+  if (Array.isArray(selectedProducts)) { // Ensure selectedProducts is an array
+    const totalProductsCount = selectedProducts.reduce((sum, product) => {
+      return sum + product.count;
+    }, 0);
 
-  setProductsCount(totalProductsCount);
+    setProductsCount(totalProductsCount);
+  }
 }, [selectedProducts]);
+
 
   return (
     <>
@@ -1486,7 +1530,7 @@ useEffect(() => {
   ) : lines && lines.length > 0 ? (
     lines.map((line, index) => (
       line && line.name ? (
-        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-gray-700' : 'bg-gray-800'}`}>
+        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-gray-700' : 'bg-gray-800'}`} onClick={() => handleEditLineClick(line)}>
           <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
           {!isLineFormVisible && (
             <>
@@ -1553,14 +1597,14 @@ useEffect(() => {
         </button>
 
   <button
-    type="button"
+    type="submit"
     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
     className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-900 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-700"
     id="menu-button"
     aria-expanded="true"
     aria-haspopup="true"
   >
-    Create
+    {editMode ? 'Save' : 'Create'}
     <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
     </svg>
