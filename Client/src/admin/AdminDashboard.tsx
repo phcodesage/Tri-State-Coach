@@ -1423,17 +1423,25 @@ useEffect(() => {
 
       {/* Lines table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm divide-y divide-gray-200">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Name</th>
-              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
-              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Products</th>
-              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Modified</th>
-              <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Published</th>
-            </tr>
-          </thead>
-          <tbody>
+      <table className="min-w-full text-sm divide-y divide-gray-200">
+          {isLineFormVisible ? (
+            <thead>
+              <tr>
+                <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Name</th>
+              </tr>
+            </thead>
+            ) : (
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Name</th>
+                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
+                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Products</th>
+                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Modified</th>
+                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Published</th>
+                </tr>
+              </thead>
+            )}
+          <tbody className="divide-y divide-gray-200">
   {loading ? (
     // Render multiple skeleton rows to match the expected number of data rows
     [...Array(5)].map((_, index) => (
@@ -1454,18 +1462,22 @@ useEffect(() => {
   ) : lines && lines.length > 0 ? (
     lines.map((line, index) => (
       line && line.name ? (
-        <tr key={line._id || index}>
+        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-gray-700' : 'bg-gray-800'}`}>
           <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
-          <td className="px-4 py-2 text-white whitespace-nowrap">{line.status}</td>
-          <td className="px-4 py-2 text-white whitespace-nowrap">{line.productsCount}</td>
-          <td className="px-4 py-2 text-white whitespace-nowrap">
-            {line.lastEdited ? new Date(line.lastEdited).toLocaleString() : 'Not Edited'}
-          </td>
-          <td className="px-4 py-2 text-white whitespace-nowrap">
-            {line.created ? new Date(line.created).toLocaleString() : 'Not Published'}
-          </td>
+          {!isLineFormVisible && (
+            <>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{line.status}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{line.productsCount}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">
+                {line.lastEdited ? new Date(line.lastEdited).toLocaleString() : 'Not Edited'}
+              </td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">
+                {line.created ? new Date(line.created).toLocaleString() : 'Not Published'}
+              </td>
+            </>
+          )}
         </tr>
-      ) : (
+      )  : (
         <tr key={`empty-${index}`}>
           <td colSpan="5" className="text-center py-2 text-white">Line data is missing</td>
         </tr>
@@ -1488,7 +1500,7 @@ useEffect(() => {
 )}
 
 {isLineFormVisible && (
-  <main className="w-full bg-gray-900 text-white p-4 overflow-y-auto">
+  <main className="w-full bg-gray-800 text-white p-4 overflow-y-auto">
     <div className="h-full bg-gray-800 p-6 rounded-lg shadow-lg">
     <div className="flex items-center justify-between mb-8">
   {/* Back arrow and title */}
