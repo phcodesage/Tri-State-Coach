@@ -229,15 +229,20 @@ app.delete('/api/tickets/:id', async (req, res) => {
   }
 });
 
-app.post('/api/lines', authenticateToken, async (req, res) => {
-  console.log('Received status:', req.body.status);
+router.post('/api/lines', async (req, res) => {
+  const { name, slug, status, products } = req.body;
   try {
-    const newLine = new Line(req.body);
+    const newLine = new Line({
+      name,
+      slug,
+      status,
+      products,
+      productsCount: products.reduce((acc, curr) => acc + curr.count, 0)
+    });
     await newLine.save();
-    res.status(201).json(newLine); // send back the created line as JSON
+    res.status(201).send(newLine);
   } catch (error) {
-    console.error('Error creating new line:', error);
-    res.status(400).json({ message: 'Error creating new line', error: error.message });
+    res.status(400).send(error);
   }
 });
 
@@ -251,6 +256,20 @@ app.get('/api/lines', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Error fetching lines' });
   }
 });
+
+// Endpoint to update a line
+router.patch('/api/lines/:id', async (req, res) => {
+  const updates = Object.keys(req.body);
+  try {
+    const line = await Line.findById(req.params.id);
+    updates.forEach((update) => line[update] = req.body[update]);
+    await line.save();
+    res.send(line);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 
 app.patch('/api/lines/:id/archive', authenticateToken, async (req, res) => {
   try {
