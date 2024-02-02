@@ -58,6 +58,7 @@ const [selectedProducts, setSelectedProducts] = useState([]);
 const [selectedList, setSelectedList] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
 const dropdownRef = useRef(null);
+const lineDropDownRef = useRef();
 const inputRef = useRef(null);
 const [automatedValues, setAutomatedValues] = useState({
   itemId: '',
@@ -72,7 +73,30 @@ const handleSlugChange = (e) => {
   setValue('slug', newSlug); // Update the slug in the form
 };
 
+useEffect(() => {
+  // Function to add and remove the event listener
+  const addRemoveEventListener = (action) => {
+    // The action parameter is a string that can be 'add' or 'remove'
+    const method = action === 'add' ? 'addEventListener' : 'removeEventListener';
+    document[method]('mousedown', handleOutsideClick);
+  };
 
+  // Add event listener when dropdown opens
+  if (isDropdownOpen) {
+    addRemoveEventListener('add');
+  }
+
+  // Clean up event listener when dropdown closes or component unmounts
+  return () => {
+    addRemoveEventListener('remove');
+  };
+}, [isDropdownOpen]);
+
+const handleOutsideClick = (e) => {
+  if (!lineDropDownRef.current.contains(e.target)) {
+    setIsDropdownOpen(false);
+  }
+};
 
 const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
 const slugValue = watch('slug')
@@ -1544,6 +1568,7 @@ useEffect(() => {
 
   {/* Dropdown menu, show/hide based on menu state. */}
 <div
+  ref={lineDropDownRef}
   className={`${isDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-10 w-56 rounded-md shadow-lg bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none`}
   role="menu"
   aria-orientation="vertical"
