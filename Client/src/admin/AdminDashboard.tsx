@@ -48,7 +48,7 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
-const [lastAction, setLastAction] = useState('');
+const [lastAction, setLastAction] = useState('draft');
 const [lineTitle, setLineTitle] = useState(''); // State for line title
 const [lineSlug, setLineSlug] = useState('');
 const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -104,19 +104,32 @@ const handleOutsideClick = (e) => {
   }
 };
 
-const handleEditLineClick = (line) => {
+const handleEditLineClick = async (line) => {
   setCurrentLineId(line._id); // Save the editing line's ID
+
+  // Map the line's product IDs to the full product objects including names
+  const productDetails = line.products.map(product => {
+    // Find the product in the full list of products (tickets) by its ID
+    const fullProduct = tickets.find(ticket => ticket._id === product.id);
+    return {
+      id: product.id,
+      name: fullProduct ? fullProduct.name : 'Unknown Product', // Fallback to 'Unknown Product' if not found
+      count: product.count,
+    };
+  });
+
   setEditLine({
     name: line.name,
     slug: line.slug,
     status: line.status,
-    products: line.products, // Assuming line has a products field
-    // ... set other fields you want to pre-fill
+    products: productDetails,
   });
-  setSelectedProducts(line.products); // Set the selected products for the line
+
+  setSelectedProducts(productDetails); // Set the selected products for the line with full details
   setIsLineFormVisible(true); // Show the line form for editing
   setEditMode(true); // Enable edit mode
 };
+
 
 
 const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
@@ -482,41 +495,43 @@ useEffect(() => {
 
 // Form submission handler
 const handleLineSubmit = handleSubmit(async (data) => {
-  const url = currentLineId ? `http://localhost:5000/api/lines/${currentLineId}` : 'http://localhost:5000/api/lines';
+  const apiUrl = `http://localhost:5000/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
   const method = currentLineId ? 'patch' : 'post';
-  
+  const headers = {
+    'Authorization': `Bearer ${authToken}`,
+    'Content-Type': 'application/json',
+  };
+
+  // Adjust status based on lastAction state
+  const status = lastAction === 'publish' ? 'Published' : 'Draft';
   const lineData = {
     ...data,
-    products: selectedProducts,
+    status,
+    products: selectedProducts.map(product => ({
+      id: product.id,
+      name: product.name,
+      count: product.count
+    })),
     productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
-    // Add automatedValues if creating a new line
     ...(currentLineId ? {} : automatedValues),
   };
 
   try {
-    const response = await axios[method](url, lineData, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Update local state with the new line list and reset form/UI state
+    const response = await axios({ url: apiUrl, method, data: lineData, headers });
     if (response.status === 200 || response.status === 201) {
-      const updatedLines = currentLineId 
-        ? lines.map(line => (line._id === currentLineId ? response.data : line))
-        : [...lines, response.data];
-      setLines(updatedLines);
+      // Successfully created or updated the line
+      setLines(currentLines => currentLineId ? currentLines.map(line => line._id === currentLineId ? response.data : line) : [...currentLines, response.data]);
       setIsLineFormVisible(false);
-      reset(); // Reset form fields
+      reset();
       setEditMode(false);
       setCurrentLineId(null);
+      setLastAction('');
     }
   } catch (error) {
     console.error('Error submitting line:', error);
-    // ... handle error
   }
 });
+
     
 
   const handleLogout = () => {
@@ -596,7 +611,7 @@ const handleProductSelect = (selectedList, selectedItem) => {
   setSelectedProducts(selectedList.map(product => ({
     id: product._id, // Use _id for MongoDB documents
     name: product.name, // Include the product name
-    count: 1 // Default count to 1, adjust as necessary
+    count: product.count || 1  // Default count to 1, adjust as necessary
   })));
 };
 
@@ -1765,13 +1780,6 @@ const handleProductSelect = (selectedList, selectedItem) => {
 </div>
 
 
-  {/* Submit Button */}
-  <button
-            type="submit"
-            className="w-full p-2 bg-blue-500 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
-          >
-            {editMode ? 'Update Line' : 'Create Line'}
-          </button>
       
       </form>
     </div>

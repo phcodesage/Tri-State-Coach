@@ -80,13 +80,13 @@ app.post('/login', async (req, res) => {
     } else {
       // Log invalid login attempt
       console.log('Invalid credentials attempt:', { username });
-      res.status(401).send('Invalid credentials');
+      res.status(401).json({ error: 'Invalid username or password' });
     }
   } catch (error) {
     // Log the error
     console.error('Error during login:', error.message);
     // Send a generic error message client-side
-    res.status(500).send('An error occurred during the login process');
+    res.status(500).json({ error: 'An error occurred during the login process' });
   }
 });
 
@@ -229,31 +229,28 @@ app.delete('/api/tickets/:id', async (req, res) => {
   }
 });
 
-app.post('/api/lines', authenticateToken, async (req, res) => { // Directly on app if not using Router
-  const { name, slug, status, products } = req.body;
-
-  // Calculating productsCount from the products array
-  const productsCount = products.reduce((acc, product) => acc + (product.count || 0), 0);
+app.post('/api/lines',  async (req, res) => {
+  const { name, slug, status = 'Draft', products } = req.body;
 
   try {
     const newLine = new Line({
       name,
       slug,
-      status,
+      status, // Default to 'Draft' if not provided
       products,
-      productsCount // Set productsCount based on the products array
+      productsCount: products.reduce((acc, product) => acc + product.count, 0)
     });
 
     await newLine.save();
-    res.status(201).json(newLine); // Using json to send back the created line
+    res.status(201).json(newLine);
   } catch (error) {
-    console.error('Error creating line:', error); // Logging the error to the console for debugging
     res.status(400).json({ message: 'Error creating line', error: error.message });
   }
 });
 
+
 // Endpoint to get all lines
-app.get('/api/lines', authenticateToken, async (req, res) => {
+app.get('/api/lines',  async (req, res) => {
   try {
     const lines = await Line.find({});
     res.json(lines); // respond with JSON
@@ -265,17 +262,22 @@ app.get('/api/lines', authenticateToken, async (req, res) => {
 
 
 // Correctly using app for patching a line
-app.patch('/api/lines/:id', async (req, res) => {
-  const updates = Object.keys(req.body);
+app.patch('/api/lines/:id',  async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
   try {
-    const line = await Line.findById(req.params.id);
-    updates.forEach(update => line[update] = req.body[update]);
-    await line.save();
-    res.send(line);
+    const line = await Line.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    if (!line) {
+      return res.status(404).json({ message: 'Line not found' });
+    }
+    res.json(line);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).json({ message: 'Error updating line', error: error.message });
   }
 });
+
+
 
 
 
