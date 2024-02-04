@@ -2,12 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid'
 import Multiselect from 'multiselect-react-dropdown';
 
 
-function AdminDashboard() {
+const AdminDashboard: React.FC = () => {
 const authToken = localStorage.getItem('token');
 const navigate = useNavigate();
 const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -48,6 +48,7 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
+const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
 const [lineTitle, setLineTitle] = useState(''); // State for line title
 const [lineSlug, setLineSlug] = useState('');
@@ -139,7 +140,7 @@ const handleEditLineClick = async (line) => {
 
 
 
-const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
+
 const slugValue = watch('slug')
 
 const handleSelectProduct = (selectedList, selectedItem) => {
@@ -641,35 +642,64 @@ const handleInputChange = (event, index, value) => {
   }));
 };
 
-const TicketForm = ({ editMode, ticketData }) => {
-  const { register, handleTicketSubmit, formState: { errors }, setValue, reset } = useForm();
+interface ITicketFormProps {
+  initialData?: ITicketFormData; // Optional, for edit mode
+  onSubmit: (data: ITicketFormData) => void; // Function to call on form submit
+}
 
-  // Set form default values in edit mode
-  useEffect(() => {
-    if (editMode && ticketData) {
-      reset(ticketData); // Resets the form with the fetched ticket data
-    }
-  }, [editMode, ticketData, reset]);
+interface ITicketFormData {
+  productType: 'Physical' | 'Digital' | 'Service' | 'Advance';
+  name: string;
+  slug: string;
+  description: string;
+  categories: string[];
+  images: string[];
+  price: number;
+  compareAtPrice?: number;
+  sku: string;
+  trackInventory: boolean;
+  inventoryQuantity?: number;
+  inventoryPolicy?: string;
+  requiresShipping: boolean;
+  createdOn?: Date;
+  updatedOn?: Date;
+  publishedOn?: Date;
+}
 
-  const onSubmit = async (formData) => {
-    const url = editMode ? `http://localhost:5000/api/tickets/${ticketData._id}` : 'http://localhost:5000/api/tickets';
-    const method = editMode ? 'patch' : 'post';
 
+  
+  // Example submit function
+  const onTicketSubmit: SubmitHandler<ITicketFormData> = async (data) => {
     try {
+      // Determine if it's a new ticket or an update based on some condition, e.g., if there's an ID
+      const isEdit = data.slug; // Simplistic approach for illustration
+      
       const response = await axios({
-        method: method,
-        url: url,
-        data: formData,
+        method: isEdit ? 'PATCH' : 'POST',
+        url: `http://localhost:5000/api/tickets${isEdit ? `/${data.slug}` : ''}`,
+        data,
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       });
 
-      alert(editMode ? 'Ticket updated successfully!' : 'Ticket published successfully!');
-      console.log(response.data);
+      console.log('Success:', response.data);
+      alert('Ticket submitted successfully!');
     } catch (error) {
       console.error('Error submitting ticket:', error);
       alert('Failed to submit the ticket. Please check the console for more details.');
     }
-  };
+  }
 
+
+  useEffect(() => {
+    // Assume this data comes from somewhere, like an edit button click
+    const ticketDataToEdit: ITicketFormData | null = null; // Placeholder for actual data
+    
+    if (ticketDataToEdit) {
+      Object.keys(ticketDataToEdit).forEach((fieldName) => {
+        setValue(fieldName as keyof ITicketFormData, ticketDataToEdit[fieldName]);
+      });
+    }
+  }, [setValue]);
 
   return (
     <>
@@ -852,7 +882,7 @@ const TicketForm = ({ editMode, ticketData }) => {
   </div>
 )}
 
-  <form onSubmit={handleTicketSubmit(onSubmit)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
+  <form onSubmit={handleSubmit(onTicketSubmit)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
     {/* Product Type Dropdown */}
     <div className="mb-4">
       <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
