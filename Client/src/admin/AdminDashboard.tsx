@@ -79,6 +79,12 @@ const handleSlugChange = (e) => {
   setValue('slug', newSlug); // Update the slug in the form
 };
 
+const handleTicketSlugChange = (e) => {
+  const newTicketSlug = e.target.value;
+  setNewLine({ ...newLine, slug: newTicketSlug });
+  setValue('slug', newTicketSlug); // Update the slug in the form
+};
+
 useEffect(() => {
   // Function to add and remove the event listener
   const addRemoveEventListener = (action) => {
@@ -494,7 +500,7 @@ useEffect(() => {
   };
 
 
-// Form submission handler
+// Form submission handler for Line
 const handleLineSubmit = handleSubmit(async (data) => {
   const apiUrl = `http://localhost:5000/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
   const method = currentLineId ? 'patch' : 'post';
@@ -634,6 +640,35 @@ const handleInputChange = (event, index, value) => {
     return product;
   }));
 };
+
+const TicketForm = ({ editMode, ticketData }) => {
+  const { register, handleTicketSubmit, formState: { errors }, setValue, reset } = useForm();
+
+  // Set form default values in edit mode
+  useEffect(() => {
+    if (editMode && ticketData) {
+      reset(ticketData); // Resets the form with the fetched ticket data
+    }
+  }, [editMode, ticketData, reset]);
+
+  const onSubmit = async (formData) => {
+    const url = editMode ? `http://localhost:5000/api/tickets/${ticketData._id}` : 'http://localhost:5000/api/tickets';
+    const method = editMode ? 'patch' : 'post';
+
+    try {
+      const response = await axios({
+        method: method,
+        url: url,
+        data: formData,
+      });
+
+      alert(editMode ? 'Ticket updated successfully!' : 'Ticket published successfully!');
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error submitting ticket:', error);
+      alert('Failed to submit the ticket. Please check the console for more details.');
+    }
+  };
 
 
   return (
@@ -791,7 +826,7 @@ const handleInputChange = (event, index, value) => {
   </div>
   <div>
     <button className="text-blue-500 hover:bg-blue-700 hover:text-white px-3 py-1 rounded" onClick={() => {
-    publishLine();
+    publishTicket();
     handleLineSubmit(FormData); // Replace formData with actual data if needed
   }}>Publish</button>
     <button className="bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white px-3 py-1 rounded ml-2" onClick={() => setIsModalVisible(true)}>Cancel</button>
@@ -817,7 +852,7 @@ const handleInputChange = (event, index, value) => {
   </div>
 )}
 
-  <form onSubmit={handleSubmit} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
+  <form onSubmit={handleTicketSubmit(onSubmit)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
     {/* Product Type Dropdown */}
     <div className="mb-4">
       <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
