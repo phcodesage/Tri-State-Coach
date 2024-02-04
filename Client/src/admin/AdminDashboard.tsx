@@ -501,14 +501,14 @@ const handleLineSubmit = handleSubmit(async (data) => {
       },
     });
 
+    // Update local state with the new line list and reset form/UI state
     if (response.status === 200 || response.status === 201) {
-      const updatedLines = currentLineId
+      const updatedLines = currentLineId 
         ? lines.map(line => (line._id === currentLineId ? response.data : line))
         : [...lines, response.data];
-
       setLines(updatedLines);
       setIsLineFormVisible(false);
-      reset();
+      reset(); // Reset form fields
       setEditMode(false);
       setCurrentLineId(null);
     }
@@ -592,12 +592,14 @@ useEffect(() => {
 }, [selectedProducts]);
 
 const handleProductSelect = (selectedList, selectedItem) => {
-  // Update selectedProducts with selectedList directly from the Multiselect component
+  // Update the state with the selected products, including their id, name, and count
   setSelectedProducts(selectedList.map(product => ({
-    id: product._id, // Assuming your product objects have an "_id" field
-    count: 1 // Defaulting count to 1 for simplicity, adjust based on your actual app logic
+    id: product._id, // Use _id for MongoDB documents
+    name: product.name, // Include the product name
+    count: 1 // Default count to 1, adjust as necessary
   })));
 };
+
 
 
   return (
