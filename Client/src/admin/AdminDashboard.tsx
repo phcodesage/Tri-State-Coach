@@ -348,17 +348,16 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
    setShowCreateOptions(false);
  };
 
- const handleCancel = () => {
-   setIsTicketFormVisible(false);
- };
 
- const [ticketData, setTicketData] = useState({
+
+
+const initialTicketData = {
   productType: '',
   name: '',
   slug: '',
   description: '',
-  categories: [], // Assuming this will be an array of category names
-  images: [], // Assuming this will be an array of image URLs
+  categories: [],
+  images: [],
   price: '',
   compareAtPrice: '',
   sku: '',
@@ -371,8 +370,8 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
   requiresShipping: false,
   createdOn: new Date().toISOString(),
   updatedOn: new Date().toISOString(),
-  publishedOn: new Date().toISOString(), // You might want to adjust this based on your business logic
-});
+  publishedOn: new Date().toISOString(),
+};
 
 
   
@@ -701,6 +700,25 @@ interface ITicketFormData {
     }
   }, [setValue]);
 
+
+  const [ticketData, setTicketData] = useState(initialTicketData);
+
+
+// Function to reset all related form states
+const resetFormStates = () => {
+  setTicketData(initialTicketData); // Reset ticketData to its initial state
+  setSelectedTicket(null); // Clear any selected ticket
+  setSelectedImage(null); // Clear selected image
+  setIsTicketFormVisible(false); // Close the form/modal
+  // Add any additional resets for other state variables here
+};
+
+const handleCancel = () => {
+  reset(); // This will reset react-hook-form fields
+  resetFormStates(); // This will reset custom state management
+};
+
+
   return (
     <>
     <div className="flex flex-row min-h-screen bg-gray-100">
@@ -774,9 +792,18 @@ interface ITicketFormData {
         <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Import</button>
         <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Settings</button>
         <button
-          className="ml-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-          onClick={() => setIsTicketFormVisible(true)}
-        >
+  className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+  onClick={() => {
+    // Show the ticket form
+    setIsTicketFormVisible(true);
+    // Reset form fields using react-hook-form's reset function
+    reset();
+    // Reset custom state management for the ticket data
+    setTicketData(initialTicketData);
+    // Additionally, reset any other state variables related to the ticket form here
+
+  }}
+>
           + New Ticket
         </button>
       </div>
