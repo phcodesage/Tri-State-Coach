@@ -74,7 +74,7 @@ const [automatedValues, setAutomatedValues] = useState({
   lastPublished: '',
 });
 
-const handleSlugChange = (e) => {
+const handleLineSlugChange = (e) => {
   const newSlug = e.target.value;
   setNewLine({ ...newLine, slug: newSlug });
   setValue('slug', newSlug); // Update the slug in the form
@@ -82,7 +82,7 @@ const handleSlugChange = (e) => {
 
 const handleTicketSlugChange = (e) => {
   const newTicketSlug = e.target.value;
-  setNewLine({ ...newLine, slug: newTicketSlug });
+  setNewTicket({ ...newLine, slug: newTicketSlug });
   setValue('slug', newTicketSlug); // Update the slug in the form
 };
 
@@ -641,6 +641,25 @@ const handleInputChange = (event, index, value) => {
   }));
 };
 
+const handleTicketInputChange = (event) => {
+  const { name, value } = event.target;
+
+  // Update ticketData state
+  setTicketData(prevState => ({
+    ...prevState,
+    [name]: value,
+  }));
+
+  // Automatically generate and update slug when name changes
+  if (name === 'name') {
+    const slug = createSlug(value);
+    setTicketData(prevState => ({
+      ...prevState,
+      slug: slug,
+    }));
+  }
+};
+
 interface ITicketFormProps {
   initialData?: ITicketFormData; // Optional, for edit mode
   onSubmit: (data: ITicketFormData) => void; // Function to call on form submit
@@ -716,6 +735,7 @@ const resetFormStates = () => {
 const handleCancel = () => {
   reset(); // This will reset react-hook-form fields
   resetFormStates(); // This will reset custom state management
+  setIsModalVisible(false)
 };
 
 
@@ -801,7 +821,6 @@ const handleCancel = () => {
     // Reset custom state management for the ticket data
     setTicketData(initialTicketData);
     // Additionally, reset any other state variables related to the ticket form here
-
   }}
 >
           + New Ticket
@@ -883,7 +902,6 @@ const handleCancel = () => {
   </div>
   <div>
     <button className="text-blue-500 hover:bg-blue-700 hover:text-white px-3 py-1 rounded" onClick={() => {
-    publishTicket();
     handleLineSubmit(FormData); // Replace formData with actual data if needed
   }}>Publish</button>
     <button className="bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white px-3 py-1 rounded ml-2" onClick={() => setIsModalVisible(true)}>Cancel</button>
@@ -892,13 +910,13 @@ const handleCancel = () => {
 
   {/* Header ends here */}
 
-{isModalVisible && (
-  <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
-    <div className="bg-gray rounded-lg max-w-sm mx-auto p-4">
+  {isModalVisible && (
+  <div className="fixed inset-0 bg-gray-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center">
+    <div className="bg-gray-900 rounded-lg max-w-sm mx-auto p-4 shadow-lg">
       <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
       <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
       <div className="flex justify-end mt-4">
-        <button onClick={() => setIsModalVisible(false)} className="bg-gray-900 hover:bg-gray-400 text-white font-bold py-2 px-4 rounded-l">
+        <button onClick={() => setIsModalVisible(false)} className="bg-gray-800 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-l">
           Keep editing
         </button>
         <button onClick={handleCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
@@ -940,7 +958,7 @@ const handleCancel = () => {
     type="text"
     name="name"
     value={ticketData.name}
-    onChange={handleInputChange}
+    onChange={handleTicketInputChange}
     placeholder="Ticket Name"
     required
     className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
@@ -955,12 +973,12 @@ const handleCancel = () => {
     id="slug"
     {...register('slug', { required: 'Slug is required' })}
     className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-    placeholder='slug' // Display 'slug' if newLine.slug is empty
-    value={newLine.slug} // Set value to newLine.slug
-    onChange={handleSlugChange}
+    placeholder='slug'
+    value={ticketData.slug || ''} 
+    onChange={handleTicketSlugChange}
   />
   {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
-  <p className="text-white mt-2">www.tri-statecoach.com/category/{newLine.slug || 'slug'}</p>
+  <p className="text-white mt-2">www.tri-statecoach.com/category/{ticketData.slug || ''}</p>
 </div>
 
 
@@ -1772,7 +1790,7 @@ const handleCancel = () => {
       tabIndex="-1"
       id="menu-item-0"
     >
-      Publish
+      {editMode ? 'Save' : 'Publish'}
     </button>
     <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
       Publish the item to your live site.
@@ -1827,7 +1845,7 @@ const handleCancel = () => {
           {...register('slug', { required: 'Slug is required' })}
           className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
           value={newLine.slug || ''} // Use value for controlled input
-          onChange={handleSlugChange} // Update the slug state when user edits the slug
+          onChange={handleLineSlugChange} // Update the slug state when user edits the slug
           placeholder="slug" // This will only show when newLine.slug is empty
         />
         {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
