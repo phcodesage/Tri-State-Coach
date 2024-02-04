@@ -68,9 +68,10 @@ function login() {
             <input type="name" id="username" {...register('username', { required: 'Username is required' })} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none" required />
             {errors.username && <span className="text-red-500 text-xs">{errors.username.message}</span>}
           </div>
+          
+          <div>
           <label htmlFor="password" className="block text-sm font-medium text-white">Password</label>
           <div className="relative flex">
-          
           <button className="absolute inset-y-0 right-0 pr-3 flex items-center text-white cursor-pointer"
     onClick={togglePassword}>
     
@@ -92,6 +93,8 @@ function login() {
     className="mt-1 block w-full pl-3 pr-10 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none"
     required
   />
+          </div>
+          
   
   {errors.password && <span className="text-red-500 text-xs">{errors.password.message}</span>}
           </div>
