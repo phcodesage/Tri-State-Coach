@@ -229,20 +229,26 @@ app.delete('/api/tickets/:id', async (req, res) => {
   }
 });
 
-router.post('/api/lines', async (req, res) => {
+app.post('/api/lines', authenticateToken, async (req, res) => { // Directly on app if not using Router
   const { name, slug, status, products } = req.body;
+
+  // Calculating productsCount from the products array
+  const productsCount = products.reduce((acc, product) => acc + (product.count || 0), 0);
+
   try {
     const newLine = new Line({
       name,
       slug,
       status,
       products,
-      productsCount: products.reduce((acc, curr) => acc + curr.count, 0)
+      productsCount // Set productsCount based on the products array
     });
+
     await newLine.save();
-    res.status(201).send(newLine);
+    res.status(201).json(newLine); // Using json to send back the created line
   } catch (error) {
-    res.status(400).send(error);
+    console.error('Error creating line:', error); // Logging the error to the console for debugging
+    res.status(400).json({ message: 'Error creating line', error: error.message });
   }
 });
 
@@ -257,18 +263,20 @@ app.get('/api/lines', authenticateToken, async (req, res) => {
   }
 });
 
-// Endpoint to update a line
-router.patch('/api/lines/:id', async (req, res) => {
+
+// Correctly using app for patching a line
+app.patch('/api/lines/:id', async (req, res) => {
   const updates = Object.keys(req.body);
   try {
     const line = await Line.findById(req.params.id);
-    updates.forEach((update) => line[update] = req.body[update]);
+    updates.forEach(update => line[update] = req.body[update]);
     await line.save();
     res.send(line);
   } catch (error) {
     res.status(400).send(error);
   }
 });
+
 
 
 app.patch('/api/lines/:id/archive', authenticateToken, async (req, res) => {

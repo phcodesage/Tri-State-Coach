@@ -1,56 +1,40 @@
-/*
-We're constantly improving the code you see. 
-Please share your feedback here: https://form.asana.com/?k=uvp-HPgd3_hyoXRBw1IcNg&d=1152665201300829
-*/
 
-import React from "react";
-import { useReducer } from "react";
 
-interface Props {
-  property1: "variant-2" | "default";
-  className: any;
-}
-
-export const CollegeShuttles = ({ property1, className }: Props): JSX.Element => {
-  const [state, dispatch] = useReducer(reducer, {
-    property1: property1 || "default",
-  });
-
+export default function CollegeShuttles() {
   return (
-    <div
-      className={`w-[168px] h-[22px] relative ${className}`}
-      onMouseLeave={() => {
-        dispatch("mouse_leave");
-      }}
-      onMouseEnter={() => {
-        dispatch("mouse_enter");
-      }}
-    >
-      <div
-        className={`[font-family:'Palatino_Linotype-Bold',Helvetica] left-0 tracking-[0] text-[16px] -top-px [text-shadow:0px_2px_4px_#00000040] font-bold text-center leading-[normal] absolute ${
-          state.property1 === "variant-2" ? "text-[#a13d3d]" : "text-[#192636]"
-        }`}
-      >
-        COLLEGE SHUTTLES
+    <div className="mt-52 w-full max-md:mt-10 max-md:max-w-full">
+      <div className="flex gap-5 max-md:flex-col max-md:gap-0 max-md:">
+        <div className="flex flex-col w-6/12 max-md:ml-0 max-md:w-full">
+          <img
+            loading="lazy"
+            srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&"className="grow w-full shadow-lg aspect-[1.37] max-md:mt-10 max-md:max-w-full"
+          />
+        </div>
+        <div className="flex flex-col ml-5 w-6/12 max-md:ml-0 max-md:w-full">
+          <div className="flex flex-col self-stretch px-5 my-auto font-bold max-md:mt-10 max-md:max-w-full">
+            <h1 className="text-5xl text-black max-md:max-w-full max-md:text-4xl">
+              <br />
+              College Shuttles
+              <br />
+              <br />
+            </h1>
+            <p className="mt-10 text-xl text-neutral-500 max-md:mt-10 max-md:max-w-full">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Phasellus ultricies at lectus at suscipit. In erat urna,
+              varius eu orci sed, semper volutpat eros. Cras semper vitae metus
+              nec feugiat.
+              <br />
+              <br />
+            </p>
+            <button
+              className="justify-center self-start px-14 py-6 mt-16 text-2xl text-center text-white bg-red-800 rounded-xl max-md:px-5 max-md:mt-10"
+              aria-label="College Breaks"
+            >
+              College Breaks
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
-};
-
-function reducer(state: any, action: any) {
-  switch (action) {
-    case "mouse_enter":
-      return {
-        ...state,
-        property1: "variant-2",
-      };
-
-    case "mouse_leave":
-      return {
-        ...state,
-        property1: "default",
-      };
-  }
-
-  return state;
 }

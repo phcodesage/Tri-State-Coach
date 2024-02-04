@@ -53,7 +53,12 @@ const [lineTitle, setLineTitle] = useState(''); // State for line title
 const [lineSlug, setLineSlug] = useState('');
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
-const [editingLineId, setEditingLineId] = useState(null);
+const [editline, setEditLine] = useState({
+  name: "",
+  slug: "",
+  status: "",
+  products: []
+})
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
 const lineDropDownRef = useRef();
@@ -101,7 +106,7 @@ const handleOutsideClick = (e) => {
 
 const handleEditLineClick = (line) => {
   setCurrentLineId(line._id); // Save the editing line's ID
-  setNewLine({
+  setEditLine({
     name: line.name,
     slug: line.slug,
     status: line.status,
@@ -351,10 +356,10 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
 
   
 const [newLine, setNewLine] = useState({
-  name: '',
-  slug: '',
-  status: 'Published', // default value
-  products: 0, // default value, assuming it's a new line with no products yet
+  name: "",
+  slug: "",
+  status: "", // default value
+  products: [], // default value, assuming it's a new line with no products yet
   modified: new Date().toISOString(),
   published: new Date().toISOString(),
 });
@@ -471,22 +476,20 @@ useEffect(() => {
     setCurrentLineId(line._id);
     fetchLineData(line._id);
     setIsLineFormVisible(true); // Show the line form for editing
+    
   };
 
 
 // Form submission handler
 const handleLineSubmit = handleSubmit(async (data) => {
-  const url = currentLineId ? `/api/lines/${currentLineId}` : '/api/lines';
+  const url = currentLineId ? `http://localhost:5000/api/lines/${currentLineId}` : 'http://localhost:5000/api/lines';
   const method = currentLineId ? 'patch' : 'post';
   
   const lineData = {
     ...data,
-    products: selectedProducts.map(product => ({
-      id: product.id,
-      count: product.count
-    })),
-    productsCount: productsCount,
-    // Include automatedValues if it's a new line creation
+    products: selectedProducts,
+    productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
+    // Add automatedValues if creating a new line
     ...(currentLineId ? {} : automatedValues),
   };
 
@@ -587,6 +590,14 @@ useEffect(() => {
     setProductsCount(totalProductsCount);
   }
 }, [selectedProducts]);
+
+const handleProductSelect = (selectedList, selectedItem) => {
+  // Update selectedProducts with selectedList directly from the Multiselect component
+  setSelectedProducts(selectedList.map(product => ({
+    id: product._id, // Assuming your product objects have an "_id" field
+    count: 1 // Defaulting count to 1 for simplicity, adjust based on your actual app logic
+  })));
+};
 
 
   return (
@@ -1706,9 +1717,10 @@ useEffect(() => {
     <Multiselect
   options={tickets}
   selectedValues={selectedProducts}
-  onSelect={(selectedList) => setSelectedProducts(selectedList)}
-  onRemove={(selectedList) => setSelectedProducts(selectedList)}
+  onSelect={handleProductSelect}
+  onRemove={handleProductSelect}
   displayValue="name"
+  placeholder="Select products"
   className="dark:bg-gray-800 dark:text-white dark:border-gray-700 w-full" // Updated dark theme classes for the component
   style={{
 
@@ -1751,7 +1763,13 @@ useEffect(() => {
 </div>
 
 
-  <input type="submit" value={editMode ? "Update Line" : "Create Line"} />
+  {/* Submit Button */}
+  <button
+            type="submit"
+            className="w-full p-2 bg-blue-500 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
+          >
+            {editMode ? 'Update Line' : 'Create Line'}
+          </button>
       
       </form>
     </div>

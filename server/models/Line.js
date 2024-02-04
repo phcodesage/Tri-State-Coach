@@ -1,3 +1,8 @@
+
+const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
+
+
 const lineSchema = new mongoose.Schema({
   name: { type: String, required: true },
   slug: { type: String, required: true },
