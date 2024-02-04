@@ -5,12 +5,14 @@ import { jwtDecode } from "jwt-decode";
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid'
 import Multiselect from 'multiselect-react-dropdown';
+import Tickets from '../pages/Tickets';
 
 
 const AdminDashboard: React.FC = () => {
 const authToken = localStorage.getItem('token');
 const navigate = useNavigate();
 const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+const [isTicketDropdownOpen, setIsTicketDropdownOpen] = useState(false);
 const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isTicketListVisible, setIsTicketListVisible] = useState(false);
@@ -50,6 +52,8 @@ const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
 const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
+// At the top of your component, create a ref for the form
+const TicketformRef = useRef(null);
 const [lineTitle, setLineTitle] = useState(''); // State for line title
 const [lineSlug, setLineSlug] = useState('');
 const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -82,7 +86,7 @@ const handleLineSlugChange = (e) => {
 
 const handleTicketSlugChange = (e) => {
   const newTicketSlug = e.target.value;
-  setNewTicket({ ...newLine, slug: newTicketSlug });
+
   setValue('slug', newTicketSlug); // Update the slug in the form
 };
 
@@ -622,12 +626,22 @@ const handleProductSelect = (selectedList, selectedItem) => {
   })));
 };
 
-const handlePublish = () => {
+const handleLinePublish = () => {
   // Set the lastAction state to 'publish'
   setLastAction('publish');
 };
 
-const handleDraft = () => {
+const handleLineDraft = () => {
+  // Set the lastAction state to 'draft'
+  setLastAction('draft');
+};
+
+const handleTicketPublish = () => {
+  // Set the lastAction state to 'publish'
+  setLastAction('publish');
+};
+
+const handleTicketDraft = () => {
   // Set the lastAction state to 'draft'
   setLastAction('draft');
 };
@@ -642,23 +656,35 @@ const handleInputChange = (event, index, value) => {
 };
 
 const handleTicketInputChange = (event) => {
-  const { name, value } = event.target;
-
-  // Update ticketData state
-  setTicketData(prevState => ({
-    ...prevState,
-    [name]: value,
-  }));
-
-  // Automatically generate and update slug when name changes
-  if (name === 'name') {
-    const slug = createSlug(value);
+  const { name, value, type, files } = event.target;
+  
+  if (type === 'file') {
+    // Assuming you're handling single file uploads for simplicity
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setTicketData(prevState => ({
+        ...prevState,
+        images: [...prevState.images, reader.result]
+      }));
+    };
+    reader.readAsDataURL(files[0]);
+  } else {
     setTicketData(prevState => ({
       ...prevState,
-      slug: slug,
+      [name]: type === 'checkbox' ? event.target.checked : value,
     }));
+
+    // Automatically generate and update slug when name changes
+    if (name === 'name') {
+      const slug = value.trim().toLowerCase().replace(/\s+/g, '-').concat(value.split(' ').length === 1 ? '-1' : '');
+      setTicketData(prevState => ({
+        ...prevState,
+        slug: slug,
+      }));
+    }
   }
 };
+
 
 interface ITicketFormProps {
   initialData?: ITicketFormData; // Optional, for edit mode
@@ -688,6 +714,10 @@ interface ITicketFormData {
   
   // Example submit function
   const onTicketSubmit: SubmitHandler<ITicketFormData> = async (data) => {
+    if (TicketformRef.current) {
+      // This triggers the form submission
+      TicketformRef.current.submit();
+    }
     try {
       // Determine if it's a new ticket or an update based on some condition, e.g., if there's an ID
       const isEdit = data.slug; // Simplistic approach for illustration
@@ -886,26 +916,96 @@ const handleCancel = () => {
   <main className="w-2/3 bg-gray-800 text-white p-4 overflow-y-auto">
   {/* Header starts here */}
 
-
-  <div className="bg-gray-800 px-4 py-2 flex justify-between items-center">
+  <div className="flex items-center justify-between mb-8">
+  {/* Back arrow and title */}
   <div className="flex items-center">
+  <button
+  className="text-white p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 flex items-center justify-center"
+  onClick={() => setIsLineFormVisible(false)}
+  style={{ width: '50px', height: '50px' }} // Set the button size explicitly if you need a square button
+>
+  {/* Back arrow icon */}
+  <svg className="w-3 h-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+  </svg>
+</button>
+    <h2 className="text-xl font-semibold text-white">{ticketData.name || 'New Line'}</h2>
+  </div>
+
+  {/* Action Buttons */}
+<div className="flex relative text-left">
+  {/* Cancel button */}
+  <button
+          className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2"
+          onClick={() => setIsModalVisible(true)}
+        >
+          Cancel
+        </button>
+
+  <button
+    type="submit"
+    onClick={() => setIsTicketDropdownOpen(!isTicketDropdownOpen)}
+    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-900 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-700"
+    id="menu-button"
+    aria-expanded="true"
+    aria-haspopup="true"
+  >
+    {editMode ? 'Save' : 'Create'}
+    <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+    </svg>
+  </button>
+
+  {/* Dropdown menu, show/hide based on menu state. */}
+<div
+  ref={TicketformRef}
+  className={`${isTicketDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-10 w-56 rounded-md shadow-lg bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none`}
+  role="menu"
+  aria-orientation="vertical"
+  aria-labelledby="menu-button"
+  tabIndex="-1"
+>
+<div className="relative py-1" role="none">
+  {/* Button for Publish */}
+  <div className="group">
     <button
-      className="text-white hover:text-blue-500 mr-4"
-      onClick={() => setIsTicketFormVisible(false)} // This will close the ticket form
+      onClick={() => {
+        document.getElementById('ticketForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        handleTicketPublish();
+      }}
+      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
+      role="menuitem"
+      tabIndex="-1"
+      id="menu-item-0"
     >
-      {/* SVG icon for "back" arrow */}
-      <svg fill="#FFFFFF" width="15px" height="24px" viewBox="0 0 52 52">
-        <path d="M50,24H6.83L27.41,3.41a2,2,0,0,0,0-2.82,2,2,0,0,0-2.82,0l-24,24a1.79,1.79,0,0,0-.25.31A1.19,1.19,0,0,0,.25,25c0,.07-.07.13-.1.2l-.06.2a.84.84,0,0,0,0,.17,2,2,0,0,0,0,.78.84.84,0,0,0,0,.17l.06.2c0,.07.07.13.1.2a1.19,1.19,0,0,0,.09.15,1.79,1.79,0,0,0,.25.31l24,24a2,2,0,1,0,2.82-2.82L6.83,28H50a2,2,0,0,0,0-4Z"></path>
-      </svg>
+      {editMode ? 'Save' : 'Publish'}
     </button>
-    <h1 className="text-white text-xl font-bold">New Ticket</h1>
+    <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
+      Publish the item to your live site.
+    </div>
   </div>
-  <div>
-    <button className="text-blue-500 hover:bg-blue-700 hover:text-white px-3 py-1 rounded" onClick={() => {
-    handleLineSubmit(FormData); // Replace formData with actual data if needed
-  }}>Publish</button>
-    <button className="bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white px-3 py-1 rounded ml-2" onClick={() => setIsModalVisible(true)}>Cancel</button>
+
+  {/* Button for Save as draft */}
+  <div className="group mt-1">
+    <button
+      onClick={() => {
+        handleTicketDraft();
+        handleSubmit(onTicketSubmit)
+      }}
+      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
+      role="menuitem"
+      tabIndex="-1"
+      id="menu-item-1"
+    >
+      Save as draft
+    </button>
+    <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
+      Save the item without publishing it.
+    </div>
   </div>
+</div>
+</div>
+</div>
 </div>
 
   {/* Header ends here */}
@@ -927,7 +1027,7 @@ const handleCancel = () => {
   </div>
 )}
 
-  <form onSubmit={handleSubmit(onTicketSubmit)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
+  <form onSubmit={handleSubmit(onTicketSubmit)} id="ticketForm" className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
     {/* Product Type Dropdown */}
     <div className="mb-4">
       <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
@@ -935,7 +1035,7 @@ const handleCancel = () => {
         id="productType"
         name="productType"
         value={ticketData.productType}
-        onChange={handleInputChange}
+        onChange={handleTicketInputChange}
         className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
       >
         <option value="Physical">Physical</option>
@@ -989,7 +1089,7 @@ const handleCancel = () => {
         id="description"
         name="description"
         value={ticketData.description}
-        onChange={handleInputChange}
+        onChange={handleTicketInputChange}
         placeholder="Description"
         className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
       ></textarea>
@@ -1089,10 +1189,10 @@ const handleCancel = () => {
         <span className="pl-2 text-gray-300">$</span>
         <input
           id="price"
-          type="text"
+          type="number"
           name="price"
           value={ticketData.price}
-          onChange={handleInputChange}
+          onChange={handleTicketInputChange}
           placeholder="0.00"
           className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
         />
@@ -1107,7 +1207,7 @@ const handleCancel = () => {
           type="text"
           name="compareAtPrice"
           value={ticketData.compareAtPrice}
-          onChange={handleInputChange}
+          onChange={handleTicketInputChange}
           placeholder="0.00"
           className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
         />
@@ -1125,7 +1225,7 @@ const handleCancel = () => {
     id="productTaxClass"
     name="productTaxClass"
     value={ticketData.productTaxClass}
-    onChange={handleInputChange}
+    onChange={handleTicketInputChange}
     className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
   >
     <option value="Standard">Standard automatic tax calculation</option>
@@ -1142,7 +1242,7 @@ const handleCancel = () => {
     type="text"
     name="sku"
     value={ticketData.sku}
-    onChange={handleInputChange}
+    onChange={handleTicketInputChange}
     className="block w-full p-2 mb-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
   />
 </div>
@@ -1173,7 +1273,7 @@ const handleCancel = () => {
       id="inventoryQuantity"
       name="inventoryQuantity"
       value={ticketData.inventoryQuantity}
-      onChange={handleInputChange}
+      onChange={handleTicketInputChange}
       min="0"
       className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
     />
@@ -1253,7 +1353,7 @@ const handleCancel = () => {
     type="text"
     name="stops"
     value={ticketData.stops} // Assuming you have 'stops' state in ticketData
-    onChange={handleInputChange}
+    onChange={handleTicketInputChange}
     placeholder="e.g., Commack, Hicksville, Fresh Meadows"
     className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
   />
@@ -1267,7 +1367,7 @@ const handleCancel = () => {
     type="datetime-local"
     name="firstPickUpTime"
     value={ticketData.firstPickUpTime} // Assuming you have 'firstPickUpTime' state in ticketData
-    onChange={handleInputChange}
+    onChange={handleTicketInputChange}
     className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
   />
 </div>
@@ -1279,7 +1379,7 @@ const handleCancel = () => {
     id="firstPickUpLocation"
     name="firstPickUpLocation"
     value={ticketData.firstPickUpLocation} // Assuming you have 'firstPickUpLocation' state in ticketData
-    onChange={handleInputChange}
+    onChange={handleTicketInputChange}
     placeholder="Enter the first pick up location"
     rows="3"
     className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
@@ -1782,7 +1882,7 @@ const handleCancel = () => {
   <div className="group">
     <button
       onClick={() => {
-        handlePublish();
+        handleLinePublish();
         handleLineSubmit();
       }}
       className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
@@ -1801,7 +1901,7 @@ const handleCancel = () => {
   <div className="group mt-1">
     <button
       onClick={() => {
-        handleDraft();
+        handleLineDraft();
         handleLineSubmit();
       }}
       className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
