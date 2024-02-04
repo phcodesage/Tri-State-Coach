@@ -72,7 +72,7 @@ function login() {
           <div>
           <label htmlFor="password" className="block text-sm font-medium text-white">Password</label>
           <div className="relative flex">
-          <button className="absolute inset-y-0 right-0 pr-3 flex items-center text-white cursor-pointer"
+          <button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center text-white cursor-pointer"
     onClick={togglePassword}>
     
       {showPassword ? (

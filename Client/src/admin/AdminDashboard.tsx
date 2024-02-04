@@ -48,7 +48,7 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
-const [lastAction, setLastAction] = useState('draft');
+const [lastAction, setLastAction] = useState('');
 const [lineTitle, setLineTitle] = useState(''); // State for line title
 const [lineSlug, setLineSlug] = useState('');
 const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -99,10 +99,11 @@ useEffect(() => {
 }, [isDropdownOpen]);
 
 const handleOutsideClick = (e) => {
-  if (!lineDropDownRef.current.contains(e.target)) {
+  if (lineDropDownRef.current && !lineDropDownRef.current.contains(e.target)) {
     setIsDropdownOpen(false);
   }
 };
+
 
 const handleEditLineClick = async (line) => {
   setCurrentLineId(line._id); // Save the editing line's ID
@@ -615,6 +616,24 @@ const handleProductSelect = (selectedList, selectedItem) => {
   })));
 };
 
+const handlePublish = () => {
+  // Set the lastAction state to 'publish'
+  setLastAction('publish');
+};
+
+const handleDraft = () => {
+  // Set the lastAction state to 'draft'
+  setLastAction('draft');
+};
+
+const handleInputChange = (event, index, value) => {
+  setSelectedProducts(selectedProducts.map((product, i) => {
+    if (i === index) {
+      return { ...product, [event.target.name]: value };
+    }
+    return product;
+  }));
+};
 
 
   return (
@@ -640,6 +659,7 @@ const handleProductSelect = (selectedList, selectedItem) => {
             <a href="#" onClick={toggleTicketFormVisibility} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
             <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#000000"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#000000"> </path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Tickets</span>
+               <span className="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">{tickets.length} items</span>
             </a>
          </li>
          <li>
@@ -699,7 +719,7 @@ const handleProductSelect = (selectedList, selectedItem) => {
   </div>
     <ul className="overflow-y-auto">
     <div className="overflow-x-auto">
-      <table className="min-w-full">
+      <table className="min-w-full text-sm divide-y divide-gray-200">
         <thead>
           <tr>
             <th className="text-left font-medium">Name</th>
@@ -1604,10 +1624,10 @@ const handleProductSelect = (selectedList, selectedItem) => {
   <button
   className="text-white p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 flex items-center justify-center"
   onClick={() => setIsLineFormVisible(false)}
-  style={{ width: '64px', height: '64px' }} // Set the button size explicitly if you need a square button
+  style={{ width: '50px', height: '50px' }} // Set the button size explicitly if you need a square button
 >
   {/* Back arrow icon */}
-  <svg className="w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+  <svg className="w-3 h-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
   </svg>
 </button>
@@ -1652,7 +1672,7 @@ const handleProductSelect = (selectedList, selectedItem) => {
   <div className="group">
     <button
       onClick={() => {
-        setLastAction('publish');
+        handlePublish();
         handleLineSubmit();
       }}
       className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
@@ -1671,7 +1691,7 @@ const handleProductSelect = (selectedList, selectedItem) => {
   <div className="group mt-1">
     <button
       onClick={() => {
-        setLastAction('draft');
+        handleDraft();
         handleLineSubmit();
       }}
       className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"

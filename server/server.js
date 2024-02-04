@@ -261,34 +261,26 @@ app.get('/api/lines',  async (req, res) => {
 });
 
 
-// Correctly using app for patching a line
-app.patch('/api/lines/:id',  async (req, res) => {
-  const { id } = req.params;
-  const updateData = req.body;
 
+app.patch('/api/lines/:id', async (req, res) => {
+  const { status, ...otherUpdates } = req.body;
   try {
-    const line = await Line.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    const line = await Line.findById(req.params.id);
     if (!line) {
-      return res.status(404).json({ message: 'Line not found' });
+      return res.status(404).send('Line not found');
     }
-    res.json(line);
+
+    if (status) {
+      line.status = status; // Update the status if provided in the request
+    }
+    // Apply other updates here
+    await line.save();
+    res.status(200).json(line);
   } catch (error) {
     res.status(400).json({ message: 'Error updating line', error: error.message });
   }
 });
 
-
-
-
-
-app.patch('/api/lines/:id/archive', authenticateToken, async (req, res) => {
-  try {
-    const line = await Line.findByIdAndUpdate(req.params.id, { archived: true }, { new: true });
-    res.status(200).send(line);
-  } catch (error) {
-    res.status(400).send('Error archiving line');
-  }
-});
 
 // Endpoint to delete a line
 app.delete('/api/lines/:id', authenticateToken, async (req, res) => {
@@ -301,19 +293,36 @@ app.delete('/api/lines/:id', authenticateToken, async (req, res) => {
 });
 
 // Endpoint to duplicate a line
-app.post('/api/lines/:id/duplicate', authenticateToken, async (req, res) => {
-  try {
-    const lineToDuplicate = await Line.findById(req.params.id);
-    if (!lineToDuplicate) {
-      return res.status(404).send('Line not found');
+// Endpoint to update or create a line
+app.post('/api/lines/:id?', async (req, res) => {
+  const { id } = req.params;
+  const { status, ...lineData } = req.body;
+
+  if (id) {
+    // If an ID is provided, update the existing line
+    try {
+      const line = await Line.findById(id);
+      if (!line) return res.status(404).send('Line not found');
+
+      line.status = status;
+      Object.assign(line, lineData);
+      await line.save();
+      res.status(200).json(line);
+    } catch (error) {
+      res.status(400).json({ message: 'Error updating line', error: error.message });
     }
-    const duplicatedLine = new Line({ ...lineToDuplicate.toObject(), _id: mongoose.Types.ObjectId(), isNew: true });
-    await duplicatedLine.save();
-    res.status(201).send(duplicatedLine);
-  } catch (error) {
-    res.status(500).send('Error duplicating line');
+  } else {
+    // If no ID, create a new line
+    try {
+      const newLine = new Line({ ...lineData, status });
+      await newLine.save();
+      res.status(201).json(newLine);
+    } catch (error) {
+      res.status(400).json({ message: 'Error creating line', error: error.message });
+    }
   }
 });
+
 
 
 app.listen(PORT, () => {
