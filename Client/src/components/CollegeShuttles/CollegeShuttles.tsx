@@ -1,3 +1,5 @@
+import TriStateCoachBus from '../../assets/tri-state-coach-bus-image.png'
+
 
 
 export default function CollegeShuttles() {
@@ -7,18 +9,18 @@ export default function CollegeShuttles() {
         <div className="flex flex-col w-6/12 max-md:ml-0 max-md:w-full">
           <img
             loading="lazy"
-            srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/033bc7d3e0456ccfa94bc4a020ad8a0a381624a1d5e09ee40d5d020eb2a3931b?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&"className="grow w-full shadow-lg aspect-[1.37] max-md:mt-10 max-md:max-w-full"
+            src={TriStateCoachBus} className="grow w-full aspect-[1.37] max-md:mt-10 max-md:max-w-full" style={{"filter":"drop-shadow(0px 5px 20px rgba(0, 0, 0, 0.25))","borderRadius":"20px"}}
           />
         </div>
         <div className="flex flex-col ml-5 w-6/12 max-md:ml-0 max-md:w-full">
           <div className="flex flex-col self-stretch px-5 my-auto font-bold max-md:mt-10 max-md:max-w-full">
-            <h1 className="text-5xl text-black max-md:max-w-full max-md:text-4xl">
+            <h1 className="max-md:max-w-full max-md:text-4xl" style={{"fontFamily":"'Inter'","fontStyle":"normal","fontWeight":"700","fontSize":"48px","lineHeight":"58px","color":"#000000"}}>
               <br />
               College Shuttles
               <br />
               <br />
             </h1>
-            <p className="mt-10 text-xl text-neutral-500 max-md:mt-10 max-md:max-w-full">
+            <p className="mt-10 max-md:mt-10 max-md:max-w-full" style={{"fontFamily":"'Inter'","fontStyle":"normal","fontWeight":"400","fontSize":"20px","lineHeight":"24px","color":"#7A7A7A"}}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
               Phasellus ultricies at lectus at suscipit. In erat urna,
               varius eu orci sed, semper volutpat eros. Cras semper vitae metus
@@ -27,7 +29,8 @@ export default function CollegeShuttles() {
               <br />
             </p>
             <button
-              className="justify-center self-start px-14 py-6 mt-16 text-2xl text-center text-white bg-red-800 rounded-xl max-md:px-5 max-md:mt-10"
+              className="justify-center self-start px-14 py-6 mt-16 text-2xl text-center text-white rounded-xl max-md:px-5 max-md:mt-10"
+              style={{"background":"#991616","borderRadius":"10px"}}
               aria-label="College Breaks"
             >
               College Breaks
