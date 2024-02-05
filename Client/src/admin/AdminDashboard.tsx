@@ -109,13 +109,13 @@ const [automatedValues, setAutomatedValues] = useState({
   lastPublished: '',
 });
 
-const handleLineSlugChange = (e) => {
+const handleLineSlugChange = (e:any) => {
   const newSlug = e.target.value;
   setNewLine({ ...newLine, slug: newSlug });
   setValue('slug', newSlug); // Update the slug in the form
 };
 
-const handleTicketSlugChange = (e) => {
+const handleTicketSlugChange = (e:any) => {
   const newTicketSlug = e.target.value;
 
   setValue('slug', newTicketSlug); // Update the slug in the form
@@ -140,7 +140,7 @@ useEffect(() => {
   };
 }, [isDropdownOpen]);
 
-const handleOutsideClick = (e) => {
+const handleOutsideClick = (e:any) => {
   if (lineDropDownRef.current && !lineDropDownRef.current.contains(e.target)) {
     setIsDropdownOpen(false);
   }
@@ -205,14 +205,14 @@ const handleRemoveProduct = (selectedList, removedItem) => {
 const [loading, setLoading] = useState(false);
 // Create an Axios instance
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://tri-state-backend.onrender.com/api',
 });
 
 // Function to refresh token
 const refreshToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   try {
-    const response = await axios.post('http://localhost:5000/refresh-token', { refreshToken });
+    const response = await axios.post('https://tri-state-backend.onrender.com/refresh-token', { refreshToken });
     const { accessToken } = response.data;
     localStorage.setItem('token', accessToken);
     return accessToken;
@@ -307,7 +307,7 @@ const refreshTokenIfNeeded = async () => {
   try {
     const decodedToken = jwtDecode(authToken);
     if (decodedToken.exp * 1000 < Date.now()) {
-      const response = await axios.post('http://localhost:5000/refresh-token', { refreshToken });
+      const response = await axios.post('https://tri-state-backend.onrender.com/refresh-token', { refreshToken });
       localStorage.setItem('token', response.data.accessToken);
     }
   } catch (error) {
@@ -326,7 +326,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchTickets = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/tickets', {
+      const response = await axios.get('https://tri-state-backend.onrender.com/api/tickets', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -433,7 +433,7 @@ const createSlug = (name) => {
 
 
 // Handler for when the name input changes
-const handleNameChange = (e) => {
+const handleNameChange = (e:any) => {
   const name = e.target.value;
   const slug = createSlug(name);
   setNewLine({ ...newLine, name, slug });
@@ -456,7 +456,7 @@ const fetchLines = async () => {
     }, 5000);
 
     try {
-      const response = await axios.get('http://localhost:5000/api/lines', {
+      const response = await axios.get('https://tri-state-backend.onrender.com/api/lines', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -537,7 +537,7 @@ useEffect(() => {
 
 // Form submission handler for Line
 const handleLineSubmit = handleSubmit(async (data) => {
-  const apiUrl = `http://localhost:5000/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
+  const apiUrl = `https://tri-state-backend.onrender.com/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
   const method = currentLineId ? 'patch' : 'post';
   const headers = {
     'Authorization': `Bearer ${authToken}`,
@@ -755,7 +755,7 @@ interface ITicketFormData {
       
       const response = await axios({
         method: isEdit ? 'PATCH' : 'POST',
-        url: `http://localhost:5000/api/tickets${isEdit ? `/${data.slug}` : ''}`,
+        url: `https://tri-state-backend.onrender.com/api/tickets${isEdit ? `/${data.slug}` : ''}`,
         data,
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       });

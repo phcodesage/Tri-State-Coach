@@ -10,11 +10,25 @@ const stripePromise = loadStripe('pk_test_51OaMmnHFYyVMKiryTaCSRaF697lsoem17nQxP
 
 
 function Invoice() {
+    interface FormData {
+        invoiceNumber: string;
+        notes: string;
+        stopSelection: string;
+        studentName: string;
+        studentEmail: string;
+        studentPhone: string;
+        parentName: string;
+        parentEmail: string;
+        parentPhone: string; // Add the missing property
+        destination: string;
+        pickupLocation: string;
+        // Add more form fields as needed
+      }
     const [isAgreed, setIsAgreed] = useState(false);
     const [step, setStep] = useState(1);
     const [amount, setAmount] = useState(1)
     const [clientSecret, setClientSecret] = useState('');
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         invoiceNumber: '',
         notes: '',
         stopSelection: 'default',
@@ -72,7 +86,7 @@ function Invoice() {
 
     useEffect(() => {
         // Fetch the client secret from your backend
-        fetch('http://localhost:5000/create-payment-intent', {
+        fetch('https://tri-state-backend.onrender.com/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount }) // send amount in cents

@@ -1,10 +1,10 @@
-import TriStateCoachBus from '../../assets/tri-state-coach-bus-image.png'
-
+import TriStateCoachBus from '../../assets/img-1209-1@2x.png'
+import { Link } from 'react-router-dom';
 
 
 export default function CollegeShuttles() {
   return (
-    <div className="mt-52 w-full max-md:mt-10 max-md:max-w-full">
+    <div className="my-52 w-full max-md:mt-10 max-md:max-w-full">
       <div className="flex gap-5 max-md:flex-col max-md:gap-0 max-md:">
         <div className="flex flex-col w-6/12 max-md:ml-0 max-md:w-full">
           <img
@@ -28,13 +28,13 @@ export default function CollegeShuttles() {
               <br />
               <br />
             </p>
-            <button
+            <Link to="/"
               className="justify-center self-start px-14 py-6 mt-16 text-2xl text-center text-white rounded-xl max-md:px-5 max-md:mt-10"
-              style={{"background":"#991616","borderRadius":"10px"}}
+              style={{"background":"#991616","borderRadius":"10px", "fontFamily":"'Inter'","fontStyle":"normal","fontWeight":"700","fontSize":"24px","lineHeight":"29px"}}
               aria-label="College Breaks"
             >
               College Breaks
-            </button>
+            </Link>
           </div>
         </div>
       </div>

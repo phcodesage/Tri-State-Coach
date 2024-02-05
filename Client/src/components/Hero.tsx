@@ -19,7 +19,7 @@ const HamburgerMenu = () => (
 
 function Hero() {
   return (
-    <div className="bg-amber-50">
+    <div>
     <header className="flex flex-col pl-7 w-full max-md:pl-5 max-md:max-w-full">
     <div className="flex gap-5 justify-between w-full text-base font-bold text-center text-gray-800 max-md:flex-wrap max-md:max-w-full">
           <Link to="/">

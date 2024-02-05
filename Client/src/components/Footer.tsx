@@ -1,12 +1,12 @@
-import * as React from "react";
 
 export default function Footer() {
   return (
-    <header className="px-14 py-12 w-full bg-pink-800 max-md:px-5 max-md:max-w-full">
+    <header className="relative px-14 py-12 w-full max-md:px-5 max-md:max-w-full" style={{"background":"#A13D3D"}}>
+      <div style={{"position":"absolute","width":"1217px","height":"117px","left":"calc(50% - 1217px/2 + 0.5px)","top":"0px","background":"#192636","borderRadius":"10px"}}></div>
       <div className="flex gap-5 max-md:flex-col max-md:gap-0 max-md:">
         <section className="flex flex-col w-[32%] max-md:ml-0 max-md:w-full">
           <header className="flex flex-col self-stretch my-auto font-bold max-md:mt-10">
-            <h1 className="text-6xl text-center bg-clip-text max-md:text-4xl">Tri-State</h1>
+            <h1 className="text-center bg-clip-text max-md:text-4xl" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"64px","lineHeight":"86px","background":"linear-gradient(148.81deg, #FFFFFF 18.86%, #908345 141.54%)","WebkitBackgroundClip":"text","WebkitTextFillColor":"transparent","backgroundClip":"text","textFillColor":"transparent"}}>Tri-State</h1>
             <div className="self-center mt-5 text-xl text-center text-white tracking-[4px]">
               COACH
             </div>
