@@ -205,14 +205,14 @@ const handleRemoveProduct = (selectedList, removedItem) => {
 const [loading, setLoading] = useState(false);
 // Create an Axios instance
 const api = axios.create({
-  baseURL: 'https://tri-state-backend.onrender.com/api',
+  baseURL: 'http://3.138.43.172/api',
 });
 
 // Function to refresh token
 const refreshToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   try {
-    const response = await axios.post('https://tri-state-backend.onrender.com/refresh-token', { refreshToken });
+    const response = await axios.post('http://3.138.43.172/refresh-token', { refreshToken });
     const { accessToken } = response.data;
     localStorage.setItem('token', accessToken);
     return accessToken;
@@ -307,7 +307,7 @@ const refreshTokenIfNeeded = async () => {
   try {
     const decodedToken = jwtDecode(authToken);
     if (decodedToken.exp * 1000 < Date.now()) {
-      const response = await axios.post('https://tri-state-backend.onrender.com/refresh-token', { refreshToken });
+      const response = await axios.post('http://3.138.43.172/refresh-token', { refreshToken });
       localStorage.setItem('token', response.data.accessToken);
     }
   } catch (error) {
@@ -326,7 +326,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchTickets = async () => {
     try {
-      const response = await axios.get('https://tri-state-backend.onrender.com/api/tickets', {
+      const response = await axios.get('http://3.138.43.172/api/tickets', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -456,7 +456,7 @@ const fetchLines = async () => {
     }, 5000);
 
     try {
-      const response = await axios.get('https://tri-state-backend.onrender.com/api/lines', {
+      const response = await axios.get('http://3.138.43.172/api/lines', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -537,7 +537,7 @@ useEffect(() => {
 
 // Form submission handler for Line
 const handleLineSubmit = handleSubmit(async (data) => {
-  const apiUrl = `https://tri-state-backend.onrender.com/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
+  const apiUrl = `http://3.138.43.172/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
   const method = currentLineId ? 'patch' : 'post';
   const headers = {
     'Authorization': `Bearer ${authToken}`,
@@ -755,7 +755,7 @@ interface ITicketFormData {
       
       const response = await axios({
         method: isEdit ? 'PATCH' : 'POST',
-        url: `https://tri-state-backend.onrender.com/api/tickets${isEdit ? `/${data.slug}` : ''}`,
+        url: `http://3.138.43.172/api/tickets${isEdit ? `/${data.slug}` : ''}`,
         data,
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       });

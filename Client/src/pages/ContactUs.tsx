@@ -18,7 +18,7 @@ export default function ContactUs() {
   const handleFormSubmit = async (formData) => {
     console.log(formData)
     try {
-      const response = await fetch('https://tri-state-backend.onrender.com/send-email', {
+      const response = await fetch('http://3.138.43.172/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
