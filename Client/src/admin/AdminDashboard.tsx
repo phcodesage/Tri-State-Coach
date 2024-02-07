@@ -5,7 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid'
 import Multiselect from 'multiselect-react-dropdown';
-import Tickets from '../pages/Tickets';
+import { RefObject } from 'react';
 
 
 const AdminDashboard: React.FC = () => {
@@ -48,7 +48,7 @@ const [finalPickUpTimeReturn, setFinalPickUpTimeReturn] = useState('');
 const [finalPickUpLocationReturn, setFinalPickUpLocationReturn] = useState('');
 const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('');
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
-const SVGArrow = (props) => (
+const SVGArrow = (props:any) => (
   <svg
     width="64px"
     height="64px"
@@ -123,7 +123,7 @@ const handleTicketSlugChange = (e:any) => {
 
 useEffect(() => {
   // Function to add and remove the event listener
-  const addRemoveEventListener = (action) => {
+  const addRemoveEventListener = (action:any) => {
     // The action parameter is a string that can be 'add' or 'remove'
     const method = action === 'add' ? 'addEventListener' : 'removeEventListener';
     document[method]('mousedown', handleOutsideClick);
@@ -140,14 +140,14 @@ useEffect(() => {
   };
 }, [isDropdownOpen]);
 
-const handleOutsideClick = (e:any) => {
-  if (lineDropDownRef.current && !lineDropDownRef.current.contains(e.target)) {
+const handleOutsideClick = (e: MouseEvent, lineDropDownRef: RefObject<HTMLDivElement>, setIsDropdownOpen: (isOpen: boolean) => void) => {
+  if (lineDropDownRef.current && !lineDropDownRef.current.contains(e.target as Node)) {
     setIsDropdownOpen(false);
   }
 };
 
 
-const handleEditLineClick = async (line) => {
+const handleEditLineClick = async (line:any) => {
   setCurrentLineId(line._id); // Save the editing line's ID
 
   // Map the line's product IDs to the full product objects including names
@@ -174,28 +174,6 @@ const handleEditLineClick = async (line) => {
 };
 
 
-
-
-const slugValue = watch('slug')
-
-const handleSelectProduct = (selectedList, selectedItem) => {
-  console.log('Selected item:', selectedItem);
-
-  // Add the new selected item only if it is not already selected
-  if (!selectedList.some(product => product.id === selectedItem.id)) {
-    const newProduct = {
-      id: selectedItem.id, // Assuming your items have an 'id' property
-      count: 1, // Default count for new selection
-      // ...include any other item properties you need here
-    };
-
-    setSelectedProducts([...selectedList, newProduct]); // Use the selectedList provided by the onSelect callback
-  }
-
-  // Update the products count based on the updated selectedList
-  setProductsCount(selectedList.length);
-};
-
 const handleRemoveProduct = (selectedList, removedItem) => {
   const newList = selectedList.filter(product => product.id !== removedItem.id);
   setSelectedProducts(newList); // Set the filtered list
@@ -205,14 +183,14 @@ const handleRemoveProduct = (selectedList, removedItem) => {
 const [loading, setLoading] = useState(false);
 // Create an Axios instance
 const api = axios.create({
-  baseURL: 'http://3.138.43.172/api',
+  baseURL: 'http://localhost:5000/api',
 });
 
 // Function to refresh token
 const refreshToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   try {
-    const response = await axios.post('http://3.138.43.172/refresh-token', { refreshToken });
+    const response = await axios.post('http://localhost:5000/refresh-token', { refreshToken });
     const { accessToken } = response.data;
     localStorage.setItem('token', accessToken);
     return accessToken;
@@ -307,7 +285,7 @@ const refreshTokenIfNeeded = async () => {
   try {
     const decodedToken = jwtDecode(authToken);
     if (decodedToken.exp * 1000 < Date.now()) {
-      const response = await axios.post('http://3.138.43.172/refresh-token', { refreshToken });
+      const response = await axios.post('http://localhost:5000/refresh-token', { refreshToken });
       localStorage.setItem('token', response.data.accessToken);
     }
   } catch (error) {
@@ -326,7 +304,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchTickets = async () => {
     try {
-      const response = await axios.get('http://3.138.43.172/api/tickets', {
+      const response = await axios.get('http://localhost:5000/api/tickets', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -456,7 +434,7 @@ const fetchLines = async () => {
     }, 5000);
 
     try {
-      const response = await axios.get('http://3.138.43.172/api/lines', {
+      const response = await axios.get('http://localhost:5000/api/lines', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -537,7 +515,7 @@ useEffect(() => {
 
 // Form submission handler for Line
 const handleLineSubmit = handleSubmit(async (data) => {
-  const apiUrl = `http://3.138.43.172/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
+  const apiUrl = `http://localhost:5000/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
   const method = currentLineId ? 'patch' : 'post';
   const headers = {
     'Authorization': `Bearer ${authToken}`,
@@ -755,7 +733,7 @@ interface ITicketFormData {
       
       const response = await axios({
         method: isEdit ? 'PATCH' : 'POST',
-        url: `http://3.138.43.172/api/tickets${isEdit ? `/${data.slug}` : ''}`,
+        url: `http://localhost:5000/api/tickets${isEdit ? `/${data.slug}` : ''}`,
         data,
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       });

@@ -1,6 +1,6 @@
-import BusTicketCard from '../Components/BusTicketCard';
-import Footer from '../Components/Footer';
-import Navbar from '../Components/Navbar';
+import BusTicketCard from '../components/BusTicketCard';
+import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 
 const busLines = [
   {

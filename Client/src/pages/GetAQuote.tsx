@@ -1,4 +1,4 @@
-import Navbar from "../Components/Navbar";
+import Navbar from "../components/Navbar";
 import { useState, useEffect } from 'react';
 import busImage from '../assets/two-regency-busses-parked-with-each-other.jpg';
 import { useForm } from 'react-hook-form';

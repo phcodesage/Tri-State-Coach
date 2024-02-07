@@ -1,8 +1,8 @@
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form';
-import Navbar from '../Components/Navbar'
-import Footer from '../Components/Footer'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import { Switch } from '@headlessui/react';
 
 function classNames(...classes:any) {

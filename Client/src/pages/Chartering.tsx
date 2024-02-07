@@ -1,5 +1,5 @@
-import Footer from '../Components/Footer'
-import Navbar from '../Components/Navbar'
+import Footer from '../components/Footer'
+import Navbar from '../components/Navbar'
 import Bushero from '../assets/Regency_Buses_Coach_Bus_Fleet_Charter-p-1080.png'
 
 function Chartering() {

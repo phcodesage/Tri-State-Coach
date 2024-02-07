@@ -1,10 +1,11 @@
 import{ useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Bushero from '../assets/Regency_Buses_Coach_Bus_Fleet_Charter-p-1080.png';
-import Navbar from '../Components/Navbar';
+import Navbar from '../components/Navbar';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from '../components/CheckoutForm'
+
 const stripePromise = loadStripe('pk_test_51OaMmnHFYyVMKiryTaCSRaF697lsoem17nQxPFykX7a90NzUGYubpTsNAPckvFmtR1JFkmKh9SbPZeHsAD7jj4Jx00wQikePXw');
 
 
@@ -39,12 +40,13 @@ function Invoice() {
         parentEmail: '',
         destination: '',
         pickupLocation: '',
+        parentPhone: ''
         // Add more form fields as needed
     });
     const { register, handleSubmit, formState: { errors } } = useForm({
         mode: "onBlur" // This will trigger validation on blur
     });
-    const handleInputChange = (e) => {
+    const handleInputChange = (e:any) => {
         const { name, value } = e.target;
         setFormData(prevState => ({
             ...prevState,
@@ -57,18 +59,12 @@ function Invoice() {
         }
     };
 
-    const goToPreviousStep = () => {
-        if (step > 1) {
-            setStep(step - 1);
-        }
-    };
-
-    const onFormSubmit = (data) => {
+    const onFormSubmit = (data:any) => {
         console.log(data);
         goToNextStep();
     };
 
-    const handleAmountChange = (e) => {
+    const handleAmountChange = (e:any) => {
         const value = e.target.value.replace(/[^0-9]/g, ''); // Remove any non-numeric characters
         setAmount(Number(value));
     };
@@ -120,7 +116,7 @@ function Invoice() {
                                 <div className="flex flex-col items-center justify-center my-4 gap-y-2">
                                     <div className="flex items-center justify-center rounded-md gap-x-2 border">
                                         <button onClick={decrementAmount} className="p-1 md:p-2">
-                                        <svg width="24px" height="24px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>minus-circle</title> <desc>Created with Sketch Beta.</desc> <defs> </defs> <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd" sketch:type="MSPage"> <g id="Icon-Set" sketch:type="MSLayerGroup" transform="translate(-516.000000, -1087.000000)" fill="#000000"> <path d="M532,1117 C524.268,1117 518,1110.73 518,1103 C518,1095.27 524.268,1089 532,1089 C539.732,1089 546,1095.27 546,1103 C546,1110.73 539.732,1117 532,1117 L532,1117 Z M532,1087 C523.163,1087 516,1094.16 516,1103 C516,1111.84 523.163,1119 532,1119 C540.837,1119 548,1111.84 548,1103 C548,1094.16 540.837,1087 532,1087 L532,1087 Z M538,1102 L526,1102 C525.447,1102 525,1102.45 525,1103 C525,1103.55 525.447,1104 526,1104 L538,1104 C538.553,1104 539,1103.55 539,1103 C539,1102.45 538.553,1102 538,1102 L538,1102 Z" id="minus-circle" sketch:type="MSShapeGroup"> </path> </g> </g> </g></svg>
+                                        <svg width="24px" height="24px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>minus-circle</title> <desc>Created with Sketch Beta.</desc> <defs> </defs> <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd" > <g id="Icon-Set"  transform="translate(-516.000000, -1087.000000)" fill="#000000"> <path d="M532,1117 C524.268,1117 518,1110.73 518,1103 C518,1095.27 524.268,1089 532,1089 C539.732,1089 546,1095.27 546,1103 C546,1110.73 539.732,1117 532,1117 L532,1117 Z M532,1087 C523.163,1087 516,1094.16 516,1103 C516,1111.84 523.163,1119 532,1119 C540.837,1119 548,1111.84 548,1103 C548,1094.16 540.837,1087 532,1087 L532,1087 Z M538,1102 L526,1102 C525.447,1102 525,1102.45 525,1103 C525,1103.55 525.447,1104 526,1104 L538,1104 C538.553,1104 539,1103.55 539,1103 C539,1102.45 538.553,1102 538,1102 L538,1102 Z" id="minus-circle" > </path> </g> </g> </g></svg>
                                         </button>
                                         <input
                                             type="text"

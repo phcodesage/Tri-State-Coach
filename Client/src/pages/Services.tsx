@@ -1,4 +1,4 @@
-import TopNavMenu from '../Components/Navbar'
+import TopNavMenu from '../components/Navbar'
 
 function Services() {
   return (

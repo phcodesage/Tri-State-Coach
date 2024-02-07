@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navbar from "../Components/Navbar";
+import Navbar from "../components/Navbar";
 import RegencyBusLogo from '../assets/regency-buses-mechanics&workshop-left.png';
 import UMALogo from '../assets/UMA-logo.svg';
 import ADALogo from '../assets/ADA-logo.svg';
