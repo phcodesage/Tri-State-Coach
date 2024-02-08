@@ -421,8 +421,12 @@ const handleNameChange = (e:any) => {
   // Optionally trigger validation for the slug field
   trigger('slug');
 };
+useEffect (() => {
+  fetchLines();
+},[]);
 
-const fetchLines = async () => {
+
+  const fetchLines = async () => {
   if (isLineListVisible) {
     setLoading(true); // Start the loading (skeleton animation)
 
@@ -458,8 +462,12 @@ const fetchLines = async () => {
       console.error('Error fetching lines:', error);
       // Keep loading state as is to continue showing animation
     }
+    
   }
+  
 };
+
+
 
 useEffect(() => {
   let isMounted = true;
@@ -481,13 +489,6 @@ useEffect(() => {
     };
   }
 }, [isLineListVisible, authToken]);// Use isLineListVisible instead of isLineFormVisible if it's the correct dependency
-
-
-useEffect(() => {
-    if (isLineListVisible) {
-      fetchLines();
-    }
-  }, [isLineListVisible, authToken]);
 
   // Fetch a single line data for editing
   const fetchLineData = async (id) => {

@@ -1,22 +1,24 @@
 
 export default function Footer() {
   return (
+    <>
+    
     <header className="relative px-14 py-12 w-full max-md:px-5 max-md:max-w-full" style={{"background":"#A13D3D"}}>
       <div style={{"position":"absolute","width":"1217px","height":"117px","left":"calc(50% - 1217px/2 + 0.5px)","top":"0px","background":"#192636","borderRadius":"10px"}}></div>
       <div className="flex gap-5 max-md:flex-col max-md:gap-0 max-md:">
         <section className="flex flex-col w-[32%] max-md:ml-0 max-md:w-full">
           <header className="flex flex-col self-stretch my-auto font-bold max-md:mt-10">
-            <h1 className="text-center bg-clip-text max-md:text-4xl" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"64px","lineHeight":"86px","background":"linear-gradient(148.81deg, #FFFFFF 18.86%, #908345 141.54%)","WebkitBackgroundClip":"text","WebkitTextFillColor":"transparent","backgroundClip":"text","textFillColor":"transparent"}}>Tri-State</h1>
-            <div className="self-center mt-5 text-xl text-center text-white tracking-[4px]">
+            <h1 className=" bg-clip-text max-md:text-4xl text-center" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"64px","lineHeight":"86px","background":"linear-gradient(148.81deg, #FFFFFF 18.86%, #908345 141.54%)","WebkitBackgroundClip":"text","WebkitTextFillColor":"transparent","backgroundClip":"text","textFillColor":"transparent"}}>Tri-State</h1>
+            <div className="self-center mt-5 text-xl  text-white tracking-[4px]">
               COACH
             </div>
-            <p className="mt-8 text-base text-white">
+            <p className="mt-8 text-white">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit
             </p>
           </header>
         </section>
         <nav className="flex flex-col ml-5 w-[17%] max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col mt-24 text-xl font-light text-center text-white whitespace-nowrap max-md:mt-10">
+          <div className="flex flex-col mt-24 text-xl font-light text-white whitespace-nowrap max-md:mt-10">
             <h2 className="font-medium">Other Pages</h2>
             <a href="#" className="mt-5">
               Home
@@ -36,7 +38,7 @@ export default function Footer() {
           </div>
         </nav>
         <section className="flex flex-col ml-5 w-1/5 max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col self-stretch my-auto text-xl font-light text-center text-white max-md:mt-10">
+          <div className="flex flex-col self-stretch my-auto text-xl font-light  text-white max-md:mt-10">
             <h2 className="font-medium">Quick Links</h2>
             <a href="#" className="mt-6">
               Privacy Policy
@@ -50,7 +52,7 @@ export default function Footer() {
           </div>
         </section>
         <section className="flex flex-col ml-5 w-[31%] max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col self-stretch my-auto text-xl font-light text-center text-white max-md:mt-10">
+          <div className="flex flex-col self-stretch my-auto text-xl font-light  text-white max-md:mt-10">
             <h2 className="font-medium">Work Hours</h2>
             <div className="flex gap-3.5 justify-between mt-5 whitespace-nowrap">
               <img
@@ -83,5 +85,6 @@ export default function Footer() {
         </section>
       </div>
     </header>
+    </>
   );
 }
