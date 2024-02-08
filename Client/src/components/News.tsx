@@ -3,10 +3,15 @@ function News() {
   return (
     <div className="w-full">
   {/* First Row */}
-  <div className="flex-col items-center mb-20">
-    <h2 className="text-3xl font-bold" style={{"fontFamily":"'Inter'","fontStyle":"normal","fontWeight":"700","fontSize":"48px","lineHeight":"58px","textAlign":"center","color":"#000000"}}>Our News</h2>
-    <p className="text-gray-600" style={{"fontFamily":"'Inter'","fontStyle":"normal","fontWeight":"400","fontSize":"20px","lineHeight":"24px","textAlign":"center","color":"#7A7A7A"}}>Some of our news</p>
+  <div className="flex items-center justify-center mb-20">
+  <div style={{ width: "92px", height: "0px", border: "3px solid #A13D3D" }}></div>
+  <div className="flex flex-col items-center">
+    <h2 className="text-3xl font-bold" style={{ fontFamily: "'Inter'", fontStyle: "normal", fontWeight: "700", fontSize: "48px", lineHeight: "58px", textAlign: "center", color: "#000000" }}>Our News</h2>
+    <p className="text-gray-600" style={{ fontFamily: "'Inter'", fontStyle: "normal", fontWeight: "400", fontSize: "20px", lineHeight: "24px", textAlign: "center", color: "#7A7A7A" }}>Some of our news</p>
   </div>
+</div>
+
+
 
   {/* Second Row */}
    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
