@@ -98,6 +98,24 @@ const handleSearchChange = (event) => {
   setSearchTerm(value);
 };
 
+// Helper function to convert filter option to the actual start date
+// Helper function to convert filter option to the actual start date
+const getLineStartDateForFilter = (filterValue) => {
+  const now = new Date();
+  switch (filterValue) {
+    case 'Last 24 hours':
+      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    case 'Last 7 days':
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    case 'Last 30 days':
+      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    default:
+      // This effectively removes the filter
+      return new Date(0); // Earliest date to ensure all records are included
+  }
+};
+
+
 
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
@@ -958,29 +976,35 @@ const handleLineApplyFilters = () => {
 };
 
 const applyLineFiltersBasedOnCriteria = () => {
-  setLoading(true); // Start loading
+  setLoading(true); // Indicate the start of a filtering operation
 
-  // Define helper function inside to check if a date is within the last X days
-  const isDateWithinDays = (date, days) => {
-    const targetDate = new Date(date);
-    const today = new Date();
-    const pastDate = new Date(today.setDate(today.getDate() - days));
-    return targetDate >= pastDate;
-  };
-
-  // Apply filters based on current criteria
   const filteredLines = originalLines.filter((line) => {
     const matchesStatus = LineFilterCriteria.status === 'All' || line.status === LineFilterCriteria.status;
-    const matchesPublished = LineFilterCriteria.published === 'All' || isDateWithinDays(line.published, parseInt(LineFilterCriteria.published));
-    const matchesCreated = LineFilterCriteria.created === 'All' || isDateWithinDays(line.created, parseInt(LineFilterCriteria.created));
-    const matchesModified = LineFilterCriteria.modified === 'All' || isDateWithinDays(line.modified, parseInt(LineFilterCriteria.modified));
+
+    // Convert line dates from strings to Date objects if necessary
+    const linePublishedDate = new Date(line.lastPublished);
+    const lineCreatedDate = new Date(line.created);
+    const lineLastEditedDate = new Date(line.lastEdited);
+
+    // Calculate start dates for each filter option
+    const publishedStart = getLineStartDateForFilter(LineFilterCriteria.published);
+    const createdStart = getLineStartDateForFilter(LineFilterCriteria.created);
+    const modifiedStart = getLineStartDateForFilter(LineFilterCriteria.modified);
+
+    // Check if the line matches the date filters
+    const matchesPublished = LineFilterCriteria.published === 'All' || linePublishedDate >= publishedStart;
+    const matchesCreated = LineFilterCriteria.created === 'All' || lineCreatedDate >= createdStart;
+    const matchesModified = LineFilterCriteria.modified === 'All' || lineLastEditedDate >= modifiedStart;
 
     return matchesStatus && matchesPublished && matchesCreated && matchesModified;
   });
 
-  setLines(filteredLines); // Update the lines state with filtered data
-  setLoading(false); // Stop loading
+  setLines(filteredLines); // Update the state with the filtered lines
+  setLoading(false); // Indicate the end of the filtering operation
 };
+
+
+
 
 const handleSelectClick = () => {
   // Toggle selection logic here
