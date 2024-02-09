@@ -1118,7 +1118,7 @@ const handlelineStatusFilterChange = (event) => {
    </svg>
 </button>
 
-<aside id="default-sidebar" className="w-1/6" aria-label="Sidebar">
+<aside id="default-sidebar" className="w-1/4" aria-label="Sidebar">
    <div className="relative h-full px-3 py-4 overflow-y-auto bg-zinc-200">
       <ul className="space-y-2 font-medium">
          <li>
@@ -1198,7 +1198,7 @@ const handlelineStatusFilterChange = (event) => {
   </div>
     <ul className="overflow-y-auto">
     <div className="overflow-x-auto">
-      <table className="min-w-full text-sm divide-y divide-zinc-200">
+      <table className="min-w-full text-sm  divide-zinc-200">
         <thead>
           <tr>
             <th className="text-left font-medium">Name</th>
@@ -2271,7 +2271,7 @@ const handlelineStatusFilterChange = (event) => {
 
       {/* Lines table */}
       <div className="overflow-x-auto">
-      <table className="min-w-full text-sm divide-y divide-zinc-200">
+      <table className="min-w-full text-sm divide-zinc-200">
           {isLineFormVisible ? (
             <thead>
               <tr>
@@ -2289,7 +2289,7 @@ const handlelineStatusFilterChange = (event) => {
                 </tr>
               </thead>
             )}
-          <tbody className="divide-y divide-zinc-200">
+          <tbody className=" divide-zinc-200">
   {loading ? (
     // Render multiple skeleton rows to match the expected number of data rows
     [...Array(5)].map((_, index) => (
@@ -2316,14 +2316,23 @@ const handlelineStatusFilterChange = (event) => {
             <>
               <td className="px-4 py-2 text-white whitespace-nowrap">{line.status === 'Published' ? (
             <span className="flex items-center">
-              <svg className="w-4 h-4 mr-2 text-green-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg className='w-4 h-4 mr-2'
+                viewBox="0 0 16 16"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+              >
+                <g id="SVGRepo_bgCarrier" strokeWidth={0} />
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                <g id="SVGRepo_iconCarrier">
+                  <path fill="#02973b" d="M8 3a5 5 0 100 10A5 5 0 008 3z" />
+                </g>
               </svg>
-              <span className="text-green-300">Published</span>
+
+              <span className="text-green-400">Published</span>
             </span>
           ) : (
             <span className="flex items-center">
-              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
+              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
               <span className="text-orange-300">Draft</span>
             </span>
           )}</td>
