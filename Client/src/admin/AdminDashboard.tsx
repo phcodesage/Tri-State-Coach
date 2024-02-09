@@ -48,6 +48,7 @@ const [finalPickUpTimeReturn, setFinalPickUpTimeReturn] = useState('');
 const [finalPickUpLocationReturn, setFinalPickUpLocationReturn] = useState('');
 const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('');
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
+const [originalLines, setOriginalLines] = useState([]);
 const [searchTerm, setSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
 // Initial state for filter criteria
@@ -479,7 +480,8 @@ useEffect (() => {
       if (Array.isArray(response.data)) {
         if (isMounted) {
           setLines(response.data);
-          setLoading(false); // Stop the loading if data is fetched
+          setOriginalLines(response.data); // Keep a copy of the original, unfiltered lines
+          setLoading(false);// Stop the loading if data is fetched
         }
       } else {
         console.error('Data is not an array:', response.data);
@@ -951,8 +953,33 @@ const handleLineResetFilters = () => {
   setLineFilterCriteria(initialLineFilterCriteria);
 };
 const handleLineApplyFilters = () => {
-  applyFilters();
   setIsLineFilterModalVisible(false); // Close the modal after applying filters
+  applyLineFiltersBasedOnCriteria(); // Apply the filters based on current criteria
+};
+
+const applyLineFiltersBasedOnCriteria = () => {
+  setLoading(true); // Start loading
+
+  // Define helper function inside to check if a date is within the last X days
+  const isDateWithinDays = (date, days) => {
+    const targetDate = new Date(date);
+    const today = new Date();
+    const pastDate = new Date(today.setDate(today.getDate() - days));
+    return targetDate >= pastDate;
+  };
+
+  // Apply filters based on current criteria
+  const filteredLines = originalLines.filter((line) => {
+    const matchesStatus = LineFilterCriteria.status === 'All' || line.status === LineFilterCriteria.status;
+    const matchesPublished = LineFilterCriteria.published === 'All' || isDateWithinDays(line.published, parseInt(LineFilterCriteria.published));
+    const matchesCreated = LineFilterCriteria.created === 'All' || isDateWithinDays(line.created, parseInt(LineFilterCriteria.created));
+    const matchesModified = LineFilterCriteria.modified === 'All' || isDateWithinDays(line.modified, parseInt(LineFilterCriteria.modified));
+
+    return matchesStatus && matchesPublished && matchesCreated && matchesModified;
+  });
+
+  setLines(filteredLines); // Update the lines state with filtered data
+  setLoading(false); // Stop loading
 };
 
 const handleSelectClick = () => {
@@ -983,37 +1010,44 @@ const handleSettingsClick = () => {
   console.log('Opening settings');
 };
 
-const applyFilters = () => {
+const lineApplyFilters = () => {
+  if (LineFilterCriteria.status === 'All' && 
+      LineFilterCriteria.published === 'All' &&
+      LineFilterCriteria.created === 'All' &&
+      LineFilterCriteria.modified === 'All') {
+    // If all criteria are set to 'All', reset to the original list
+    fetchLines(); // Assuming fetchLines sets the lines with setLines
+    return; // Exit the function early
+  }
   setLoading(true); // Start loading
 
-  // Convert filter criteria into query parameters or filter function logic
-  const statusFilter = LineFilterCriteria.status !== 'All' ? LineFilterCriteria.status : null;
-  const publishedFilter = LineFilterCriteria.published !== 'All' ? getDateRange(LineFilterCriteria.published) : null;
-  const createdFilter = LineFilterCriteria.created !== 'All' ? getDateRange(LineFilterCriteria.created) : null;
-  const modifiedFilter = LineFilterCriteria.modified !== 'All' ? getDateRange(LineFilterCriteria.modified) : null;
+  // A helper function to check if a date is within the last X days
+  const isDateWithinDays = (date, days) => {
+    const now = new Date();
+    const pastDate = new Date(now.setDate(now.getDate() - days));
+    return new Date(date) >= pastDate;
+  };
 
-  // Use the filters to get a filtered list of lines
-  const filteredLines = lines.filter(line => {
-    // Check status
-    const statusMatches = statusFilter ? line.status === statusFilter : true;
+  // Convert filter criteria to numbers as necessary
+  const daysForPublished = LineFilterCriteria.published === 'All' ? null : parseInt(LineFilterCriteria.published);
+  const daysForCreated = LineFilterCriteria.created === 'All' ? null : parseInt(LineFilterCriteria.created);
+  const daysForModified = LineFilterCriteria.modified === 'All' ? null : parseInt(LineFilterCriteria.modified);
 
-    // Check published date
-    const publishedMatches = publishedFilter ? line.published >= publishedFilter.start && line.published <= publishedFilter.end : true;
+  // Filter lines based on the selected criteria
+  const filteredLines = lines.filter((line) => {
+    const matchesStatus = LineFilterCriteria.status === 'All' || line.status === LineFilterCriteria.status;
+    const matchesPublished = daysForPublished === null || isDateWithinDays(line.published, daysForPublished);
+    const matchesCreated = daysForCreated === null || isDateWithinDays(line.created, daysForCreated);
+    const matchesModified = daysForModified === null || isDateWithinDays(line.modified, daysForModified);
 
-    // Check created date
-    const createdMatches = createdFilter ? line.created >= createdFilter.start && line.created <= createdFilter.end : true;
-
-    // Check modified date
-    const modifiedMatches = modifiedFilter ? line.modified >= modifiedFilter.start && line.modified <= modifiedFilter.end : true;
-
-    return statusMatches && publishedMatches && createdMatches && modifiedMatches;
+    return matchesStatus && matchesPublished && matchesCreated && matchesModified;
   });
 
   // Set the filtered lines to state
   setLines(filteredLines);
-
   setLoading(false); // Stop loading
 };
+
 
 const resetLineModalFilters = () => {
   setLineFilterCriteria({
@@ -1046,7 +1080,7 @@ const handleFilterChange = (filterType, value) => {
 };
 
 // Example usage of handleFilterChange function when a radio input changes
-const handleStatusFilterChange = (event) => {
+const handlelineStatusFilterChange = (event) => {
   handleFilterChange('status', event.target.value);
 };
 
