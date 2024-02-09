@@ -2,6 +2,7 @@
 import Hero from '../components/Hero'
 import Footer from '../components/Footer'
 import News from '../components/News'
+import NewsLetter from '../components/NewsLetter'
 
 function Home() {
   return (
@@ -9,6 +10,7 @@ function Home() {
     
       <Hero />
       <News />
+      <NewsLetter />
       <Footer />
     </div>
   )

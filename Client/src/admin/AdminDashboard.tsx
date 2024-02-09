@@ -97,7 +97,8 @@ const [editline, setEditLine] = useState({
 })
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
-const lineDropDownRef = useRef();
+const lineDropDownRef = useRef<HTMLDivElement>(null);
+
 const [editMode, setEditMode] = useState(false);
 const [currentLineId, setCurrentLineId] = useState(null);
 let timeoutId;
@@ -121,30 +122,25 @@ const handleTicketSlugChange = (e:any) => {
   setValue('slug', newTicketSlug); // Update the slug in the form
 };
 
+
 useEffect(() => {
-  // Function to add and remove the event listener
-  const addRemoveEventListener = (action:any) => {
-    // The action parameter is a string that can be 'add' or 'remove'
-    const method = action === 'add' ? 'addEventListener' : 'removeEventListener';
-    document[method]('mousedown', handleOutsideClick);
+  // Define the function inside useEffect to use the ref and state directly
+  const handleOutsideClick = (event) => {
+    if (lineDropDownRef.current && !lineDropDownRef.current.contains(event.target)) {
+      setIsDropdownOpen(false);
+    }
   };
 
-  // Add event listener when dropdown opens
-  if (isDropdownOpen) {
-    addRemoveEventListener('add');
-  }
+  // Add event listener
+  document.addEventListener('mousedown', handleOutsideClick);
 
-  // Clean up event listener when dropdown closes or component unmounts
+  // Remove event listener on cleanup
   return () => {
-    addRemoveEventListener('remove');
+    document.removeEventListener('mousedown', handleOutsideClick);
   };
-}, [isDropdownOpen]);
+}, [isDropdownOpen]); // Depend on isDropdownOpen to re-attach the listener when it changes
 
-const handleOutsideClick = (e: MouseEvent, lineDropDownRef: RefObject<HTMLDivElement>, setIsDropdownOpen: (isOpen: boolean) => void) => {
-  if (lineDropDownRef.current && !lineDropDownRef.current.contains(e.target as Node)) {
-    setIsDropdownOpen(false);
-  }
-};
+
 
 
 const handleEditLineClick = async (line:any) => {
@@ -167,10 +163,21 @@ const handleEditLineClick = async (line:any) => {
     status: line.status,
     products: productDetails,
   });
+  setNewLine({
+    name: line.name,
+    slug: line.slug,
+    status: line.status,
+    products: productDetails,
+  });
 
   setSelectedProducts(productDetails); // Set the selected products for the line with full details
   setIsLineFormVisible(true); // Show the line form for editing
   setEditMode(true); // Enable edit mode
+  // Automatically fill the lineName and lineSlug when editing a line
+  setLineName(line.name); // Set line name to state
+  setLineSlug(line.slug); // Set line slug to state
+  console.log(lineName); // Log to see if state is updated immediately
+console.log(lineSlug);
 };
 
 
@@ -514,8 +521,73 @@ useEffect(() => {
   };
 
 
+  const submitLineData = async (lineData, isEdit) => {
+    const apiUrl = isEdit ? `http://localhost:5000/api/lines/${currentLineId}` : 'http://localhost:5000/api/lines';
+    const method = isEdit ? 'patch' : 'post';
+  
+    try {
+      const response = await axios({
+        method: method,
+        url: apiUrl,
+        data: lineData,
+        headers: { 'Authorization': `Bearer ${authToken}` },
+      });
+  
+      // Handle the response
+      if (response.status === 200 || response.status === 201) {
+        // Update local state
+        setLines(currentLines => isEdit
+          ? currentLines.map(line => line._id === currentLineId ? response.data : line)
+          : [...currentLines, response.data]
+        );
+        setIsLineFormVisible(false);
+        reset();
+        setEditMode(false);
+        setCurrentLineId(null);
+        setLastAction('');
+      }
+    } catch (error) {
+      console.error('Error submitting line:', error);
+      // Handle error
+    }
+  };
+  
+  const createLine = () => {
+    const lineData = {
+      ...newLine,
+      products: selectedProducts.map(p => ({ id: p.id, count: p.count })),
+      productsCount: selectedProducts.length,
+      // Add any other data that's relevant when creating a new line
+    };
+    submitLineData(lineData, false);
+  };
+  
+  const updateLine = () => {
+    const lineData = {
+      ...editLine, // Assuming editLine is the state containing the current line data being edited
+      products: selectedProducts.map(p => ({ id: p.id, count: p.count })),
+      productsCount: selectedProducts.length,
+      // Add any other data that's relevant when updating a line
+    };
+    submitLineData(lineData, true);
+  };
+  
+  
+
+
 // Form submission handler for Line
-const handleLineSubmit = handleSubmit(async (data) => {
+const handleCreateLineSubmission = handleSubmit(async (data) => {
+  const lineData = {
+    ...data,
+    products: selectedProducts.map(product => ({
+      id: product.id,
+      name: product.name,
+      count: product.count
+    })),
+    productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
+    ...(currentLineId ? {} : automatedValues),
+  };
+
   const apiUrl = `http://localhost:5000/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
   const method = currentLineId ? 'patch' : 'post';
   const headers = {
@@ -525,17 +597,7 @@ const handleLineSubmit = handleSubmit(async (data) => {
 
   // Adjust status based on lastAction state
   const status = lastAction === 'publish' ? 'Published' : 'Draft';
-  const lineData = {
-    ...data,
-    status,
-    products: selectedProducts.map(product => ({
-      id: product.id,
-      name: product.name,
-      count: product.count
-    })),
-    productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
-    ...(currentLineId ? {} : automatedValues),
-  };
+  
 
   try {
     const response = await axios({ url: apiUrl, method, data: lineData, headers });
@@ -553,6 +615,14 @@ const handleLineSubmit = handleSubmit(async (data) => {
   }
 });
 
+const handleLineSubmit = async (event) => {
+  
+  if (editMode) {
+    await handleEditLineSubmission();
+  } else {
+    await handleCreateLineSubmission();
+  }
+};
     
 
   const handleLogout = () => {
@@ -778,58 +848,109 @@ const handleCancel = () => {
   setIsModalVisible(false)
 };
 
+const handleEditLineSubmission = async () => {
+  // Construct the line data from the state
+  const lineDataToUpdate = {
+    name: lineName, // Assuming you're storing the edited line name in `lineName`
+    slug: lineSlug, // Assuming you're storing the edited line slug in `lineSlug`
+    status: editline.status, // Status from the existing line data
+    products: selectedProducts.map(p => ({ id: p.id, count: p.count })),
+    // ... include other line details that are being edited
+  };
+
+  // Call the API to update the line
+  try {
+    const response = await axios.patch(`http://localhost:5000/api/lines/${currentLineId}`, lineDataToUpdate, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
+    });
+
+    if (response.status === 200) {
+      // Update the lines state with the new line data
+      setLines(currentLines =>
+        currentLines.map(line => line._id === currentLineId ? { ...line, ...lineDataToUpdate } : line)
+      );
+      setIsLineFormVisible(false); // Hide the form after successful edit
+      setEditMode(false); // Exit edit mode
+      // Reset other states if necessary
+    }
+  } catch (error) {
+    console.error('Failed to update the line:', error);
+    // Handle error
+  }
+};
+
+const deleteLine = async (lineId) => {
+  try {
+    const response = await axios.delete(`http://localhost:5000/api/lines/${lineId}`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    if (response.status === 200) {
+      // Filter out the deleted line from the state
+      setLines(currentLines => currentLines.filter(line => line._id !== lineId));
+      // Any other state updates needed post-deletion
+    }
+  } catch (error) {
+    console.error('Error deleting line:', error);
+  }
+};
+
 
   return (
     <>
-    <div className="flex flex-row min-h-screen bg-gray-100">
-<button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+    <div className="flex flex-row min-h-screen" style={{ backgroundColor: '#292929' }}>
+<button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200   0">
    <span className="sr-only">Open sidebar</span>
    <svg className="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
    <path clipRule="evenodd" fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
    </svg>
 </button>
 
-<aside id="default-sidebar" className="w-1/6 bg-gray-800" aria-label="Sidebar">
-   <div className="relative h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+<aside id="default-sidebar" className="w-1/6" style={{ backgroundColor: '#292929' }} aria-label="Sidebar">
+   <div className="relative h-full px-3 py-4 overflow-y-auto bg-gray-50 ">
       <ul className="space-y-2 font-medium">
          <li>
-            <a href="/admin" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+            <a href="/admin" className="flex items-center p-2 text-gray-900 rounded-lg  hover:bg-gray-100  group">
               
                <span className="ms-3 font-xl font-bold">Ecommerce</span>
             </a>
          </li>
          <li>
-            <a href="#" onClick={toggleTicketFormVisibility} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#000000"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#000000"> </path> </g></svg>
+            <a href="#" onClick={toggleTicketFormVisibility} className="flex items-center p-2 text-gray-900 rounded-lg  hover:bg-gray-100  group">
+            <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75  group-hover:text-gray-900 e" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#000000"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#000000"> </path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Tickets</span>
-               <span className="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">{tickets.length} items</span>
+               <span className="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full  0">{tickets.length} items</span>
             </a>
          </li>
          <li>
-            <a href="#" onClick={toggleLineFormVisibility} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <a href="#" onClick={toggleLineFormVisibility} className="flex items-center p-2 text-gray-900 rounded-lg  hover:bg-gray-100  group">
+               <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75  group-hover:text-gray-900 e" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                   <path d="m17.418 3.623-.018-.008a6.713 6.713 0 0 0-2.4-.569V2h1a1 1 0 1 0 0-2h-2a1 1 0 0 0-1 1v2H9.89A6.977 6.977 0 0 1 12 8v5h-2V8A5 5 0 1 0 0 8v6a1 1 0 0 0 1 1h8v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4h6a1 1 0 0 0 1-1V8a5 5 0 0 0-2.582-4.377ZM6 12H4a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2Z"/>
                </svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Lines</span>
-               <span className="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">{lines.length} items</span>
+               <span className="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full  0">{lines.length} items</span>
             </a>
          </li>
          <li>
-            <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-            <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 14H17M14 10H17M9 9.5V8.5M9 9.5H11.0001M9 9.5C7.20116 9.49996 7.00185 9.93222 7.0001 10.8325C6.99834 11.7328 7.00009 12 9.00009 12C11.0001 12 11.0001 12.2055 11.0001 13.1667C11.0001 13.889 11.0001 14.5 9.00009 14.5M9.00009 14.5L9 15.5M9.00009 14.5H7.0001M6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V8.2C21 7.0799 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
+            <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg  hover:bg-gray-100  group">
+            <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75  group-hover:text-gray-900 e" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 14H17M14 10H17M9 9.5V8.5M9 9.5H11.0001M9 9.5C7.20116 9.49996 7.00185 9.93222 7.0001 10.8325C6.99834 11.7328 7.00009 12 9.00009 12C11.0001 12 11.0001 12.2055 11.0001 13.1667C11.0001 13.889 11.0001 14.5 9.00009 14.5M9.00009 14.5L9 15.5M9.00009 14.5H7.0001M6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V8.2C21 7.0799 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Orders</span>
             </a>
          </li>
          <li>
-            <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
+            <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg  hover:bg-gray-100  group">
+               <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75  group-hover:text-gray-900 e" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
                   <path d="M17 5.923A1 1 0 0 0 16 5h-3V4a4 4 0 1 0-8 0v1H2a1 1 0 0 0-1 .923L.086 17.846A2 2 0 0 0 2.08 20h13.84a2 2 0 0 0 1.994-2.153L17 5.923ZM7 9a1 1 0 0 1-2 0V7h2v2Zm0-5a2 2 0 1 1 4 0v1H7V4Zm6 5a1 1 0 1 1-2 0V7h2v2Z"/>
                </svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Products</span>
             </a>
          </li>
          <li className="absolute bottom-0 w-full">
-            <button onClick={handleLogout} className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group w-full">
+            <button onClick={handleLogout} className="flex items-center p-2 text-gray-900 rounded-lg  hover:bg-gray-100  group w-full">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path opacity="0.5" d="M9.00195 7C9.01406 4.82497 9.11051 3.64706 9.87889 2.87868C10.7576 2 12.1718 2 15.0002 2L16.0002 2C18.8286 2 20.2429 2 21.1215 2.87868C22.0002 3.75736 22.0002 5.17157 22.0002 8L22.0002 16C22.0002 18.8284 22.0002 20.2426 21.1215 21.1213C20.2429 22 18.8286 22 16.0002 22H15.0002C12.1718 22 10.7576 22 9.87889 21.1213C9.11051 20.3529 9.01406 19.175 9.00195 17" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round"></path> <path d="M15 12L2 12M2 12L5.5 9M2 12L5.5 15" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Log out</span>
             </button>
@@ -1267,8 +1388,8 @@ const handleCancel = () => {
       checked={ticketData.trackInventory}
       onChange={(e:any) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
     />
-    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-    <span className="ml-3 text-sm font-medium text-white dark:text-white">
+    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300  rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all  peer-checked:bg-blue-600"></div>
+    <span className="ml-3 text-sm font-medium text-white e">
       {ticketData.trackInventory ? 'YES' : 'NO'}
     </span>
   </label>
@@ -1782,12 +1903,12 @@ const handleCancel = () => {
       <tr key={`skeleton-${index}`}>
         <td colSpan="5" className="text-center py-4">
           <div role="status" className="animate-pulse">
-            <div className="h-3.5 bg-gray-200 rounded-full dark:bg-gray-700 w-48 mb-4"></div>
-            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[800px] mb-2.5"></div>
-            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
-            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[900px] mb-2.5"></div>
-            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[950px] mb-2.5"></div>
-            <div className="h-3 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[750px]"></div>
+            <div className="h-3.5 bg-gray-200 rounded-full  w-48 mb-4"></div>
+            <div className="h-3 bg-gray-200 rounded-full  max-w-[800px] mb-2.5"></div>
+            <div className="h-3 bg-gray-200 rounded-full  mb-2.5"></div>
+            <div className="h-3 bg-gray-200 rounded-full  max-w-[900px] mb-2.5"></div>
+            <div className="h-3 bg-gray-200 rounded-full  max-w-[950px] mb-2.5"></div>
+            <div className="h-3 bg-gray-200 rounded-full  max-w-[750px]"></div>
             <span className="sr-only">Loading...</span>
           </div>
         </td>
@@ -1933,12 +2054,13 @@ const handleCancel = () => {
           <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name <span className="text-red-700">*</span></label>
           <input
             id="line-name"
+            name="name"
             {...register('name', { required: 'Name is required' })}
             required
             className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
             placeholder="Line Name"
             value={newLine.name}
-            onChange={handleNameChange}
+            onChange={(e) => setNewLine({...newLine, name: e.target.value})} // Update state
           />
           {errors.name && <p className="text-red-500">{errors.name.message}</p>}
         </div>
@@ -1948,10 +2070,11 @@ const handleCancel = () => {
         <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
         <input
           id="slug"
-          {...register('slug', { required: 'Slug is required' })}
+          name="slug"
+        {...register('slug', { required: 'Slug is required' })}
           className="w-full p-2 border bg-black border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-          value={newLine.slug || ''} // Use value for controlled input
-          onChange={handleLineSlugChange} // Update the slug state when user edits the slug
+          value={newLine.slug} // Use value for controlled input
+          onChange={(e) => setNewLine({...newLine, slug: e.target.value})} // Update state // Update the slug state when user edits the slug
           placeholder="slug" // This will only show when newLine.slug is empty
         />
         {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
@@ -1974,7 +2097,7 @@ const handleCancel = () => {
   onRemove={handleProductSelect}
   displayValue="name"
   placeholder="Select products"
-  className="dark:bg-gray-800 dark:text-white dark:border-gray-700 w-full" // Updated dark theme classes for the component
+  className="   w-full" // Updated dark theme classes for the component
   style={{
 
     multiselectContainer: {

@@ -26,11 +26,11 @@ function Hero() {
             <img src={TriStateCoachLogo} className="p-2 max-w-full aspect-[1.1] w-[118px]" />
           </Link>
           <div className="flex gap-5 justify-between items-center max-md:flex-wrap max-md:max-w-full">
-            <Link to="/home" className="max-md:mt-10">HOME</Link>
-            <Link to="/services" className="max-md:mt-10">SERVICES</Link>
-            <Link to="/college-shuttles" className="flex-auto  max-md:mt-10">COLLEGE SHUTTLES</Link>
-            <Link to="/our-buses" className="max-md:mt-10">OUR BUSES</Link>
-            <Link to="/contact-us" className="flex-auto  max-md:mt-10">CONTACT US</Link>
+            <Link to="/home" className="max-md:mt-10" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"16px","lineHeight":"22px","textAlign":"center","color":"#192636","textShadow":"0px 2px 4px rgba(0, 0, 0, 0.25)"}}>HOME</Link>
+            <Link to="/services" className="max-md:mt-10" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"16px","lineHeight":"22px","textAlign":"center","color":"#192636","textShadow":"0px 2px 4px rgba(0, 0, 0, 0.25)"}}>SERVICES</Link>
+            <Link to="/college-shuttles" className="flex-auto  max-md:mt-10" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"16px","lineHeight":"22px","textAlign":"center","color":"#192636","textShadow":"0px 2px 4px rgba(0, 0, 0, 0.25)"}}>COLLEGE SHUTTLES</Link>
+            <Link to="/our-buses" className="max-md:mt-10" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"16px","lineHeight":"22px","textAlign":"center","color":"#192636","textShadow":"0px 2px 4px rgba(0, 0, 0, 0.25)"}}>OUR BUSES</Link>
+            <Link to="/contact-us" className="flex-auto  max-md:mt-10" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"16px","lineHeight":"22px","textAlign":"center","color":"#192636","textShadow":"0px 2px 4px rgba(0, 0, 0, 0.25)"}}>CONTACT US</Link>
             <Link to="/menu">
               <HamburgerMenu className="self-stretch aspect-[0.83] w-[87px]" />
             </Link>
@@ -40,7 +40,7 @@ function Hero() {
         <div className="flex gap-5 max-md:flex-col max-md:gap-0 max-md:">
           <div className="flex flex-col w-[45%] max-md:ml-0 max-md:w-full">
             <div className="flex flex-col text-black max-md:max-w-full">
-              <h1 className="max-md:max-w-full max-md:text-4xl" style={{"width":"644px","height":"156px","left":"0px","top":"50px","fontFamily":"'Inter'","fontStyle":"normal","fontWeight":"700","fontSize":"48px","lineHeight":"58px","color":"#000000"}}>
+              <h1 className="max-md:max-w-full max-md:text-4xl" style={{"width":"644px","height":"156px","left":"0px","top":"50px","fontFamily":"'Inter'","fontStyle":"normal","fontWeight":"700","fontSize":"48px","color":"#000000"}}>
                 <br /> Luxury & Reliable Coach Bus Services <br /> <br />
               </h1>
               <p className="mt-14 text-xl text-neutral-500 max-md:mt-10 max-md:max-w-full">
