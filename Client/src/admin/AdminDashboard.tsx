@@ -50,6 +50,13 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [searchTerm, setSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
+const [filterCriteria, setFilterCriteria] = useState({
+  status: 'All',
+  published: 'All',
+  created: 'All',
+  modified: 'All'
+});
+
 const SVGArrow = (props:any) => (
   <svg
     width="64px"
@@ -957,6 +964,73 @@ const handleImportClick = async (event) => {
 const handleSettingsClick = () => {
   // Navigate to settings page or open settings modal
   console.log('Opening settings');
+};
+
+const applyFilters = () => {
+  setLoading(true); // Start loading
+
+  // Convert filter criteria into query parameters or filter function logic
+  const statusFilter = filterCriteria.status !== 'All' ? filterCriteria.status : null;
+  const publishedFilter = filterCriteria.published !== 'All' ? getDateRange(filterCriteria.published) : null;
+  const createdFilter = filterCriteria.created !== 'All' ? getDateRange(filterCriteria.created) : null;
+  const modifiedFilter = filterCriteria.modified !== 'All' ? getDateRange(filterCriteria.modified) : null;
+
+  // Use the filters to get a filtered list of lines
+  const filteredLines = lines.filter(line => {
+    // Check status
+    const statusMatches = statusFilter ? line.status === statusFilter : true;
+
+    // Check published date
+    const publishedMatches = publishedFilter ? line.published >= publishedFilter.start && line.published <= publishedFilter.end : true;
+
+    // Check created date
+    const createdMatches = createdFilter ? line.created >= createdFilter.start && line.created <= createdFilter.end : true;
+
+    // Check modified date
+    const modifiedMatches = modifiedFilter ? line.modified >= modifiedFilter.start && line.modified <= modifiedFilter.end : true;
+
+    return statusMatches && publishedMatches && createdMatches && modifiedMatches;
+  });
+
+  // Set the filtered lines to state
+  setLines(filteredLines);
+
+  setLoading(false); // Stop loading
+};
+
+const resetFilters = () => {
+  setFilterCriteria({
+    status: 'All',
+    published: 'All',
+    created: 'All',
+    modified: 'All'
+  });
+  fetchLines(); // Re-fetch all lines without filters
+};
+
+const getDateRange = (filterOption) => {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  switch (filterOption) {
+    case 'Last 24 hours':
+      return { start: new Date(now.getTime() - 24 * 60 * 60 * 1000), end: now };
+    case 'Last 7 days':
+      return { start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), end: now };
+    case 'Last 30 days':
+      return { start: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), end: now };
+    default:
+      return { start: startOfToday, end: now };
+  }
+};
+
+const handleFilterChange = (filterType, value) => {
+  setFilterCriteria(prev => ({ ...prev, [filterType]: value }));
+};
+
+// Example usage of handleFilterChange function when a radio input changes
+const handleStatusFilterChange = (event) => {
+  handleFilterChange('status', event.target.value);
 };
 
   return (
@@ -1929,9 +2003,87 @@ const handleSettingsClick = () => {
 <button
   className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
   onClick={handleFilterClick}
+  data-dropdown-toggle="dropdownFilter"
 >
   Filter
 </button>
+<>
+  <div
+    id="dropdownFilter"
+    className="fixed inset-0 z-10 overflow-y-auto"
+    aria-labelledby="modalDialogTitle"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div
+        className="fixed inset-0 transition-opacity bg-zinc-500 bg-opacity-75"
+        aria-hidden="true"
+      ></div>
+
+      {/* This element is to trick the browser into centering the modal contents. */}
+      <span
+        className="hidden sm:inline-block sm:align-middle sm:h-screen"
+        aria-hidden="true"
+      >
+        &#8203;
+      </span>
+
+      {/* Modal panel */}
+      <div className="inline-block overflow-hidden text-left align-bottom transition-all transform bg-zinc-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-zinc-700">
+          <h3 className="text-lg font-medium leading-6 text-white">
+            Filter
+          </h3>
+          <button
+            type="button"
+            className="text-zinc-400 bg-transparent hover:text-white-500"
+            onClick={() => { }}
+          >
+            <span className="sr-only">Close</span>
+            {/* SVG for 'x' icon */}
+            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" clipRule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" fill="black"></path> </g></svg>
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-4 py-6">
+<div className="space-y-4">
+<div className="space-y-2">
+<h4 className="font-medium text-white dark:text-white">Status</h4>
+<div className="space-y-1">
+{['All', 'Published', 'Draft', 'Scheduled', 'Archived'].map((status) => (
+<label key={status} className="flex items-center space-x-3">
+<input
+                   type="radio"
+                   name="statusFilter"
+                   value={status}
+                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                 />
+<span className="text-sm text-white-700 dark:text-white-300">{status}</span>
+</label>
+))}
+</div>
+</div>
+{/* Repeat similar blocks for Published, Created, Modified with their respective options */}
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-600">
+          <button
+            type="button"
+            className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            onClick={() => {/* Function to apply filters */}}
+          >
+            Apply filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+</>
 <button
   className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
   onClick={handleSelectClick}
