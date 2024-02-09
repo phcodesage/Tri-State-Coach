@@ -50,6 +50,7 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [searchTerm, setSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
+const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [filterCriteria, setFilterCriteria] = useState({
   status: 'All',
   published: 'All',
@@ -933,9 +934,23 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [searchTerm]);
 
-const handleFilterClick = () => {
+const handleFilterLineClick = () => {
+  setIsLineFilterModalVisible(true);
   console.log('Filter button clicked');
   // Here you would typically set some state to show a filter modal or dropdown
+};
+
+const handleLineFilterCloseModal = () => {
+  setIsLineFilterModalVisible(false);
+};
+
+const handleLineResetFilters = () => {
+  resetLineModalFilters();
+  setIsLineFilterModalVisible(false); // Optionally close the modal on reset
+};
+const handleLineApplyFilters = () => {
+  applyFilters();
+  setIsLineFilterModalVisible(false); // Close the modal after applying filters
 };
 
 const handleSelectClick = () => {
@@ -998,7 +1013,7 @@ const applyFilters = () => {
   setLoading(false); // Stop loading
 };
 
-const resetFilters = () => {
+const resetLineModalFilters = () => {
   setFilterCriteria({
     status: 'All',
     published: 'All',
@@ -2000,16 +2015,18 @@ const handleStatusFilterChange = (event) => {
   value={searchTerm}
   onChange={handleSearchChange}
 />
-<button
-  className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
-  onClick={handleFilterClick}
-  data-dropdown-toggle="dropdownFilter"
->
-  Filter
-</button>
-<>
+
+      {/* Filter button */}
+      <button
+        className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
+        onClick={handleFilterLineClick}
+      >
+        Filter
+      </button>
+
+{/* Filter Modal */}
+{isLineFilterModalVisible && (
   <div
-    id="dropdownFilter"
     className="fixed inset-0 z-10 overflow-y-auto"
     aria-labelledby="modalDialogTitle"
     role="dialog"
@@ -2033,13 +2050,22 @@ const handleStatusFilterChange = (event) => {
       <div className="inline-block overflow-hidden text-left align-bottom transition-all transform bg-zinc-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-zinc-700">
-          <h3 className="text-lg font-medium leading-6 text-white">
+          <div className='flex justify-between'>
+          <h3 className="text-lg font-medium leading-6 text-white px-2 py-1">
             Filter
           </h3>
           <button
+                  className="text-sm text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
+                  onClick={handleLineResetFilters}
+                >
+                  Reset
+                </button>
+          </div>
+          
+          <button
             type="button"
             className="text-zinc-400 bg-transparent hover:text-white-500"
-            onClick={() => { }}
+            onClick={handleLineFilterCloseModal}
           >
             <span className="sr-only">Close</span>
             {/* SVG for 'x' icon */}
@@ -2066,15 +2092,66 @@ const handleStatusFilterChange = (event) => {
 ))}
 </div>
 </div>
+
+<div className="space-y-2">
+<h4 className="font-medium text-white dark:text-white">Published</h4>
+<div className="space-y-1">
+{['All', 'Last 24 hours', 'Last 7 days', 'Last 30 days'].map((status) => (
+<label key={status} className="flex items-center space-x-3">
+<input
+                   type="radio"
+                   name="statusFilter"
+                   value={status}
+                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                 />
+<span className="text-sm text-white-700 dark:text-white-300">{status}</span>
+</label>
+))}
+</div>
+</div>
+
+<div className="space-y-2">
+<h4 className="font-medium text-white dark:text-white">Created</h4>
+<div className="space-y-1">
+{['All', 'Last 24 hours', 'Last 7 days', 'Last 30 days'].map((status) => (
+<label key={status} className="flex items-center space-x-3">
+<input
+                   type="radio"
+                   name="statusFilter"
+                   value={status}
+                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                 />
+<span className="text-sm text-white-700 dark:text-white-300">{status}</span>
+</label>
+))}
+</div>
+</div>
+
+<div className="space-y-2">
+<h4 className="font-medium text-white dark:text-white">Modified</h4>
+<div className="space-y-1">
+{['All', 'Last 24 hours', 'Last 7 days', 'Last 30 days'].map((status) => (
+<label key={status} className="flex items-center space-x-3">
+<input
+                   type="radio"
+                   name="statusFilter"
+                   value={status}
+                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                 />
+<span className="text-sm text-white-700 dark:text-white-300">{status}</span>
+</label>
+))}
+</div>
+</div>
 {/* Repeat similar blocks for Published, Created, Modified with their respective options */}
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-600">
-          <button
-            type="button"
-            className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            onClick={() => {/* Function to apply filters */}}
-          >
+        <button
+                type="button"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={handleLineApplyFilters}
+              >
             Apply filters
           </button>
         </div>
@@ -2083,7 +2160,7 @@ const handleStatusFilterChange = (event) => {
   </div>
 </div>
   </div>
-</>
+)}
 <button
   className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
   onClick={handleSelectClick}
