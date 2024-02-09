@@ -5,7 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid'
 import Multiselect from 'multiselect-react-dropdown';
-import { RefObject } from 'react';
+
 
 
 const AdminDashboard: React.FC = () => {
@@ -50,13 +50,16 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [searchTerm, setSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
-const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
-const [filterCriteria, setFilterCriteria] = useState({
+// Initial state for filter criteria
+const initialLineFilterCriteria = {
   status: 'All',
   published: 'All',
   created: 'All',
   modified: 'All'
-});
+};
+
+const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
+const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 
 const SVGArrow = (props:any) => (
   <svg
@@ -945,8 +948,7 @@ const handleLineFilterCloseModal = () => {
 };
 
 const handleLineResetFilters = () => {
-  resetLineModalFilters();
-  setIsLineFilterModalVisible(false); // Optionally close the modal on reset
+  setLineFilterCriteria(initialLineFilterCriteria);
 };
 const handleLineApplyFilters = () => {
   applyFilters();
@@ -985,10 +987,10 @@ const applyFilters = () => {
   setLoading(true); // Start loading
 
   // Convert filter criteria into query parameters or filter function logic
-  const statusFilter = filterCriteria.status !== 'All' ? filterCriteria.status : null;
-  const publishedFilter = filterCriteria.published !== 'All' ? getDateRange(filterCriteria.published) : null;
-  const createdFilter = filterCriteria.created !== 'All' ? getDateRange(filterCriteria.created) : null;
-  const modifiedFilter = filterCriteria.modified !== 'All' ? getDateRange(filterCriteria.modified) : null;
+  const statusFilter = LineFilterCriteria.status !== 'All' ? LineFilterCriteria.status : null;
+  const publishedFilter = LineFilterCriteria.published !== 'All' ? getDateRange(LineFilterCriteria.published) : null;
+  const createdFilter = LineFilterCriteria.created !== 'All' ? getDateRange(LineFilterCriteria.created) : null;
+  const modifiedFilter = LineFilterCriteria.modified !== 'All' ? getDateRange(LineFilterCriteria.modified) : null;
 
   // Use the filters to get a filtered list of lines
   const filteredLines = lines.filter(line => {
@@ -1014,13 +1016,13 @@ const applyFilters = () => {
 };
 
 const resetLineModalFilters = () => {
-  setFilterCriteria({
+  setLineFilterCriteria({
     status: 'All',
     published: 'All',
     created: 'All',
     modified: 'All'
   });
-  fetchLines(); // Re-fetch all lines without filters
+
 };
 
 const getDateRange = (filterOption) => {
@@ -1040,7 +1042,7 @@ const getDateRange = (filterOption) => {
 };
 
 const handleFilterChange = (filterType, value) => {
-  setFilterCriteria(prev => ({ ...prev, [filterType]: value }));
+  setLineFilterCriteria(prev => ({ ...prev, [filterType]: value }));
 };
 
 // Example usage of handleFilterChange function when a radio input changes
@@ -2085,6 +2087,8 @@ const handleStatusFilterChange = (event) => {
                    type="radio"
                    name="statusFilter"
                    value={status}
+                   checked={LineFilterCriteria.status === status}
+                  onChange={e => setLineFilterCriteria(prev => ({ ...prev, status: e.target.value }))}
                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                  />
 <span className="text-sm text-white-700 dark:text-white-300">{status}</span>
@@ -2100,8 +2104,10 @@ const handleStatusFilterChange = (event) => {
 <label key={status} className="flex items-center space-x-3">
 <input
                    type="radio"
-                   name="statusFilter"
-                   value={status}
+                   name="publishedFilter"
+                  value={status}
+                  checked={LineFilterCriteria.published === status}
+                  onChange={e => setLineFilterCriteria(prev => ({ ...prev, published: e.target.value }))}
                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                  />
 <span className="text-sm text-white-700 dark:text-white-300">{status}</span>
@@ -2117,8 +2123,10 @@ const handleStatusFilterChange = (event) => {
 <label key={status} className="flex items-center space-x-3">
 <input
                    type="radio"
-                   name="statusFilter"
-                   value={status}
+                   name="createdFilter"
+                  value={status}
+                  checked={LineFilterCriteria.created === status}
+                  onChange={e => setLineFilterCriteria(prev => ({ ...prev, created: e.target.value }))}
                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                  />
 <span className="text-sm text-white-700 dark:text-white-300">{status}</span>
@@ -2134,8 +2142,10 @@ const handleStatusFilterChange = (event) => {
 <label key={status} className="flex items-center space-x-3">
 <input
                    type="radio"
-                   name="statusFilter"
-                   value={status}
+                   name="modifiedFilter"
+                  value={status}
+                  checked={LineFilterCriteria.modified === status}
+                  onChange={e => setLineFilterCriteria(prev => ({ ...prev, modified: e.target.value }))}
                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                  />
 <span className="text-sm text-white-700 dark:text-white-300">{status}</span>
