@@ -903,7 +903,7 @@ const deleteLine = async (lineId) => {
   return (
     <>
     <div className="flex flex-row min-h-screen" style={{ backgroundColor: '#292929' }}>
-<button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200   0">
+<button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-zinc-200   0">
    <span className="sr-only">Open sidebar</span>
    <svg className="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
    <path clipRule="evenodd" fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
@@ -960,18 +960,18 @@ const deleteLine = async (lineId) => {
 </aside>
 {/* List of tickets */}
 {isTicketListVisible && (
-  <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/3' : 'w-full'} bg-gray-800 text-white`}>
+  <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/3' : 'w-full'} bg-zinc-800 text-white`}>
   <div className="p-4 flex justify-between items-center">
     <h2 className="text-xl font-bold">Tickets</h2>
     {!isTicketFormVisible && (
       <div className="flex items-center">
         {/* Buttons go here */}
-        <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-gray-700" />
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Filter</button>
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Select</button>
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Export</button>
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Import</button>
-        <button className="ml-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Settings</button>
+        <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-zinc-700" />
+        <button className="ml-2 bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Filter</button>
+        <button className="ml-2 bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Select</button>
+        <button className="ml-2 bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Export</button>
+        <button className="ml-2 bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Import</button>
+        <button className="ml-2 bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Settings</button>
         <button
   className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
   onClick={() => {
@@ -991,7 +991,7 @@ const deleteLine = async (lineId) => {
   </div>
     <ul className="overflow-y-auto">
     <div className="overflow-x-auto">
-      <table className="min-w-full text-sm divide-y divide-gray-200">
+      <table className="min-w-full text-sm divide-y divide-zinc-200">
         <thead>
           <tr>
             <th className="text-left font-medium">Name</th>
@@ -1011,8 +1011,9 @@ const deleteLine = async (lineId) => {
           {tickets.map((ticket) => (
             <tr
               key={ticket._id}
+              style={{ backgroundColor: index % 2 === 0 ? '#292929' : '#2D2D2D' }}
               onClick={() => handleTicketSelect(ticket)}
-              className="hover:bg-gray-700 cursor-pointer"
+              className="hover:bg-zinc-700 cursor-pointer"
             >
               <td className="p-2">{ticket.name}</td>
               <td className={`p-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-gray-300 text-gray-800'}`}>
@@ -1044,14 +1045,14 @@ const deleteLine = async (lineId) => {
 
 
 {isTicketFormVisible && (
-  <main className="w-2/3 bg-gray-800 text-white p-4 overflow-y-auto">
+  <main className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto">
   {/* Header starts here */}
 
   <div className="flex items-center justify-between mb-8">
   {/* Back arrow and title */}
   <div className="flex items-center">
   <button
-  className="text-white p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 flex items-center justify-center"
+  className="text-white p-2 bg-zinc-800 rounded-full hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-gray-600 flex items-center justify-center"
   onClick={() => setIsLineFormVisible(false)}
   style={{ width: '50px', height: '50px' }} // Set the button size explicitly if you need a square button
 >
@@ -1074,7 +1075,7 @@ const deleteLine = async (lineId) => {
   <button
     type="submit"
     onClick={() => setIsTicketDropdownOpen(!isTicketDropdownOpen)}
-    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-900 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-700"
+    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-900 text-sm font-medium text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-700"
     id="menu-button"
     aria-expanded="true"
     aria-haspopup="true"
@@ -1102,7 +1103,7 @@ const deleteLine = async (lineId) => {
         document.getElementById('ticketForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
         handleTicketPublish();
       }}
-      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
+      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
       role="menuitem"
       tabIndex="-1"
       id="menu-item-0"
@@ -1121,7 +1122,7 @@ const deleteLine = async (lineId) => {
         handleTicketDraft();
         handleSubmit(onTicketSubmit)
       }}
-      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
+      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
       role="menuitem"
       tabIndex="-1"
       id="menu-item-1"
@@ -1140,12 +1141,12 @@ const deleteLine = async (lineId) => {
   {/* Header ends here */}
 
   {isModalVisible && (
-  <div className="fixed inset-0 bg-gray-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center">
+  <div className="fixed inset-0 bg-zinc-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center">
     <div className="bg-gray-900 rounded-lg max-w-sm mx-auto p-4 shadow-lg">
       <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
       <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
       <div className="flex justify-end mt-4">
-        <button onClick={() => setIsModalVisible(false)} className="bg-gray-800 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-l">
+        <button onClick={() => setIsModalVisible(false)} className="bg-zinc-800 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-l">
           Keep editing
         </button>
         <button onClick={handleCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
@@ -1156,7 +1157,7 @@ const deleteLine = async (lineId) => {
   </div>
 )}
 
-  <form onSubmit={handleSubmit(onTicketSubmit)} id="ticketForm" className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-gray-800 text-white p-4 rounded">
+  <form onSubmit={handleSubmit(onTicketSubmit)} id="ticketForm" className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
     {/* Product Type Dropdown */}
     <div className="mb-4">
       <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
@@ -1165,7 +1166,7 @@ const deleteLine = async (lineId) => {
         name="productType"
         value={ticketData.productType}
         onChange={handleTicketInputChange}
-        className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
       >
         <option value="Physical">Physical</option>
         <option value="Digital">Digital</option>
@@ -1190,7 +1191,7 @@ const deleteLine = async (lineId) => {
     onChange={handleTicketInputChange}
     placeholder="Ticket Name"
     required
-    className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
   />
 </div>
 
@@ -1220,7 +1221,7 @@ const deleteLine = async (lineId) => {
         value={ticketData.description}
         onChange={handleTicketInputChange}
         placeholder="Description"
-        className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
       ></textarea>
     </div>
 
@@ -1238,7 +1239,7 @@ const deleteLine = async (lineId) => {
         multiple
         value={selectedCategories}
         onChange={handleCategorySelect}
-        className="w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+        className="w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
       >
         {lines.map((line) => (
           <option key={line._id} value={line.name}>
@@ -1287,7 +1288,7 @@ const deleteLine = async (lineId) => {
       </div>
     ) : (
       <div className="flex justify-center items-center w-full">
-        <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-gray-200 hover:border-gray-400 rounded-lg group">
+        <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-zinc-200 hover:border-gray-400 rounded-lg group">
           <div className="flex flex-col items-center justify-center pt-7">
             <svg className="w-10 h-10 text-gray-400 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
             <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
@@ -1309,12 +1310,12 @@ const deleteLine = async (lineId) => {
 
 
 {/* Billing Section */}
-<div className="bg-gray-800 p-4 rounded text-white">
+<div className="bg-zinc-800 p-4 rounded text-white">
   <h4 className="text-lg font-semibold mb-4">Billing</h4>
   <div className="flex items-center gap-4 mb-4">
     <div className="flex-1">
       <label htmlFor="price" className="block text-sm font-medium mb-1">Price <span className='text-red-500'>*</span></label>
-      <div className="flex items-center bg-gray-700 rounded">
+      <div className="flex items-center bg-zinc-700 rounded">
         <span className="pl-2 text-gray-300">$</span>
         <input
           id="price"
@@ -1329,7 +1330,7 @@ const deleteLine = async (lineId) => {
     </div>
     <div className="flex-1">
       <label htmlFor="compareAtPrice" className="block text-sm font-medium mb-1">Compare-at price</label>
-      <div className="flex items-center bg-gray-700 rounded">
+      <div className="flex items-center bg-zinc-700 rounded">
         <span className="pl-2 text-gray-300">$</span>
         <input
           id="compareAtPrice"
@@ -1388,7 +1389,7 @@ const deleteLine = async (lineId) => {
       checked={ticketData.trackInventory}
       onChange={(e:any) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
     />
-    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300  rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all  peer-checked:bg-blue-600"></div>
+    <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300  rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all  peer-checked:bg-blue-600"></div>
     <span className="ml-3 text-sm font-medium text-white e">
       {ticketData.trackInventory ? 'YES' : 'NO'}
     </span>
@@ -1404,13 +1405,13 @@ const deleteLine = async (lineId) => {
       value={ticketData.inventoryQuantity}
       onChange={handleTicketInputChange}
       min="0"
-      className="block w-full p-2 text-sm bg-gray-700 text-white rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
     />
   </div>
 
 
 {/* Custom Fields Section */}
-<div className="bg-gray-800 text-white p-4 rounded">
+<div className="bg-zinc-800 text-white p-4 rounded">
   <div className="mb-4">
     <label htmlFor="tripType" className="block text-sm font-medium mb-2">Trip Type</label>
     <select
@@ -1418,7 +1419,7 @@ const deleteLine = async (lineId) => {
       name="tripType"
       value={tripType}
       onChange={e => setTripType(e.target.value)}
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     >
       <option value="" disabled>Select an option</option>
       <option value="Round Trip">Round Trip</option>
@@ -1435,7 +1436,7 @@ const deleteLine = async (lineId) => {
       name="lineName"
       value={lineName}
       onChange={e => setLineName(e.target.value)}
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     >
       {/* Options will be fetched from the backend */}
       {lines.map((line) => (
@@ -1455,7 +1456,7 @@ const deleteLine = async (lineId) => {
     name="departureDate"
     value={departureDate}
     onChange={e => setDepartureDate(e.target.value)}
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1468,7 +1469,7 @@ const deleteLine = async (lineId) => {
     name="returnDate"
     value={returnDate}
     onChange={e => setReturnDate(e.target.value)}
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1484,7 +1485,7 @@ const deleteLine = async (lineId) => {
     value={ticketData.stops} // Assuming you have 'stops' state in ticketData
     onChange={handleTicketInputChange}
     placeholder="e.g., Commack, Hicksville, Fresh Meadows"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1497,7 +1498,7 @@ const deleteLine = async (lineId) => {
     name="firstPickUpTime"
     value={ticketData.firstPickUpTime} // Assuming you have 'firstPickUpTime' state in ticketData
     onChange={handleTicketInputChange}
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1511,7 +1512,7 @@ const deleteLine = async (lineId) => {
     onChange={handleTicketInputChange}
     placeholder="Enter the first pick up location"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1524,7 +1525,7 @@ const deleteLine = async (lineId) => {
       name="secondPickUpTime"
       value={secondPickUpTime}
       onChange={e => setSecondPickUpTime(e.target.value)}
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     />
   </div>
 
@@ -1538,7 +1539,7 @@ const deleteLine = async (lineId) => {
       onChange={e => setSecondPickUpLocation(e.target.value)}
       placeholder="Enter the second pick up location"
       rows="3"
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     ></textarea>
   </div>
 
@@ -1551,7 +1552,7 @@ const deleteLine = async (lineId) => {
       name="thirdPickUpTime"
       value={secondPickUpTime}
       onChange={e => setThirdPickUpTime(e.target.value)}
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     />
   </div>
 
@@ -1565,7 +1566,7 @@ const deleteLine = async (lineId) => {
       onChange={e => setThirdPickUpLocation(e.target.value)}
       placeholder="Enter the second pick up location"
       rows="3"
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     ></textarea>
   </div>
 
@@ -1579,7 +1580,7 @@ const deleteLine = async (lineId) => {
       name="finalPickUpTime"
       value={finalPickUpTime}
       onChange={e => setSecondPickUpTime(e.target.value)}
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     />
   </div>
 
@@ -1593,7 +1594,7 @@ const deleteLine = async (lineId) => {
       onChange={e => setFinalPickUpLocation(e.target.value)}
       placeholder="Enter the Final pick up location"
       rows="3"
-      className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     ></textarea>
   </div>
 
@@ -1607,7 +1608,7 @@ const deleteLine = async (lineId) => {
     value={firstDropOffLocation}
     onChange={e => setFirstDropOffLocation(e.target.value)}
     placeholder="Enter the first drop off location"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1621,7 +1622,7 @@ const deleteLine = async (lineId) => {
     value={secondDropOffLocation}
     onChange={e => setSecondDropOffLocation(e.target.value)}
     placeholder="Enter the first drop off location"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1635,7 +1636,7 @@ const deleteLine = async (lineId) => {
     value={thirdDropOffLocation}
     onChange={e => setThirdDropOffLocation(e.target.value)}
     placeholder="Enter the first drop off location"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1649,7 +1650,7 @@ const deleteLine = async (lineId) => {
     value={finalDropOffLocation}
     onChange={e => setFinalDropOffLocation(e.target.value)}
     placeholder="Enter the first drop off location"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1663,7 +1664,7 @@ const deleteLine = async (lineId) => {
     value={suggestedTipForDriver}
     onChange={e => setSuggestedTipForDriver(e.target.value)}
     placeholder="Suggested tip amount"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1676,7 +1677,7 @@ const deleteLine = async (lineId) => {
     name="firstPickUpTimeReturn"
     value={firstPickUpTimeReturn} // Update this with your state
     onChange={e => setFirstPickUpTimeReturn(e.target.value)} // Update this with your handler
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1690,7 +1691,7 @@ const deleteLine = async (lineId) => {
     onChange={e => setFirstPickUpLocationReturn(e.target.value)} // Update this with your handler
     placeholder="Enter the first pick up location for the return journey"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1703,7 +1704,7 @@ const deleteLine = async (lineId) => {
     name="secondPickUpTimeReturn"
     value={secondPickUpTimeReturn} // Update this with your state
     onChange={e => setSecondPickUpTimeReturn(e.target.value)} // Update this with your handler
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1717,7 +1718,7 @@ const deleteLine = async (lineId) => {
     onChange={e => setSecondPickUpLocationReturn(e.target.value)} // Update this with your handler
     placeholder="Enter the second pick up location for the return journey"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1730,7 +1731,7 @@ const deleteLine = async (lineId) => {
     name="thirdPickUpTimeReturn"
     value={thirdPickUpTimeReturn} // Update this with your state
     onChange={e => setThirdPickUpTimeReturn(e.target.value)} // Update this with your handler
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1744,7 +1745,7 @@ const deleteLine = async (lineId) => {
     onChange={e => setThirdPickUpLocationReturn(e.target.value)} // Update this with your handler
     placeholder="Enter the second pick up location for the return journey"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1757,7 +1758,7 @@ const deleteLine = async (lineId) => {
     name="finalPickUpTimeReturn"
     value={finalPickUpTimeReturn} // Update this with your state
     onChange={e => setFinalPickUpTimeReturn(e.target.value)} // Update this with your handler
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1771,7 +1772,7 @@ const deleteLine = async (lineId) => {
     onChange={e => setFinalPickUpLocationReturn(e.target.value)} // Update this with your handler
     placeholder="Enter the second pick up location for the return journey"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1785,7 +1786,7 @@ const deleteLine = async (lineId) => {
     onChange={e => setFirstDropOffLocationReturn(e.target.value)}
     placeholder="Enter the first drop off location for the return journey"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1799,7 +1800,7 @@ const deleteLine = async (lineId) => {
     onChange={e => setSecondDropOffLocationReturn(e.target.value)}
     placeholder="Enter the second drop off location for the return journey"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1813,7 +1814,7 @@ const deleteLine = async (lineId) => {
     onChange={e => setThirdDropOffLocationReturn(e.target.value)}
     placeholder="Enter the third drop off location for the return journey"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1827,7 +1828,7 @@ const deleteLine = async (lineId) => {
     onChange={e => setFinalDropOffLocationReturn(e.target.value)}
     placeholder="Enter the final drop off location for the return journey"
     rows="3"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   ></textarea>
 </div>
 
@@ -1841,7 +1842,7 @@ const deleteLine = async (lineId) => {
     value={suggestedTipForDriverReturn}
     onChange={e => setSuggestedTipForDriverReturn(e.target.value)}
     placeholder="Suggested tip amount for the return journey"
-    className="block w-full p-2 text-sm bg-gray-700 rounded focus:outline-none"
+    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
   />
 </div>
 
@@ -1854,18 +1855,18 @@ const deleteLine = async (lineId) => {
 
 {isLineListVisible && (
   <>
-   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/3' : 'w-full'} bg-gray-800 text-white`}>
+   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/3' : 'w-full'} bg-zinc-800 text-white`}>
       {/* Header with buttons */}
       {!isLineFormVisible && (
       <div className="flex justify-between items-center p-4">
         <h2 className="text-xl font-bold">Lines</h2>
         <div className="flex space-x-2">
-          <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-gray-700" />
-          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Filter</button>
-          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Select</button>
-          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Export</button>
-          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Import</button>
-          <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Settings</button>
+          <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-zinc-700" />
+          <button className="bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Filter</button>
+          <button className="bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Select</button>
+          <button className="bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Export</button>
+          <button className="bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Import</button>
+          <button className="bg-zinc-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Settings</button>
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
             onClick={() => setIsLineFormVisible(true)}
@@ -1878,7 +1879,7 @@ const deleteLine = async (lineId) => {
 
       {/* Lines table */}
       <div className="overflow-x-auto">
-      <table className="min-w-full text-sm divide-y divide-gray-200">
+      <table className="min-w-full text-sm divide-y divide-zinc-200">
           {isLineFormVisible ? (
             <thead>
               <tr>
@@ -1896,19 +1897,19 @@ const deleteLine = async (lineId) => {
                 </tr>
               </thead>
             )}
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-zinc-200">
   {loading ? (
     // Render multiple skeleton rows to match the expected number of data rows
     [...Array(5)].map((_, index) => (
       <tr key={`skeleton-${index}`}>
         <td colSpan="5" className="text-center py-4">
           <div role="status" className="animate-pulse">
-            <div className="h-3.5 bg-gray-200 rounded-full  w-48 mb-4"></div>
-            <div className="h-3 bg-gray-200 rounded-full  max-w-[800px] mb-2.5"></div>
-            <div className="h-3 bg-gray-200 rounded-full  mb-2.5"></div>
-            <div className="h-3 bg-gray-200 rounded-full  max-w-[900px] mb-2.5"></div>
-            <div className="h-3 bg-gray-200 rounded-full  max-w-[950px] mb-2.5"></div>
-            <div className="h-3 bg-gray-200 rounded-full  max-w-[750px]"></div>
+            <div className="h-3.5 bg-zinc-200 rounded-full  w-48 mb-4"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  max-w-[800px] mb-2.5"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  mb-2.5"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  max-w-[900px] mb-2.5"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  max-w-[950px] mb-2.5"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  max-w-[750px]"></div>
             <span className="sr-only">Loading...</span>
           </div>
         </td>
@@ -1917,11 +1918,25 @@ const deleteLine = async (lineId) => {
   ) : lines && lines.length > 0 ? (
     lines.map((line, index) => (
       line && line.name ? (
-        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-gray-700' : 'bg-gray-800'}`} onClick={() => handleEditLineClick(line)}>
+        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'}`} onClick={() => handleEditLineClick(line)}>
           <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
           {!isLineFormVisible && (
             <>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{line.status}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{line.status === 'Published' ? (
+            <span className="flex items-center">
+              <svg className="w-4 h-4 mr-2 text-green-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-green-300">Published</span>
+            </span>
+          ) : (
+            <span className="flex items-center">
+              <svg className="w-4 h-4 mr-2 text-orange-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              <span className="text-orange-300">Draft</span>
+            </span>
+          )}</td>
               <td className="px-4 py-2 text-white whitespace-nowrap">{line.productsCount}</td>
               <td className="px-4 py-2 text-white whitespace-nowrap">
                 {line.lastEdited ? new Date(line.lastEdited).toLocaleString() : 'Not Edited'}
@@ -1955,13 +1970,13 @@ const deleteLine = async (lineId) => {
 )}
 
 {isLineFormVisible && (
-  <main className="w-full bg-gray-800 text-white p-4 overflow-y-auto">
-    <div className="h-full bg-gray-800 p-6 rounded-lg shadow-lg">
+  <main className="w-full bg-zinc-800 text-white p-4 overflow-y-auto">
+    <div className="h-full bg-zinc-800 p-6 rounded-lg shadow-lg">
     <div className="flex items-center justify-between mb-8">
   {/* Back arrow and title */}
   <div className="flex items-center">
   <button
-  className="text-white p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 flex items-center justify-center"
+  className="text-white p-2 bg-zinc-800 rounded-full hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-gray-600 flex items-center justify-center"
   onClick={() => setIsLineFormVisible(false)}
   style={{ width: '50px', height: '50px' }} // Set the button size explicitly if you need a square button
 >
@@ -1984,7 +1999,7 @@ const deleteLine = async (lineId) => {
   <button
     type="submit"
     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-900 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-700"
+    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-gray-900 text-sm font-medium text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-700"
     id="menu-button"
     aria-expanded="true"
     aria-haspopup="true"
@@ -2012,7 +2027,7 @@ const deleteLine = async (lineId) => {
         handleLinePublish();
         handleLineSubmit();
       }}
-      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
+      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
       role="menuitem"
       tabIndex="-1"
       id="menu-item-0"
@@ -2031,7 +2046,7 @@ const deleteLine = async (lineId) => {
         handleLineDraft();
         handleLineSubmit();
       }}
-      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-gray-700 relative"
+      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
       role="menuitem"
       tabIndex="-1"
       id="menu-item-1"
