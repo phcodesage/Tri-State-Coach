@@ -51,6 +51,7 @@ const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('
 const [originalLines, setOriginalLines] = useState([]);
 const [searchTerm, setSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
+const [lineStatus, setLineStatus] = useState('Draft');
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -64,8 +65,7 @@ const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCr
 
 const SVGArrow = (props:any) => (
   <svg
-    width="64px"
-    height="64px"
+    className='w-6 h-6'
     viewBox="0 0 512 512"
     xmlSpace="preserve"
     xmlns="http://www.w3.org/2000/svg"
@@ -115,7 +115,43 @@ const getLineStartDateForFilter = (filterValue) => {
   }
 };
 
+const toggleLineSelection = (lineId) => {
+  if (selectedLines.includes(lineId)) {
+    // If already selected, remove it from the selection
+    setSelectedLines(selectedLines.filter((id) => id !== lineId));
+  } else {
+    // If not selected, add it to the selection
+    setSelectedLines([...selectedLines, lineId]);
+  }
+};
 
+const selectAllLines = () => {
+  setSelectedLines(lines.map((line) => line._id));
+};
+
+// Function to clear all selections
+const clearLineSelection = () => {
+  setSelectedLines([]);
+};
+
+const resetLineFormStates = () => {
+  setNewLine({
+    name: "",
+    slug: "",
+    status: "",
+    products: []
+  });
+  setEditLine({
+    name: "",
+    slug: "",
+    status: "",
+    products: []
+  });
+  setSelectedProducts([]);
+  setCurrentLineId(null);
+  setEditMode(false);
+  // Reset any additional state related to the line form here
+};
 
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isModalVisible, setIsModalVisible] = useState(false);
@@ -610,13 +646,16 @@ useEffect(() => {
     submitLineData(lineData, true);
   };
   
-  
 
 
 // Form submission handler for Line
 const handleCreateLineSubmission = handleSubmit(async (data) => {
+  // Determine the status based on the lastAction before form submission
+
+
   const lineData = {
     ...data,
+     // Apply determined status here
     products: selectedProducts.map(product => ({
       id: product.id,
       name: product.name,
@@ -624,6 +663,7 @@ const handleCreateLineSubmission = handleSubmit(async (data) => {
     })),
     productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
     ...(currentLineId ? {} : automatedValues),
+    status: lineStatus,
   };
 
   const apiUrl = `http://localhost:5000/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
@@ -632,10 +672,6 @@ const handleCreateLineSubmission = handleSubmit(async (data) => {
     'Authorization': `Bearer ${authToken}`,
     'Content-Type': 'application/json',
   };
-
-  // Adjust status based on lastAction state
-  const status = lastAction === 'publish' ? 'Published' : 'Draft';
-  
 
   try {
     const response = await axios({ url: apiUrl, method, data: lineData, headers });
@@ -646,21 +682,29 @@ const handleCreateLineSubmission = handleSubmit(async (data) => {
       reset();
       setEditMode(false);
       setCurrentLineId(null);
-      setLastAction('');
+      setLastAction(''); // Reset lastAction to prevent repeated submissions
     }
   } catch (error) {
     console.error('Error submitting line:', error);
   }
 });
 
-const handleLineSubmit = async (event) => {
-  
-  if (editMode) {
-    await handleEditLineSubmission();
-  } else {
-    await handleCreateLineSubmission();
-  }
-};
+
+const handleLineSubmit = handleSubmit(async (data) => {
+  const lineData = {
+    ...data,
+    products: selectedProducts.map(product => ({
+      id: product.id,
+      name: product.name,
+      count: product.count
+    })),
+    productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
+    status: lineStatus, // Use the lineStatus state
+    ...(currentLineId ? {} : automatedValues),
+  };
+
+  // ... rest of the submission logic
+});
     
 
   const handleLogout = () => {
@@ -744,16 +788,17 @@ const handleProductSelect = (selectedList, selectedItem) => {
   })));
 };
 
+
+
 const handleLinePublish = () => {
-  // Set the lastAction state to 'publish'
   setLastAction('publish');
+  setLineStatus('Published');
 };
 
 const handleLineDraft = () => {
-  // Set the lastAction state to 'draft'
   setLastAction('draft');
+  setLineStatus('Draft');
 };
-
 const handleTicketPublish = () => {
   // Set the lastAction state to 'publish'
   setLastAction('publish');
@@ -1107,6 +1152,12 @@ const handleFilterChange = (filterType, value) => {
 const handlelineStatusFilterChange = (event) => {
   handleFilterChange('status', event.target.value);
 };
+useEffect(() => {
+  // Check if lastAction has been set, indicating a submit action should follow
+  if (lastAction === 'publish' || lastAction === 'draft') {
+    handleSubmit(handleCreateLineSubmission)();
+  }
+}, [lastAction, lineStatus]); // Depend on lastAction and lineStatus
 
   return (
     <>
@@ -1215,7 +1266,7 @@ const handlelineStatusFilterChange = (event) => {
           </tr>
         </thead>
         <tbody>
-          {tickets.map((ticket) => (
+          {tickets.map((ticket, index) => (
             <tr
               key={ticket._id}
               style={{ backgroundColor: index % 2 === 0 ? '#292929' : '#2D2D2D' }}
@@ -1260,7 +1311,7 @@ const handlelineStatusFilterChange = (event) => {
   <div className="flex items-center">
   <button
   className="text-white p-2 bg-zinc-800 rounded-full hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-600 flex items-center justify-center"
-  onClick={() => setIsLineFormVisible(false)}
+  onClick={() => setIsTicketFormVisible(false)}
   style={{ width: '50px', height: '50px' }} // Set the button size explicitly if you need a square button
 >
   {/* Back arrow icon */}
@@ -1273,7 +1324,7 @@ const handlelineStatusFilterChange = (event) => {
 <div className="flex relative text-left">
   {/* Cancel button */}
   <button
-          className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2"
+          className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
           onClick={() => setIsModalVisible(true)}
         >
           Cancel
@@ -2261,7 +2312,7 @@ const handlelineStatusFilterChange = (event) => {
 </button>
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-            onClick={() => setIsLineFormVisible(true)}
+            onClick={() => { setIsLineFormVisible(true);resetLineFormStates();}}
           >
             + New Line
           </button>
@@ -2389,7 +2440,7 @@ const handlelineStatusFilterChange = (event) => {
 <div className="flex relative text-left">
   {/* Cancel button */}
   <button
-          className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2"
+          className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
           onClick={() => setIsLineFormVisible(false)}
         >
           Cancel
@@ -2422,10 +2473,7 @@ const handlelineStatusFilterChange = (event) => {
   {/* Button for Publish */}
   <div className="group">
     <button
-      onClick={() => {
-        handleLinePublish();
-        handleLineSubmit();
-      }}
+      onClick={handleLinePublish}
       className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
       role="menuitem"
       tabIndex="-1"
@@ -2441,10 +2489,7 @@ const handlelineStatusFilterChange = (event) => {
   {/* Button for Save as draft */}
   <div className="group mt-1">
     <button
-      onClick={() => {
-        handleLineDraft();
-        handleLineSubmit();
-      }}
+      onClick={handleLineDraft}
       className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
       role="menuitem"
       tabIndex="-1"
@@ -2462,7 +2507,7 @@ const handlelineStatusFilterChange = (event) => {
 </div>
 
 
-      <form onSubmit={handleLineSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit(handleCreateLineSubmission)} className="space-y-6">
         {/* Line Name Input */}
         <div>
           <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name <span className="text-red-700">*</span></label>
