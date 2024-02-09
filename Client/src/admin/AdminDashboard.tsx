@@ -214,8 +214,7 @@ const handleEditLineClick = async (line:any) => {
   // Automatically fill the lineName and lineSlug when editing a line
   setLineName(line.name); // Set line name to state
   setLineSlug(line.slug); // Set line slug to state
-  console.log(lineName); // Log to see if state is updated immediately
-console.log(lineSlug);
+
 };
 
 
@@ -321,7 +320,7 @@ const deleteImage = () => {
 const refreshTokenIfNeeded = async () => {
   const authToken = localStorage.getItem('token');
   const refreshToken = localStorage.getItem('refreshToken');
-  console.log(authToken)
+
   if (!authToken || !refreshToken) {
     navigate('/login');
     return;
@@ -401,7 +400,7 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
   };
 
   const handleSaveOption = (option) => {
-   console.log(`Save as: ${option}`);
+
    // Implement save functionality based on the option
    setShowCreateOptions(false);
  };
@@ -848,7 +847,7 @@ interface ITicketFormData {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       });
 
-      console.log('Success:', response.data);
+
       alert('Ticket submitted successfully!');
     } catch (error) {
       console.error('Error submitting ticket:', error);
@@ -959,7 +958,7 @@ useEffect(() => {
 
 const handleFilterLineClick = () => {
   setIsLineFilterModalVisible(true);
-  console.log('Filter button clicked');
+
   // Here you would typically set some state to show a filter modal or dropdown
 };
 
@@ -969,6 +968,7 @@ const handleLineFilterCloseModal = () => {
 
 const handleLineResetFilters = () => {
   setLineFilterCriteria(initialLineFilterCriteria);
+  fetchLines();
 };
 const handleLineApplyFilters = () => {
   setIsLineFilterModalVisible(false); // Close the modal after applying filters
@@ -1020,18 +1020,18 @@ const handleSelectClick = () => {
 const handleExportClick = () => {
   // Export the selected lines to CSV
   // This is a simplified example and would need a proper CSV generation and download logic
-  console.log('Exporting selected lines:', selectedLines);
+
 };
 
 const handleImportClick = async (event) => {
   const file = event.target.files[0];
   // Implement the logic to read the file and import the data
-  console.log('Importing file:', file.name);
+
 };
 
 const handleSettingsClick = () => {
   // Navigate to settings page or open settings modal
-  console.log('Opening settings');
+
 };
 
 const lineApplyFilters = () => {
@@ -2323,9 +2323,7 @@ const handlelineStatusFilterChange = (event) => {
             </span>
           ) : (
             <span className="flex items-center">
-              <svg className="w-4 h-4 mr-2 text-orange-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
               <span className="text-orange-300">Draft</span>
             </span>
           )}</td>
