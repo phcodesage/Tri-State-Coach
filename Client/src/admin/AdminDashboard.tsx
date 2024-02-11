@@ -1084,35 +1084,30 @@ const handleSelectClick = () => {
 
 async function handleExportAllLines() {
   try {
-    // Ensure you're hitting the correct endpoint. If deploying, replace localhost with your deployed server's URL.
-    const response = await fetch('http://localhost:5000/api/export-all');
+    const response = await fetch('http://localhost:5000/api/export-all', {
+      headers: {
+        'Accept': 'text/csv',
+      },
+    });
 
     if (!response.ok) {
-      // If the response is not OK, throw an error with the status text
       throw new Error(`Failed to fetch data: ${response.statusText}`);
     }
 
     const blob = await response.blob();
-    console.log('Blob type:', blob.type); // Useful for debugging
-
-    // Proceed only if the blob's MIME type is 'text/csv'
-    if (blob.type === "text/csv") {
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = 'combined_data.csv'; // Set the desired file name for the download
-      document.body.appendChild(a); // Append the anchor tag to the document
-      a.click(); // Programmatically click the anchor tag to trigger the download
-      document.body.removeChild(a); // Clean up by removing the anchor tag from the document
-    } else {
-      // Log an error if the received content is not a CSV file
-      console.error('Expected CSV data, received:', blob.type);
-    }
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = 'combined_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(downloadUrl); // Clean up
   } catch (error) {
-    // Log any errors encountered during the fetch operation
     console.error('Error exporting data:', error);
   }
 }
+
 
 
 

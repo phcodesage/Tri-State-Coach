@@ -7,6 +7,7 @@ const QuoteRequest = require('./models/QuoteRequest');
 const ContactForm = require('./models/ContactForm');
 require('dotenv').config();
 const result = require('dotenv').config()
+const { Parser } = require('json2csv');
 
 if (result.error) {
   throw result.error
@@ -334,34 +335,36 @@ app.post('/api/lines/:id?', async (req, res) => {
 app.get('/api/export-all', async (req, res) => {
   try {
     // Fetch all lines and tickets from the database
-    const lines = await Line.find({}).lean();
-    const tickets = await Ticket.find({}).lean();
+    const linesPromise = Line.find({}).lean();
+    const ticketsPromise = Ticket.find({}).lean();
+    const [lines, tickets] = await Promise.all([linesPromise, ticketsPromise]);
 
     // Combine lines and tickets into a single array
     const combinedData = [...lines, ...tickets];
 
-    // Function to convert JSON array to CSV
-    const jsonToCsv = (data) => {
-      if (!data || data.length === 0) return '';
-
-      // Extract headers
-      const headers = Object.keys(data[0]);
-      const csvRows = data.map(row =>
-        headers.map(header => JSON.stringify(row[header], null, 2)).join(',')
-      );
-
-      return [headers.join(','), ...csvRows].join('\r\n');
-    };
-
-    // Convert combined data to CSV
-    const csvData = jsonToCsv(combinedData);
+    // Define fields for CSV, including handling of potential undefined products array
+    const fields = [
+      'name',
+      'slug',
+      'itemId',
+      'created',
+      'lastEdited',
+      'lastPublished',
+      'status',
+      'productsCount',
+      {
+        label: 'products',
+        value: row => row.products ? row.products.map(p => `ID: ${p.id}, Count: ${p.count}`).join('; ') : ''
+      }
+      // Add other fields as needed
+    ];
+    const json2csvParser = new Parser({ fields });
+    const csvData = json2csvParser.parse(combinedData);
 
     // Set the headers to indicate a file download
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="combined_data.csv"');
-
-    // Send the CSV data
-    res.send(csvData);
+    res.status(200).send(csvData);
   } catch (error) {
     console.error('Failed to export data:', error);
     res.status(500).send('Error exporting data to CSV.');
