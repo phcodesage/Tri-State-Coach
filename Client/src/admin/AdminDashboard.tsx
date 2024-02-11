@@ -2532,7 +2532,7 @@ const isSelected = (lineId) => {
   </div>
 )}
     <div className="h-full bg-zinc-800 p-6">
-    {editMode && (
+    
     <div className="flex items-center justify-between mb-8">
   {/* Back arrow and title */}
   <div className="flex items-center space-x-4">
@@ -2550,6 +2550,7 @@ const isSelected = (lineId) => {
   {/* Action Buttons */}
 <div className="flex relative text-left">
 {/* Status Display */}
+{editMode && (
 <div className="flex items-center">
   {newLine.status === 'Published' ? (
     <span className="flex items-center">
@@ -2573,6 +2574,7 @@ const isSelected = (lineId) => {
     </span>
   )}
 </div>
+)}
   {/* Cancel button */}
   <button
           className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
@@ -2640,7 +2642,6 @@ const isSelected = (lineId) => {
 </div>
 </div>
 </div>
-    )}
 
 
 
