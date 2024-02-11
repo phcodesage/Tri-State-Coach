@@ -8,7 +8,6 @@ const ContactForm = require('./models/ContactForm');
 require('dotenv').config();
 const result = require('dotenv').config()
 
-
 if (result.error) {
   throw result.error
 }
@@ -332,56 +331,42 @@ app.post('/api/lines/:id?', async (req, res) => {
   }
 });
 
-function jsonToCsv(jsonArray) {
-  if (jsonArray.length === 0) {
-    return '';
-  }
-  const headers = Object.keys(jsonArray[0]).join(',');
-  const rows = jsonArray.map(obj => {
-    return Object.values(obj).map(value => {
-      if (Array.isArray(value)) {
-        // Convert array of products to a string format or handle differently as needed
-        return `"${value.map(product => `Product ID: ${product.id}, Count: ${product.count}`).join('; ')}"`;
-      }
-      return `"${String(value).replace(/"/g, '""')}"`; // Escape quotes for CSV format
-    }).join(',');
-  });
-  return [headers, ...rows].join('\n');
-}
-
-
-// Endpoint to export all lines to CSV
-app.get('/api/export-all-lines', async (req, res) => {
+app.get('/api/export-all', async (req, res) => {
   try {
+    // Fetch all lines and tickets from the database
     const lines = await Line.find({}).lean();
-    const csvData = jsonToCsv(lines.map(line => ({
-      id: line._id.toString(),
-      name: line.name,
-      slug: line.slug,
-      itemId: line.itemId,
-      created: line.created.toISOString(),
-      lastEdited: line.lastEdited.toISOString(),
-      lastPublished: line.lastPublished ? line.lastPublished.toISOString() : 'N/A',
-      status: line.status,
-      productsCount: line.productsCount,
-      // Assuming products is an array that needs special handling
-      products: line.products.map(p => `Product ID: ${p.id}, Count: ${p.count}`).join('; ')
-    })));
+    const tickets = await Ticket.find({}).lean();
 
+    // Combine lines and tickets into a single array
+    const combinedData = [...lines, ...tickets];
+
+    // Function to convert JSON array to CSV
+    const jsonToCsv = (data) => {
+      if (!data || data.length === 0) return '';
+
+      // Extract headers
+      const headers = Object.keys(data[0]);
+      const csvRows = data.map(row =>
+        headers.map(header => JSON.stringify(row[header], null, 2)).join(',')
+      );
+
+      return [headers.join(','), ...csvRows].join('\r\n');
+    };
+
+    // Convert combined data to CSV
+    const csvData = jsonToCsv(combinedData);
+
+    // Set the headers to indicate a file download
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename="all_exported_lines.csv"');
-    res.status(200).send(csvData);
+    res.setHeader('Content-Disposition', 'attachment; filename="combined_data.csv"');
+
+    // Send the CSV data
+    res.send(csvData);
   } catch (error) {
-    console.error('Failed to export all lines to CSV:', error);
-    res.status(500).json({ message: "Error exporting all lines to CSV." });
+    console.error('Failed to export data:', error);
+    res.status(500).send('Error exporting data to CSV.');
   }
 });
-
-
-
-
-
-module.exports = router;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
