@@ -1169,19 +1169,19 @@ useEffect(() => {
    </svg>
 </button>
 
-<aside id="default-sidebar" className="w-1/4" aria-label="Sidebar">
-   <div className="relative h-full px-3 py-4 overflow-y-auto bg-zinc-200">
+<aside id="default-sidebar" className="fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto bg-zinc-200 shadow-lg">
+   <div className="fixed inset-y-0 left-0 z-50 flex flex-col w-64 overflow-y-auto bg-zinc-200 shadow-xl">
       <ul className="space-y-2 font-medium">
          <li>
-         <a href="/admin" className="flex items-center p-2 rounded-lg hover:bg-zinc-100 group">
+         <a href="/admin" className="flex items-center p-2 space-x-3 rounded-lg hover:bg-zinc-100 group">
                <span className="ms-3 text-xl font-bold">Ecommerce</span>
             </a>
          </li>
          <li>
-         <a href="#" onClick={toggleTicketFormVisibility} className="flex items-center p-2 rounded-lg hover:bg-zinc-100 group">
+         <a href="#" onClick={toggleTicketFormVisibility} className="flex items-center p-2 space-x-3 rounded-lg hover:bg-zinc-100 group">
             <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#000000"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#000000"> </path> </g></svg>
-               <span className="flex-1 ms-3 whitespace-nowrap">Tickets</span>
-               <span className="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full  0">{tickets.length} items</span>
+               <span className="flex-1">Tickets</span>
+               <span className="inline-flex items-center justify-center w-6 h-6 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">{tickets.length} items</span>
             </a>
          </li>
          <li>
@@ -1216,9 +1216,10 @@ useEffect(() => {
       </ul>
    </div>
 </aside>
+<div className="ml-64 flex flex-col flex-grow">
 {/* List of tickets */}
 {isTicketListVisible && (
-  <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/3' : 'w-full'} bg-zinc-800 text-white`}>
+  <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/3' : 'w-full'} ml-auto bg-zinc-800 text-white transition-width duration-300 ease-in-out`}>
   <div className="p-4 flex justify-between items-center">
     <h2 className="text-xl font-bold">Tickets</h2>
     {!isTicketFormVisible && (
@@ -2603,6 +2604,7 @@ useEffect(() => {
     </div>
   </main>
 )}
+</div>
 </div>
     </>
   );
