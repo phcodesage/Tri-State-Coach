@@ -91,7 +91,7 @@ function CollegeShuttles() {
   }
 
   return (
-    <div className='h-screen'>
+    <div className='h-screen bg-amber-50'>
       <Navbar />
       <div className="container mx-auto px-4 py-6">
         <h1 className="text-center text-3xl font-bold my-6">College Shuttles</h1>

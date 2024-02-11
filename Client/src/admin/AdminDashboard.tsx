@@ -54,6 +54,7 @@ const [selectedLines, setSelectedLines] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
 const [isSelecting, setIsSelecting] = useState(false);
 const [selectedLineIds, setSelectedLineIds] = useState([]);
+const [isAllSelected, setIsALLSelected] = useState(false);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -118,16 +119,17 @@ const getLineStartDateForFilter = (filterValue) => {
 };
 
 const toggleLineSelection = (lineId) => {
-  if (selectedLines.includes(lineId)) {
-    setSelectedLines(selectedLines.filter((id) => id !== lineId));
+  const isSelected = selectedLines.includes(lineId);
+  if (isSelected) {
+    setSelectedLines(selectedLines.filter(id => id !== lineId));
   } else {
     setSelectedLines([...selectedLines, lineId]);
   }
 };
 
 const handleCancelClick = () => {
-  setIsSelectActive(false);
-  clearLineSelection();
+  setIsSelecting(false);
+  setSelectedLines([]);
 };
 
 const selectAllLines = () => {
@@ -1070,15 +1072,15 @@ const handleLineSelectClick = () => {
 
 
 const handleSelectClick = () => {
-  // Toggle selection logic here
-  if (selectedLines.length < lines.length) {
-    // If not all lines are selected, select all
-    setSelectedLines(lines.map((line) => line._id));
-  } else {
-    // If all lines are selected, clear selection
+  setIsSelecting(!isSelecting);
+  // Clear selections only when entering the selection mode
+  if (!isSelecting) {
     setSelectedLines([]);
   }
 };
+
+
+
 
 const handleExportClick = () => {
   // Export the selected lines to CSV
@@ -1184,21 +1186,35 @@ const toggleLineSelectMode = () => {
 };
 
 const handleLineSelect = (lineId) => {
-  if (selectedLineIds.includes(lineId)) {
-    setSelectedLineIds(selectedLineIds.filter(id => id !== lineId));
+  // Toggle selection
+  setSelectedLineIds(prevSelected => {
+    if (prevSelected.includes(lineId)) {
+      // Remove lineId from selection
+      return prevSelected.filter(id => id !== lineId);
+    } else {
+      // Add lineId to selection
+      return [...prevSelected, lineId];
+    }
+  });
+};
+
+
+const handleSelectAllLines = () => {
+  // If not all lines are currently selected, select them all
+  if (selectedLines.length < lines.length) {
+    setSelectedLines(lines.map(line => line._id));
   } else {
-    setSelectedLineIds([...selectedLineIds, lineId]);
+    // If all lines are currently selected, clear selection
+    setSelectedLines([]);
   }
 };
 
-const handleSelectAllLines = () => {
-  // If all lines are selected, deselect them, otherwise select all
-  if (selectedLineIds.length === lines.length) {
-    setSelectedLineIds([]);
-  } else {
-    setSelectedLineIds(lines.map(line => line._id));
-  }
+
+const isSelected = (lineId) => {
+  return selectedLines.includes(lineId);
 };
+
+
 
   return (
     <>
@@ -1269,7 +1285,9 @@ const handleSelectAllLines = () => {
         {/* Buttons go here */}
         <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-zinc-700" />
         <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Filter</button>
-        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Select</button>
+        {!isSelecting && (
+      <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleSelectClick}>Select</button>
+    )}
         <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Export</button>
         <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Import</button>
         <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Settings</button>
@@ -2156,73 +2174,37 @@ const handleSelectAllLines = () => {
 </div>
 <div className="flex-grow flex flex-row bg-zinc-800 text-white">
 {isLineListVisible && (
-
-   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
-      {/* Header with buttons */}
-      {!isLineFormVisible && (
-      <div className="flex justify-between items-center p-4 sticky top-0 z-10 bg-zinc-900 shadow">
-        <h2 className="text-xl font-bold">{selectedLines.length > 0 ? `${selectedLines.length} Line(s) selected` : 'Lines'}</h2>
+  <div className={`flex flex-col ${isLineFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
+    {/* Header with buttons */}
+    {!isLineFormVisible && (
+          <div className="flex justify-between items-center p-4 sticky top-0 z-10 bg-zinc-900 shadow">
+          <h2 className="text-xl font-bold">
+          {isSelecting ? `${selectedLines.length > 0 ? `${selectedLines.length} Line(s) selected` : 'Select Lines...'}` : 'Lines'}
+          </h2>
         <div className="flex space-x-2">
-          {selectedLines.length > 0 ? (
-            <>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleExportClick}>Export</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => deleteSelectedLines(selectedLines)}>Delete</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => draftSelectedLines(selectedLines)}>Draft</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => archiveSelectedLines(selectedLines)}>Archive</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleCancelClick}>Cancel</button>
-            </>
+        {isSelecting ? (
+                <>
+                {selectedLines.length > 0 && (
+                  <>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Export')}>Export</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Delete')}>Delete</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Draft')}>Draft</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Archive')}>Archive</button>
+                  </>
+                )}
+                <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleCancelClick}>Cancel</button>
+              </>
           ) : (
             <>
-              <input
-                type="text"
-                placeholder="Search lines..."
-                className="text-sm rounded p-2 bg-zinc-700"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-              <button
-                className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
-                onClick={handleFilterLineClick}
-              >
-                Filter
-              </button>
-              {/* Other buttons like select, import, export, settings */}
-              <button
-                className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
-                onClick={handleSelectClick}
-              >
-                Select
-              </button>
-              <button
-                className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
-                onClick={handleExportClick}
-              >
-                Export
-              </button>
-              <input
-                type="file"
-                className="hidden"
-                id="import-input"
-                onChange={handleImportClick}
-              />
-              <label
-                htmlFor="import-input"
-                className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded cursor-pointer"
-              >
-                Import
-              </label>
-              <button
-                className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded"
-                onClick={handleSettingsClick}
-              >
-                Settings
-              </button>
-              <button
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                onClick={() => { setIsLineFormVisible(true); resetLineFormStates(); }}
-              >
-                + New Line
-              </button>
+              {/* Buttons to show when not in selecting mode */}
+              <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-zinc-700" value={searchTerm} onChange={handleSearchChange} />
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterLineClick}>Filter</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleSelectClick}>Select</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleExportClick}>Export</button>
+              <input type="file" className="hidden" id="import-input" onChange={handleImportClick} />
+              <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Import</label>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleSettingsClick}>Settings</button>
+              <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={() => { setIsLineFormVisible(true); resetLineFormStates(); }}>+ New Line</button>
             </>
           )}
         </div>
@@ -2231,23 +2213,29 @@ const handleSelectAllLines = () => {
       {/* Lines table */}
       <div className="overflow-x-auto">
       <table className="min-w-full text-sm divide-zinc-200">
-          {isLineFormVisible ? (
-            <thead>
-              <tr>
+      <thead>
+          <tr>
+          {isSelecting && (
+          <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">
+        <input
+          type="checkbox"
+          checked={selectedLines.length === lines.length && lines.length > 0}
+          onChange={handleSelectAllLines}
+          disabled={lines.length === 0} // Optional: Disable if no lines are available
+        />
+      </th>
+          )}
+            {!isLineFormVisible && (
+              <>
                 <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Name</th>
-              </tr>
-            </thead>
-            ) : (
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Name</th>
-                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
-                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Products</th>
-                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Modified</th>
-                  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Published</th>
-                </tr>
-              </thead>
+                <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
+                <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Products</th>
+                <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Modified</th>
+                <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Published</th>
+              </>
             )}
+          </tr>
+        </thead>
           <tbody className=" divide-zinc-200">
   {loading ? (
     // Render multiple skeleton rows to match the expected number of data rows
@@ -2269,7 +2257,17 @@ const handleSelectAllLines = () => {
   ) : lines && lines.length > 0 ? (
     lines.map((line, index) => (
       line && line.name ? (
-        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'}`} onClick={() => handleEditLineClick(line)}>
+
+        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'}`} onClick={() => toggleLineSelection(line._id)}>
+    {isSelecting && (
+      <td className="px-4 py-2 whitespace-nowrap">
+        <input
+          type="checkbox"
+          checked={selectedLines.includes(line._id)}
+          onChange={() => toggleLineSelection(line._id)}
+        />
+      </td>
+    )}
           <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
           {!isLineFormVisible && (
             <>
