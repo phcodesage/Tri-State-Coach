@@ -52,6 +52,8 @@ const [originalLines, setOriginalLines] = useState([]);
 const [searchTerm, setSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
+const [isSelecting, setIsSelecting] = useState(false);
+const [selectedLineIds, setSelectedLineIds] = useState([]);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -59,7 +61,7 @@ const initialLineFilterCriteria = {
   created: 'All',
   modified: 'All'
 };
-
+const [isSelectActive, setIsSelectActive] = useState(false);
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 
@@ -117,12 +119,15 @@ const getLineStartDateForFilter = (filterValue) => {
 
 const toggleLineSelection = (lineId) => {
   if (selectedLines.includes(lineId)) {
-    // If already selected, remove it from the selection
     setSelectedLines(selectedLines.filter((id) => id !== lineId));
   } else {
-    // If not selected, add it to the selection
     setSelectedLines([...selectedLines, lineId]);
   }
+};
+
+const handleCancelClick = () => {
+  setIsSelectActive(false);
+  clearLineSelection();
 };
 
 const selectAllLines = () => {
@@ -154,7 +159,8 @@ const resetLineFormStates = () => {
 };
 
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
-const [isModalVisible, setIsModalVisible] = useState(false);
+const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
+const [isLineModalVisible, setIsLineModalVisible] = useState(false);
 const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
 // At the top of your component, create a ref for the form
@@ -917,7 +923,7 @@ interface ITicketFormData {
 
 
 // Function to reset all related form states
-const resetFormStates = () => {
+const resetTicketFormStates = () => {
   setTicketData(initialTicketData); // Reset ticketData to its initial state
   setSelectedTicket(null); // Clear any selected ticket
   setSelectedImage(null); // Clear selected image
@@ -925,10 +931,16 @@ const resetFormStates = () => {
   // Add any additional resets for other state variables here
 };
 
-const handleCancel = () => {
+const handleTicketCancel = () => {
   reset(); // This will reset react-hook-form fields
-  resetFormStates(); // This will reset custom state management
-  setIsModalVisible(false)
+  resetTicketFormStates(); // This will reset custom state management
+  setIsTicketModalVisible(false)
+};
+
+const handleLineCancel = () => {
+  reset(); // This will reset react-hook-form fields
+  resetLineFormStates(); // This will reset custom state management
+  setIsLineModalVisible(false)
 };
 
 const handleEditLineSubmission = async () => {
@@ -1049,6 +1061,12 @@ const applyLineFiltersBasedOnCriteria = () => {
 };
 
 
+const handleLineSelectClick = () => {
+  setIsSelectActive(!isSelectActive);
+  if (!isSelectActive) {
+    clearLineSelection();
+  }
+};
 
 
 const handleSelectClick = () => {
@@ -1159,6 +1177,29 @@ useEffect(() => {
   }
 }, [lastAction, lineStatus]); // Depend on lastAction and lineStatus
 
+const toggleLineSelectMode = () => {
+  setIsSelecting(!isSelecting);
+  // Optionally clear selections when exiting select mode
+  if (isSelecting) setSelectedLineIds([]);
+};
+
+const handleLineSelect = (lineId) => {
+  if (selectedLineIds.includes(lineId)) {
+    setSelectedLineIds(selectedLineIds.filter(id => id !== lineId));
+  } else {
+    setSelectedLineIds([...selectedLineIds, lineId]);
+  }
+};
+
+const handleSelectAllLines = () => {
+  // If all lines are selected, deselect them, otherwise select all
+  if (selectedLineIds.length === lines.length) {
+    setSelectedLineIds([]);
+  } else {
+    setSelectedLineIds(lines.map(line => line._id));
+  }
+};
+
   return (
     <>
     <div className="flex flex-row min-h-screen bg-zinc-900">
@@ -1218,6 +1259,7 @@ useEffect(() => {
 </aside>
 <div className="ml-64 flex flex-col flex-grow">
 {/* List of tickets */}
+<div className="flex-grow flex flex-row bg-zinc-800 text-white">
 {isTicketListVisible && (
   <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/3' : 'w-full'} ml-auto bg-zinc-800 text-white transition-width duration-300 ease-in-out`}>
   <div className="p-4 flex justify-between items-center">
@@ -1326,7 +1368,7 @@ useEffect(() => {
   {/* Cancel button */}
   <button
           className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
-          onClick={() => setIsModalVisible(true)}
+          onClick={() => setIsTicketModalVisible(true)}
         >
           Cancel
         </button>
@@ -1399,16 +1441,16 @@ useEffect(() => {
 
   {/* Header ends here */}
 
-  {isModalVisible && (
-  <div className="fixed inset-0 bg-zinc-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center">
+  {isTicketModalVisible && (
+  <div className="fixed inset-0 bg-zinc-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center" style={{zIndex: 999}}>
     <div className="bg-zinc-900 rounded-lg max-w-sm mx-auto p-4 shadow-lg">
       <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
       <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
       <div className="flex justify-end mt-4">
-        <button onClick={() => setIsModalVisible(false)} className="bg-zinc-800 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded-l">
+        <button onClick={() => setIsTicketModalVisible(false)} className="bg-zinc-800 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded-l">
           Keep editing
         </button>
-        <button onClick={handleCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
+        <button onClick={handleTicketCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
           Exit Without Saving
         </button>
       </div>
@@ -2111,15 +2153,32 @@ useEffect(() => {
 
 )}
 
-
+</div>
+<div className="flex-grow flex flex-row bg-zinc-800 text-white">
 {isLineListVisible && (
-  <>
-   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/3' : 'w-full'} bg-zinc-800 text-white`}>
+
+   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
       {/* Header with buttons */}
       {!isLineFormVisible && (
-      <div className="flex justify-between items-center p-4">
-        <h2 className="text-xl font-bold">Lines</h2>
+        
+        <div className="flex justify-between items-center p-4 sticky top-0 z-10 bg-zinc-900 shadow">
+        <h2 className="text-xl font-bold"> {selectedLines.length > 0 ? `${selectedLines.length} Line(s) selected` : 'Lines'}
+              </h2>
         <div className="flex space-x-2">
+        {selectedLines.length > 0 ? (
+                <>
+                  <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleExportClick}>Export</button>
+                  <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => deleteSelectedLines(selectedLines)}>Delete</button>
+                  <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => draftSelectedLines(selectedLines)}>Draft</button>
+                  <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => archiveSelectedLines(selectedLines)}>Archive</button>
+                  <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleCancelClick}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  {/* Search input and other buttons */}
+                  
+                </>
+              )}
           <input
   type="text"
   placeholder="Search lines..."
@@ -2319,6 +2378,7 @@ useEffect(() => {
           </button>
         </div>
       </div>
+      
     )}
 
       {/* Lines table */}
@@ -2417,11 +2477,28 @@ useEffect(() => {
     </table>
   </div>
 </div> 
-</>
+
+
 )}
 
 {isLineFormVisible && (
-  <main className="w-full bg-zinc-800 text-white p-4 overflow-y-auto">
+  <main className="w-4/5 p-4 overflow-y-auto">
+    {isLineModalVisible && (
+  <div className="fixed inset-0 bg-zinc-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center" style={{zIndex: 999}}>
+    <div className="bg-zinc-900 rounded-lg max-w-sm mx-auto p-4 shadow-lg">
+      <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
+      <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
+      <div className="flex justify-end mt-4">
+        <button onClick={() => setIsLineModalVisible(false)} className="bg-zinc-800 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded-l">
+          Keep editing
+        </button>
+        <button onClick={handleLineCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
+          Exit Without Saving
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     <div className="h-full bg-zinc-800 p-6 rounded-lg shadow-lg">
     <div className="flex items-center justify-between mb-8">
   {/* Back arrow and title */}
@@ -2442,7 +2519,7 @@ useEffect(() => {
   {/* Cancel button */}
   <button
           className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
-          onClick={() => setIsLineFormVisible(false)}
+          onClick={() => setIsLineModalVisible(true)}
         >
           Cancel
         </button>
@@ -2508,7 +2585,9 @@ useEffect(() => {
 </div>
 
 
-      <form onSubmit={handleSubmit(handleCreateLineSubmission)} className="space-y-6">
+
+
+      <form onSubmit={handleSubmit(handleCreateLineSubmission)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
         {/* Line Name Input */}
         <div>
           <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name <span className="text-red-700">*</span></label>
@@ -2544,11 +2623,8 @@ useEffect(() => {
 
 
         {/* Products Dropdown */}
-<div className="flex flex-col space-y-4">
-  <div className="flex flex-wrap">
+<div className="flex flex-col space-y-4" style={{ position: 'relative', zIndex: '0' }}>
 
-  </div>
-  <div>
     <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
     <Multiselect
   options={tickets}
@@ -2557,9 +2633,9 @@ useEffect(() => {
   onRemove={handleProductSelect}
   displayValue="name"
   placeholder="Select products"
-  className="   w-full" // Updated dark theme classes for the component
+  className="" // Updated dark theme classes for the component
   style={{
-
+    
     multiselectContainer: {
       // Styles for the container of the multiselect
       width: '100%',
@@ -2595,15 +2671,14 @@ useEffect(() => {
   }}
 />
 
-  </div>
+
 </div>
 
-
-      
       </form>
     </div>
   </main>
 )}
+</div>
 </div>
 </div>
     </>
