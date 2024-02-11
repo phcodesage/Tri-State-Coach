@@ -157,6 +157,7 @@ const resetLineFormStates = () => {
   setSelectedProducts([]);
   setCurrentLineId(null);
   setEditMode(false);
+  setLineName("");
   // Reset any additional state related to the line form here
 };
 
@@ -943,6 +944,7 @@ const handleLineCancel = () => {
   reset(); // This will reset react-hook-form fields
   resetLineFormStates(); // This will reset custom state management
   setIsLineModalVisible(false)
+  setIsLineFormVisible(false)
 };
 
 const handleEditLineSubmission = async () => {
@@ -2282,7 +2284,18 @@ const isSelected = (lineId) => {
     lines.map((line, index) => (
       line && line.name ? (
 
-        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'}`} onClick={() => toggleLineSelection(line._id)}>
+        <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
+          if (isSelecting) {
+            // Prevent the default action to allow checkbox toggling without entering edit mode
+            e.preventDefault();
+            // Toggle selection state of the line
+            toggleLineSelection(line._id);
+          } else {
+            // Not in selecting mode, handle entering edit mode
+            handleEditLineClick(line);
+          }
+        }}
+      >
     {isSelecting && (
       <td className="px-4 py-2 whitespace-nowrap">
         <input
@@ -2380,7 +2393,7 @@ const isSelected = (lineId) => {
   {/* Back arrow icon */}
   <SVGArrow />
 </button>
-    <h2 className="text-xl font-semibold text-white">{lineTitle || 'New Line'}</h2>
+    <h2 className="text-xl font-semibold text-white">{newLine.name || 'New Line'}</h2>
   </div>
 
   {/* Action Buttons */}
