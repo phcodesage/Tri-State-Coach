@@ -22,12 +22,21 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const Ticket = require('./models/Ticket');
 const Line = require('./models/Line')
 const authenticateToken = require('./middleware/authenticateToken')
+const router = express.Router();
 
 function calculateOrderAmount(items) {
   // For simplicity, let's assume each item has a 'price' field
   return items.reduce((total, item) => total + item.price, 0);
 }
 
+function jsonToCsv(jsonArray) {
+  if (jsonArray.length === 0) {
+    return '';
+  }
+  const headers = Object.keys(jsonArray[0]).join(',');
+  const rows = jsonArray.map(obj => Object.values(obj).join(','));
+  return [headers, ...rows].join('\n');
+}
 
 
 const app = express();
@@ -323,7 +332,56 @@ app.post('/api/lines/:id?', async (req, res) => {
   }
 });
 
+function jsonToCsv(jsonArray) {
+  if (jsonArray.length === 0) {
+    return '';
+  }
+  const headers = Object.keys(jsonArray[0]).join(',');
+  const rows = jsonArray.map(obj => {
+    return Object.values(obj).map(value => {
+      if (Array.isArray(value)) {
+        // Convert array of products to a string format or handle differently as needed
+        return `"${value.map(product => `Product ID: ${product.id}, Count: ${product.count}`).join('; ')}"`;
+      }
+      return `"${String(value).replace(/"/g, '""')}"`; // Escape quotes for CSV format
+    }).join(',');
+  });
+  return [headers, ...rows].join('\n');
+}
 
+
+// Endpoint to export all lines to CSV
+app.get('/api/export-all-lines', async (req, res) => {
+  try {
+    const lines = await Line.find({}).lean();
+    const csvData = jsonToCsv(lines.map(line => ({
+      id: line._id.toString(),
+      name: line.name,
+      slug: line.slug,
+      itemId: line.itemId,
+      created: line.created.toISOString(),
+      lastEdited: line.lastEdited.toISOString(),
+      lastPublished: line.lastPublished ? line.lastPublished.toISOString() : 'N/A',
+      status: line.status,
+      productsCount: line.productsCount,
+      // Assuming products is an array that needs special handling
+      products: line.products.map(p => `Product ID: ${p.id}, Count: ${p.count}`).join('; ')
+    })));
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="all_exported_lines.csv"');
+    res.status(200).send(csvData);
+  } catch (error) {
+    console.error('Failed to export all lines to CSV:', error);
+    res.status(500).json({ message: "Error exporting all lines to CSV." });
+  }
+});
+
+
+
+
+
+module.exports = router;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

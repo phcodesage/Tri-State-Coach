@@ -1082,11 +1082,29 @@ const handleSelectClick = () => {
 
 
 
-const handleExportClick = () => {
-  // Export the selected lines to CSV
-  // This is a simplified example and would need a proper CSV generation and download logic
+async function handleExportAllLines() {
+  try {
+    const response = await fetch('/api/export-all-lines');
+    if (!response.ok) {
+      throw new Error('Failed to export all lines');
+    }
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = 'all_exported_lines.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Error exporting all lines:', error);
+  }
+}
 
-};
+
+
+
+
 
 const handleImportClick = async (event) => {
   const file = event.target.files[0];
@@ -2186,7 +2204,7 @@ const isSelected = (lineId) => {
                 <>
                 {selectedLines.length > 0 && (
                   <>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Export')}>Export</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={(handleExportAllLines)}>Export</button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Delete')}>Delete</button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Draft')}>Draft</button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Archive')}>Archive</button>
@@ -2200,7 +2218,8 @@ const isSelected = (lineId) => {
               <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-zinc-700" value={searchTerm} onChange={handleSearchChange} />
               <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterLineClick}>Filter</button>
               <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleSelectClick}>Select</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleExportClick}>Export</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => handleExportAllLines()}>Export</button>
+
               <input type="file" className="hidden" id="import-input" onChange={handleImportClick} />
               <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Import</label>
               <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleSettingsClick}>Settings</button>
