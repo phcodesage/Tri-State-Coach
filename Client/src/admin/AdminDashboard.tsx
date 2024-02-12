@@ -1239,6 +1239,44 @@ const isSelected = (lineId) => {
   return selectedLines.includes(lineId);
 };
 
+const handleLineArchive = async (itemId) => {
+  // Example implementation: Update the line status to 'Archived'
+  try {
+    const response = await api.patch(`/lines/${itemId}`, { status: 'Archived' });
+    if (response.status === 200) {
+      // Assuming you have a function to refresh the lines list after archiving
+      fetchLines();
+    } else {
+      console.error('Failed to archive the line');
+    }
+  } catch (error) {
+    console.error('Error archiving line:', error);
+  }
+};
+
+
+
+const handleLineDelete = async (lineId) => {
+  try {
+    // Assuming you have an API endpoint to delete a line by its ID
+    const response = await axios.delete(`http://localhost:5000/api/lines/${lineId}`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`, // Make sure you're sending the authorization token if needed
+      },
+    });
+
+    if (response.status === 200) {
+      // If the deletion was successful, you might want to remove the line from your component's state
+      // This assumes you have a state variable `lines` that stores the list of lines
+      setLines(currentLines => currentLines.filter(line => line._id !== lineId));
+    } else {
+      // Handle any unsuccessful deletion here
+      console.error('Failed to delete the line');
+    }
+  } catch (error) {
+    console.error('Error deleting line:', error);
+  }
+};
 
 
   return (
@@ -1413,7 +1451,7 @@ const isSelected = (lineId) => {
 <div className="flex relative text-left">
   {/* Cancel button */}
   <button
-          className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
+          className="text-white bg-zinc-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
           onClick={() => setIsTicketModalVisible(true)}
         >
           Cancel
@@ -2577,7 +2615,7 @@ const isSelected = (lineId) => {
 )}
   {/* Cancel button */}
   <button
-          className="text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
+          className="text-white bg-zinc-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-zinc-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
           onClick={() => setIsLineModalVisible(true)}
         >
           Cancel
@@ -2734,6 +2772,30 @@ const isSelected = (lineId) => {
 </div>
 
       </form>
+    </div>
+    {/* Details Section */}
+    <div className="bg-zinc-800 p-4 text-white rounded mt-4">
+      <div className="mb-3">
+        <label className="font-semibold">Item ID</label>
+        <p>{automatedValues.itemId}</p>
+      </div>
+      <div className="mb-3">
+        <label className="font-semibold">Created</label>
+        <p>{new Date(automatedValues.created).toLocaleString()} by AI</p>
+      </div>
+      <div className="mb-3">
+        <label className="font-semibold">Last edited</label>
+        <p>{new Date(automatedValues.lastEdited).toLocaleString()} by AI</p>
+      </div>
+      <div className="mb-3">
+        <label className="font-semibold">Last published</label>
+        <p>{new Date(automatedValues.lastPublished).toLocaleString()} by AI</p>
+      </div>
+      <div className="flex gap-2">
+        <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={handleLineArchive}>Archive</button>
+        <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={handleLineDelete}>Delete</button>
+        <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded shadow" onClick={handleLineDuplicate}>Duplicate</button>
+      </div>
     </div>
   </main>
 )}
