@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
@@ -53,8 +53,10 @@ const [searchTerm, setSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
 const [isSelecting, setIsSelecting] = useState(false);
+const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+const [showReferenceError, setShowReferenceError] = useState(false);
+const [currentDeletingLine, setCurrentDeletingLine] = useState(null);
 const [selectedLineIds, setSelectedLineIds] = useState([]);
-const [isAllSelected, setIsALLSelected] = useState(false);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -66,7 +68,17 @@ const [isSelectActive, setIsSelectActive] = useState(false);
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 
-const SVGArrow = (props:any) => (
+interface SVGArrowProps {
+  className?: string; // Optional className for styling
+  viewBox?: string;   // Optional viewBox customization
+  xmlSpace?: string;  // Optional xmlSpace customization 
+  xmlns?: string;     // Optional xmlns customization
+  xmlnsXlink?: string;// Optional xmlnsXlink customization
+  fill?: string;      // Optional fill color override
+  [otherProps: string]: string; // Allow other HTML attributes
+}
+
+const SVGArrow = (props:SVGArrowProps) => (
   <svg
     className='w-6 h-6'
     viewBox="0 0 512 512"
@@ -980,23 +992,6 @@ const handleEditLineSubmission = async () => {
   }
 };
 
-const deleteLine = async (lineId) => {
-  try {
-    const response = await axios.delete(`http://localhost:5000/api/lines/${lineId}`, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
-    });
-
-    if (response.status === 200) {
-      // Filter out the deleted line from the state
-      setLines(currentLines => currentLines.filter(line => line._id !== lineId));
-      // Any other state updates needed post-deletion
-    }
-  } catch (error) {
-    console.error('Error deleting line:', error);
-  }
-};
 
 useEffect(() => {
   // Debounce the search for better performance
@@ -1239,16 +1234,14 @@ const isSelected = (lineId) => {
   return selectedLines.includes(lineId);
 };
 
-const handleLineArchive = async (itemId) => {
-  // Example implementation: Update the line status to 'Archived'
+const handleLineArchive = async (lineId) => {
   try {
-    const response = await api.patch(`/lines/${itemId}`, { status: 'Archived' });
-    if (response.status === 200) {
-      // Assuming you have a function to refresh the lines list after archiving
-      fetchLines();
-    } else {
-      console.error('Failed to archive the line');
-    }
+    const response = await axios.patch(`http://localhost:5000/api/lines/${lineId}`, {
+      status: 'Archived',
+    }, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    });
+    // Update state based on response...
   } catch (error) {
     console.error('Error archiving line:', error);
   }
@@ -1258,25 +1251,47 @@ const handleLineArchive = async (itemId) => {
 
 const handleLineDelete = async (lineId) => {
   try {
-    // Assuming you have an API endpoint to delete a line by its ID
-    const response = await axios.delete(`http://localhost:5000/api/lines/${lineId}`, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`, // Make sure you're sending the authorization token if needed
-      },
-    });
-
-    if (response.status === 200) {
-      // If the deletion was successful, you might want to remove the line from your component's state
-      // This assumes you have a state variable `lines` that stores the list of lines
+    // Ensure authToken is retrieved correctly
+    const response = await axios.delete(`http://localhost:5000/api/lines/${lineId}`);
+    if (response.status === 204) { // Assuming 204 No Content for successful deletion
+      // Remove the deleted line from the local state to update UI
       setLines(currentLines => currentLines.filter(line => line._id !== lineId));
     } else {
-      // Handle any unsuccessful deletion here
       console.error('Failed to delete the line');
     }
   } catch (error) {
     console.error('Error deleting line:', error);
+    // Optionally, display an error message to the user
   }
 };
+
+
+
+const handleLineDuplicate = async (lineId) => {
+  console.log("Attempting to duplicate line with ID:", lineId);
+  console.log("Available lines:", lines);
+  const lineToDuplicate = lines.find(line => line._id === lineId);
+  if (!lineToDuplicate) {
+    console.error('Line to duplicate not found');
+    return;
+  }
+  const newLineData = { ...lineToDuplicate, name: `${lineToDuplicate.name} (Copy)`, _id: undefined };
+  try {
+    const response = await axios.post('http://localhost:5000/api/lines', newLineData, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    });
+    if (response.status === 200 || response.status === 201) {
+      // Add the new line to the local state
+      setLines(currentLines => [...currentLines, response.data]);
+    } else {
+      console.error('Failed to create a duplicate line');
+    }
+  } catch (error) {
+    console.error('Error duplicating line:', error);
+  }
+};
+
+
 
 
   return (
@@ -1349,9 +1364,9 @@ const handleLineDelete = async (lineId) => {
       <div className="flex items-center">
         {/* Buttons go here */}
         <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-zinc-700" />
-        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterLineClick}>Filter</button>
+        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterTicketClick}>Filter</button>
         {!isSelecting && (
-      <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleSelectClick}>Select</button>
+      <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSelectClick}>Select</button>
     )}
         <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Export</button>
         <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Import</button>
@@ -2552,7 +2567,8 @@ const handleLineDelete = async (lineId) => {
 )}
 
 {isLineFormVisible && (
-  <main className="w-4/5 p-4 overflow-y-auto">
+  
+  <main className="w-4/5 p-4 sticky top-0 z-10">
     {isLineModalVisible && (
   <div className="fixed inset-0 bg-zinc-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center" style={{zIndex: 999}}>
     <div className="bg-zinc-900 rounded-lg max-w-sm mx-auto p-4 shadow-lg">
@@ -2770,14 +2786,13 @@ const handleLineDelete = async (lineId) => {
 
 
 </div>
-
       </form>
-    </div>
-    {/* Details Section */}
-    <div className="bg-zinc-800 p-4 text-white rounded mt-4">
+             {/* Details Section */}
+             {editMode && (
+       <div className="bg-zinc-800 p-4 text-white rounded mt-4">
       <div className="mb-3">
         <label className="font-semibold">Item ID</label>
-        <p>{automatedValues.itemId}</p>
+        <p>{newLine.itemId}</p>
       </div>
       <div className="mb-3">
         <label className="font-semibold">Created</label>
@@ -2792,11 +2807,17 @@ const handleLineDelete = async (lineId) => {
         <p>{new Date(automatedValues.lastPublished).toLocaleString()} by AI</p>
       </div>
       <div className="flex gap-2">
-        <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={handleLineArchive}>Archive</button>
-        <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={handleLineDelete}>Delete</button>
-        <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded shadow" onClick={handleLineDuplicate}>Duplicate</button>
+        <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={() => handleLineArchive(currentLineId)}>Archive</button>
+        <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={() => handleLineDelete(currentLineId)}>Delete</button>
+        <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded shadow" onClick={() => handleLineDuplicate(currentLineId)}>Duplicate</button>
+
+
       </div>
     </div>
+       )}
+    </div>
+   
+
   </main>
 )}
 </div>

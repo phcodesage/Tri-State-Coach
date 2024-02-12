@@ -292,14 +292,22 @@ app.patch('/api/lines/:id', async (req, res) => {
 
 
 // Endpoint to delete a line
-app.delete('/api/lines/:id', authenticateToken, async (req, res) => {
+app.delete('/api/lines/:id', async (req, res) => {
+  console.log("Attempting to delete line with ID:", req.params.id); // Log the ID being requested for deletion
   try {
-    await Line.findByIdAndRemove(req.params.id);
+    const result = await mongoose.connection.collection('lines').deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
+    console.log("Deletion result:", result); // Log the deletion result
+    if (result.deletedCount === 0) {
+      return res.status(404).send('Line not found');
+    }
     res.status(204).send();
   } catch (error) {
+    console.error('Error deleting line:', error);
     res.status(500).send('Error deleting line');
   }
 });
+
+
 
 // Endpoint to duplicate a line
 // Endpoint to update or create a line
