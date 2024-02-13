@@ -1435,7 +1435,7 @@ const cancelLineFormDelete = () => {
     {!isTicketFormVisible && (
           <div className="flex justify-between items-center p-4 sticky top-0 z-10 bg-zinc-900 shadow">
           <h2 className="text-xl font-bold">
-          {isTicketSelecting ? `${selectedTickets.length > 0 ? `${selectedTickets.length} Tickets(s) selected` : 'Select Tickets...'}` : 'Lines'}
+          {isTicketSelecting ? `${selectedTickets.length > 0 ? `${selectedTickets.length} Tickets(s) selected` : 'Select Tickets...'}` : 'Tickets'}
           </h2>
         <div className="flex space-x-2">
         {isTicketSelecting ? (
@@ -1468,37 +1468,6 @@ const cancelLineFormDelete = () => {
       </div>
     
     )} 
-    <div className="p-4 flex justify-between items-center">
-      
-      <h2 className="text-xl font-bold">Tickets</h2>
-      {!isTicketFormVisible && (
-        <div className="flex items-center">
-          {/* Buttons go here */}
-          <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-zinc-700" />
-          <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterTicketClick}>Filter</button>
-          {!isSelecting && (
-        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSelectClick}>Select</button>
-      )}
-          <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Export</button>
-          <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Import</button>
-          <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Settings</button>
-          <button
-    className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-    onClick={() => {
-      // Show the ticket form
-      setIsTicketFormVisible(true);
-      // Reset form fields using react-hook-form's reset function
-      reset();
-      // Reset custom state management for the ticket data
-      setTicketData(initialTicketData);
-      // Additionally, reset any other state variables related to the ticket form here
-    }}
-  >
-            + New Ticket
-          </button>
-        </div>
-      )}
-    </div>
       <ul className="overflow-y-auto">
       <div className="overflow-x-auto">
         
@@ -1513,7 +1482,7 @@ const cancelLineFormDelete = () => {
               <th className="text-left font-medium">Product Type</th>
               <th className="text-left font-medium">Modified</th>
               <th className="text-left font-medium">Published</th>
-              <th className="text-left font-medium">Actions</th>
+
               </>
               )}
             </tr>
