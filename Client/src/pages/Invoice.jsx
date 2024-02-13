@@ -11,25 +11,11 @@ const stripePromise = loadStripe('pk_test_51OaMmnHFYyVMKiryTaCSRaF697lsoem17nQxP
 
 
 function Invoice() {
-    interface FormData {
-        invoiceNumber: string;
-        notes: string;
-        stopSelection: string;
-        studentName: string;
-        studentEmail: string;
-        studentPhone: string;
-        parentName: string;
-        parentEmail: string;
-        parentPhone: string; // Add the missing property
-        destination: string;
-        pickupLocation: string;
-        // Add more form fields as needed
-      }
     const [isAgreed, setIsAgreed] = useState(false);
     const [step, setStep] = useState(1);
     const [amount, setAmount] = useState(1)
     const [clientSecret, setClientSecret] = useState('');
-    const [formData, setFormData] = useState<FormData>({
+    const [formData, setFormData] = useState({
         invoiceNumber: '',
         notes: '',
         stopSelection: 'default',
@@ -46,7 +32,7 @@ function Invoice() {
     const { register, handleSubmit, formState: { errors } } = useForm({
         mode: "onBlur" // This will trigger validation on blur
     });
-    const handleInputChange = (e:any) => {
+    const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prevState => ({
             ...prevState,
@@ -59,12 +45,12 @@ function Invoice() {
         }
     };
 
-    const onFormSubmit = (data:any) => {
+    const onFormSubmit = (data) => {
         console.log(data);
         goToNextStep();
     };
 
-    const handleAmountChange = (e:any) => {
+    const handleAmountChange = (e) => {
         const value = e.target.value.replace(/[^0-9]/g, ''); // Remove any non-numeric characters
         setAmount(Number(value));
     };

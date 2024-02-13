@@ -39,7 +39,7 @@ export default function Navbar() {
     
   ];
   
-  function classNames(...classes:any) {
+  function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
   }
   return (

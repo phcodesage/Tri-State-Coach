@@ -8,7 +8,7 @@ import Multiselect from 'multiselect-react-dropdown';
 
 
 
-const AdminDashboard: React.FC = () => {
+const AdminDashboard = () => {
 const authToken = localStorage.getItem('token');
 const navigate = useNavigate();
 const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -57,6 +57,9 @@ const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 const [showReferenceError, setShowReferenceError] = useState(false);
 const [currentDeletingLine, setCurrentDeletingLine] = useState(null);
 const [selectedLineIds, setSelectedLineIds] = useState([]);
+const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
+const [showCannotDeleteModal, setShowCannotDeleteModal] = useState(false);
+const [lineToDelete, setLineToDelete] = useState(null);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -68,17 +71,8 @@ const [isSelectActive, setIsSelectActive] = useState(false);
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 
-interface SVGArrowProps {
-  className?: string; // Optional className for styling
-  viewBox?: string;   // Optional viewBox customization
-  xmlSpace?: string;  // Optional xmlSpace customization 
-  xmlns?: string;     // Optional xmlns customization
-  xmlnsXlink?: string;// Optional xmlnsXlink customization
-  fill?: string;      // Optional fill color override
-  [otherProps: string]: string; // Allow other HTML attributes
-}
 
-const SVGArrow = (props:SVGArrowProps) => (
+const SVGArrow = (props) => (
   <svg
     className='w-6 h-6'
     viewBox="0 0 512 512"
@@ -205,13 +199,13 @@ const [automatedValues, setAutomatedValues] = useState({
   lastPublished: '',
 });
 
-const handleLineSlugChange = (e:any) => {
+const handleLineSlugChange = (e) => {
   const newSlug = e.target.value;
   setNewLine({ ...newLine, slug: newSlug });
   setValue('slug', newSlug); // Update the slug in the form
 };
 
-const handleTicketSlugChange = (e:any) => {
+const handleTicketSlugChange = (e) => {
   const newTicketSlug = e.target.value;
 
   setValue('slug', newTicketSlug); // Update the slug in the form
@@ -238,7 +232,7 @@ useEffect(() => {
 
 
 
-const handleEditLineClick = async (line:any) => {
+const handleEditLineClick = async (line) => {
   setCurrentLineId(line._id); // Save the editing line's ID
 
   // Map the line's product IDs to the full product objects including names
@@ -348,7 +342,7 @@ const checkTokenExpiration = (response) => {
   }
 };
 
-const handleImageChange = (e:any) => {
+const handleImageChange = (e) => {
   if (e.target.files && e.target.files[0]) {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -512,7 +506,7 @@ const createSlug = (name) => {
 
 
 // Handler for when the name input changes
-const handleNameChange = (e:any) => {
+const handleNameChange = (e) => {
   const name = e.target.value;
   const slug = createSlug(name);
   setNewLine({ ...newLine, name, slug });
@@ -870,34 +864,9 @@ const handleTicketInputChange = (event) => {
 };
 
 
-interface ITicketFormProps {
-  initialData?: ITicketFormData; // Optional, for edit mode
-  onSubmit: (data: ITicketFormData) => void; // Function to call on form submit
-}
 
-interface ITicketFormData {
-  productType: 'Physical' | 'Digital' | 'Service' | 'Advance';
-  name: string;
-  slug: string;
-  description: string;
-  categories: string[];
-  images: string[];
-  price: number;
-  compareAtPrice?: number;
-  sku: string;
-  trackInventory: boolean;
-  inventoryQuantity?: number;
-  inventoryPolicy?: string;
-  requiresShipping: boolean;
-  createdOn?: Date;
-  updatedOn?: Date;
-  publishedOn?: Date;
-}
-
-
-  
   // Example submit function
-  const onTicketSubmit: SubmitHandler<ITicketFormData> = async (data) => {
+  const onTicketSubmit = async (data) => {
     if (TicketformRef.current) {
       // This triggers the form submission
       TicketformRef.current.submit();
@@ -924,11 +893,11 @@ interface ITicketFormData {
 
   useEffect(() => {
     // Assume this data comes from somewhere, like an edit button click
-    const ticketDataToEdit: ITicketFormData | null = null; // Placeholder for actual data
+    const ticketDataToEdit = null; // Placeholder for actual data
     
     if (ticketDataToEdit) {
       Object.keys(ticketDataToEdit).forEach((fieldName) => {
-        setValue(fieldName as keyof ITicketFormData, ticketDataToEdit[fieldName]);
+        setValue(fieldName , ticketDataToEdit[fieldName]);
       });
     }
   }, [setValue]);
@@ -1248,25 +1217,6 @@ const handleLineArchive = async (lineId) => {
 };
 
 
-
-const handleLineDelete = async (lineId) => {
-  try {
-    // Ensure authToken is retrieved correctly
-    const response = await axios.delete(`http://localhost:5000/api/lines/${lineId}`);
-    if (response.status === 204) { // Assuming 204 No Content for successful deletion
-      // Remove the deleted line from the local state to update UI
-      setLines(currentLines => currentLines.filter(line => line._id !== lineId));
-    } else {
-      console.error('Failed to delete the line');
-    }
-  } catch (error) {
-    console.error('Error deleting line:', error);
-    // Optionally, display an error message to the user
-  }
-};
-
-
-
 const handleLineDuplicate = async (lineId) => {
   console.log("Attempting to duplicate line with ID:", lineId);
   console.log("Available lines:", lines);
@@ -1291,8 +1241,31 @@ const handleLineDuplicate = async (lineId) => {
   }
 };
 
+const initiateDeleteLine = (lineId) => {
+  setLineToDelete(lineId);
+  setShowDeleteConfirmationModal(true);
+};
 
+// Call this function to confirm the deletion
+const confirmDeleteLine = async () => {
+  if (lineToDelete) {
+    try {
+      const response = await axios.delete(`http://localhost:5000/api/lines/${lineToDelete}`);
+      if (response.status === 204) {
+        // Remove the line from the state
+        setLines(lines.filter((line) => line._id !== lineToDelete));
+        // Close the modal
+        setShowDeleteConfirmationModal(false);
+      }
+    } catch (error) {
+      console.error('Error deleting line:', error);
+    }
+  }
+};
 
+const cancelLineFormDelete = () => {
+  setShowDeleteConfirmationModal(false);
+};
 
   return (
     <>
@@ -1423,7 +1396,7 @@ const handleLineDuplicate = async (lineId) => {
               <td className="p-2 text-left">
                 <button
                   type="button"
-                  onClick={(e:any) => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     pinTicket(ticket._id);
                   }}
@@ -1787,7 +1760,7 @@ const handleLineDuplicate = async (lineId) => {
       name="trackInventory"
       className="sr-only peer"
       checked={ticketData.trackInventory}
-      onChange={(e:any) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
+      onChange={(e) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
     />
     <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300  rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc after:border-zinc-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all  peer-checked:bg-blue-600"></div>
     <span className="ml-3 text-sm font-medium text-white e">
@@ -2808,13 +2781,49 @@ const handleLineDuplicate = async (lineId) => {
       </div>
       <div className="flex gap-2">
         <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={() => handleLineArchive(currentLineId)}>Archive</button>
-        <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={() => handleLineDelete(currentLineId)}>Delete</button>
+        <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={() => initiateDeleteLine(currentLineId)}>Delete</button>
         <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded shadow" onClick={() => handleLineDuplicate(currentLineId)}>Duplicate</button>
 
 
       </div>
     </div>
        )}
+
+{showDeleteConfirmationModal && (
+        <div className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+          <div className="relative p-4 w-full max-w-md max-h-full">
+            <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
+              <button
+                type="button"
+                className="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                onClick={cancelLineFormDelete}
+              >
+                {/* Close icon */}
+              </button>
+              <div className="p-4 md:p-5 text-center">
+                {/* Alert icon */}
+                <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+                  Are you sure you want to delete this product?
+                </h3>
+                <button
+                  type="button"
+                  className="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2"
+                  onClick={confirmDeleteLine}
+                >
+                  Yes, I'm sure
+                </button>
+                <button
+                  type="button"
+                  className="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
+                  onClick={cancelLineFormDelete}
+                >
+                  No, cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
    
 

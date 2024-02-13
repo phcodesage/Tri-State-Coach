@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import busImage from '../assets/two-regency-busses-parked-with-each-other.jpg';
 import { useForm } from 'react-hook-form';
 
-function classNames(...classes:any) {
+function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 

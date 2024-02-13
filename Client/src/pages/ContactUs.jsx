@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { Switch } from '@headlessui/react';
 
-function classNames(...classes:any) {
+function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 

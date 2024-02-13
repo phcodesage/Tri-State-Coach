@@ -1,16 +1,16 @@
-import Home from './pages/Home'
-import AboutUs from './pages/AboutUs'
-import Chartering from './pages/Chartering'
-import CollegeShuttles from './pages/CollegeShuttles'
-import GetAQuote from './pages/GetAQuote'
-import ContactUs from './pages/ContactUs'
-import Invoice from './pages/Invoice'
-import Services from './pages/Services'
-import TermsOfService from './pages/TermsOfService'
-import PrivacyPolicy from './pages/PrivacyPolicy'
-import NotFoundPage from './pages/NotFoundPage'
-import Login from './admin/login'
-import AdminDashboard from './admin/AdminDashboard'
+import Home from './pages/Home.jsx'; // The .jsx extension is optional
+import AboutUs from './pages/AboutUs';
+import Chartering from './pages/Chartering';
+import CollegeShuttles from './pages/CollegeShuttles';
+import GetAQuote from './pages/GetAQuote';
+import ContactUs from './pages/ContactUs';
+import Invoice from './pages/Invoice';
+import Services from './pages/Services';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import NotFoundPage from './pages/NotFoundPage';
+import Login from './admin/login';
+import AdminDashboard from './admin/AdminDashboard';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 
