@@ -49,9 +49,12 @@ const [finalDropOffLocationReturn, setFinalDropOffLocationReturn] = useState('')
 const [suggestedTipForDriverReturn, setSuggestedTipForDriverReturn] = useState('');
 const [originalLines, setOriginalLines] = useState([]);
 const [searchTerm, setSearchTerm] = useState('');
+const [searchTicketTerm, setTicketSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
+const [selectedTickets, setSelectedTickets] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
 const [isSelecting, setIsSelecting] = useState(false);
+const [isTicketSelecting, setIsTicketSelecting] = useState(false);
 const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 const [showReferenceError, setShowReferenceError] = useState(false);
 const [currentDeletingLine, setCurrentDeletingLine] = useState(null);
@@ -69,6 +72,7 @@ const initialLineFilterCriteria = {
   modified: 'All'
 };
 const [isSelectActive, setIsSelectActive] = useState(false);
+const [isTicketSelectActive, setIsTicketSelectActive] = useState(false);
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 
@@ -108,6 +112,11 @@ const handleSearchChange = (event) => {
   setSearchTerm(value);
 };
 
+const handleTicketSearchChange = (event) => {
+  const { value } = event.target;
+  setTicketSearchTerm(value);
+};
+
 // Helper function to convert filter option to the actual start date
 // Helper function to convert filter option to the actual start date
 const getLineStartDateForFilter = (filterValue) => {
@@ -134,9 +143,23 @@ const toggleLineSelection = (lineId) => {
   }
 };
 
-const handleCancelClick = () => {
+const toggleTicketSelection = (lineId) => {
+  const isTicketSelected = selectedTickets.includes(ticketId);
+  if (isTicketSelected) {
+    setSelectedTickets(selectedTickets.filter(id => id !== ticketId));
+  } else {
+    setSelectedTickets([...selectedTickets, lineId]);
+  }
+};
+
+const handleLineCancelClick = () => {
   setIsSelecting(false);
   setSelectedLines([]);
+};
+
+const handleTicketCancelClick = () => {
+  setIsTicketSelecting(false);
+  setSelectedTickets([]);
 };
 
 const selectAllLines = () => {
@@ -982,6 +1005,25 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [searchTerm]);
 
+useEffect(() => {
+  // Debounce the search for better performance
+  const timeoutId = setTimeout(() => {
+    if (searchTicketTerm.trim() === '') {
+      // If the search term is empty, reset the lines to the default
+      fetchLines();
+    } else {
+      // Filter lines based on the search term
+      const filteredLines = lines.filter((line) =>
+        line.name.toLowerCase().includes(searchTicketTerm.toLowerCase())
+      );
+      setLines(filteredLines);
+    }
+  }, 500); // Wait 500ms after the user stops typing before applying the search
+
+  // Cleanup the timeout on component unmount
+  return () => clearTimeout(timeoutId);
+}, [searchTicketTerm]);
+
 const handleFilterTicketClick = () => {
   setIsLineFilterModalVisible(true);
 
@@ -995,41 +1037,50 @@ const handleFilterLineClick = () => {
 };
 
 
-
 const handleLineFilterCloseModal = () => {
   setIsLineFilterModalVisible(false);
+};
+
+const handleTicketFilterCloseModal = () => {
+  setIsTicketFilterModalVisible(false);
 };
 
 const handleLineResetFilters = () => {
   setLineFilterCriteria(initialLineFilterCriteria);
   fetchLines();
 };
+
+const handleTicketResetFilters = () => {
+  setTicketFilterCriteria(initialLineFilterCriteria);
+  fetchLines();
+};
+
 const handleLineApplyFilters = () => {
   setIsLineFilterModalVisible(false); // Close the modal after applying filters
   applyLineFiltersBasedOnCriteria(); // Apply the filters based on current criteria
 };
 
+const handleTicketApplyFilters = () => {
+  setIsTicketFilterModalVisible(false); // Close the modal after applying filters
+  applyTicketFiltersBasedOnCriteria(); // Apply the filters based on current criteria
+};
+
 const applyLineFiltersBasedOnCriteria = () => {
   setLoading(true); // Indicate the start of a filtering operation
-
   const filteredLines = originalLines.filter((line) => {
     const matchesStatus = LineFilterCriteria.status === 'All' || line.status === LineFilterCriteria.status;
-
     // Convert line dates from strings to Date objects if necessary
     const linePublishedDate = new Date(line.lastPublished);
     const lineCreatedDate = new Date(line.created);
     const lineLastEditedDate = new Date(line.lastEdited);
-
     // Calculate start dates for each filter option
     const publishedStart = getLineStartDateForFilter(LineFilterCriteria.published);
     const createdStart = getLineStartDateForFilter(LineFilterCriteria.created);
     const modifiedStart = getLineStartDateForFilter(LineFilterCriteria.modified);
-
     // Check if the line matches the date filters
     const matchesPublished = LineFilterCriteria.published === 'All' || linePublishedDate >= publishedStart;
     const matchesCreated = LineFilterCriteria.created === 'All' || lineCreatedDate >= createdStart;
     const matchesModified = LineFilterCriteria.modified === 'All' || lineLastEditedDate >= modifiedStart;
-
     return matchesStatus && matchesPublished && matchesCreated && matchesModified;
   });
 
@@ -1037,23 +1088,30 @@ const applyLineFiltersBasedOnCriteria = () => {
   setLoading(false); // Indicate the end of the filtering operation
 };
 
+const applyTicketFiltersBasedOnCriteria = () => {
+  setTicketLoading(true); // Indicate the start of a filtering operation
+  const filteredTickets = originalTickets.filter((ticket) => {
+    const matchesTicketStatus = TicketFilterCriteria.status === 'All' || ticket.status === TicketFilterCriteria.status;
+    // Convert line dates from strings to Date objects if necessary
+    const ticketPublishedDate = new Date(ticket.lastPublished);
+    const ticketCreatedDate = new Date(ticket.created);
+    const ticketLastEditedDate = new Date(ticket.lastEdited);
+    // Calculate start dates for each filter option
+    const publishedTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.published);
+    const createdTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.created);
+    const modifiedTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.modified);
+    // Check if the line matches the date filters
+    const matchesTicketPublished = TicketFilterCriteria.published === 'All' || ticketPublishedDate >= ticketPublishedStart;
+    const matchesTicketCreated = TicketFilterCriteria.created === 'All' || ticketCreatedDate >= createdStart;
+    const matchesTicketModified = TicketFilterCriteria.modified === 'All' || ticketLastEditedDate >= modifiedStart;
+    return matchesTicketStatus && matchesTicketPublished && matchesTicketCreated && matchesTicketModified;
+  });
+
+  setTickets(filteredLines); // Update the state with the filtered lines
+  setTicketLoading(false); // Indicate the end of the filtering operation
+};
 
 const handleLineSelectClick = () => {
-  setIsSelectActive(!isSelectActive);
-  if (!isSelectActive) {
-    clearLineSelection();
-  }
-};
-
-const handleTicketSelectClick = () => {
-  setIsTicketSelectActive(!isSelectActive);
-  if (!isSelectActive) {
-    clearTicketSelection();
-  }
-};
-
-
-const handleSelectClick = () => {
   setIsSelecting(!isSelecting);
   // Clear selections only when entering the selection mode
   if (!isSelecting) {
@@ -1061,8 +1119,13 @@ const handleSelectClick = () => {
   }
 };
 
-
-
+const handleTicketSelectClick = () => {
+  setIsTicketSelecting(!isTicketSelecting);
+  // Clear selections only when entering the selection mode
+  if (!isTicketSelecting) {
+    setSelectedTickets([]);
+  }
+};
 
 async function handleExportAllLines() {
   try {
@@ -1093,13 +1156,24 @@ async function handleExportAllLines() {
 
 
 
-const handleImportClick = async (event) => {
+const handleLineImportClick = async (event) => {
   const file = event.target.files[0];
   // Implement the logic to read the file and import the data
 
 };
 
-const handleSettingsClick = () => {
+const handleTicketImportClick = async (event) => {
+  const file = event.target.files[0];
+  // Implement the logic to read the file and import the data
+
+};
+
+const handleLineSettingsClick = () => {
+  // Navigate to settings page or open settings modal
+
+};
+
+const handleTicketSettingsClick = () => {
   // Navigate to settings page or open settings modal
 
 };
@@ -1214,6 +1288,15 @@ const handleSelectAllLines = () => {
   }
 };
 
+const handleSelectAllTickets = () => {
+  // If not all lines are currently selected, select them all
+  if (selectedTickets.length < tickets.length) {
+    setSelectedTickets(tickets.map(ticket => ticket._id));
+  } else {
+    // If all lines are currently selected, clear selection
+    setSelectedTickets([]);
+  }
+};
 
 const isSelected = (lineId) => {
   return selectedLines.includes(lineId);
@@ -1343,907 +1426,946 @@ const cancelLineFormDelete = () => {
 </aside>
 <div className="ml-64 flex flex-col flex-grow">
 {/* List of tickets */}
-<div className="flex-grow flex flex-row bg-zinc-800 text-white">
-{isTicketListVisible && (
-  <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
-    
-  <div className="p-4 flex justify-between items-center">
-    
-    <h2 className="text-xl font-bold">Tickets</h2>
+{!isLineListVisible && (
+  <div className="flex-grow flex flex-row bg-zinc-800 text-white">
+  {isTicketListVisible && (
+    <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
+     
+     {/* Header with buttons */}
     {!isTicketFormVisible && (
-      <div className="flex items-center">
-        {/* Buttons go here */}
-        <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-zinc-700" />
-        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterTicketClick}>Filter</button>
-        {!isSelecting && (
-      <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSelectClick}>Select</button>
-    )}
-        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Export</button>
-        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Import</button>
-        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Settings</button>
-        <button
-  className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-  onClick={() => {
-    // Show the ticket form
-    setIsTicketFormVisible(true);
-    // Reset form fields using react-hook-form's reset function
-    reset();
-    // Reset custom state management for the ticket data
-    setTicketData(initialTicketData);
-    // Additionally, reset any other state variables related to the ticket form here
-  }}
->
-          + New Ticket
-        </button>
-      </div>
-    )}
-  </div>
-    <ul className="overflow-y-auto">
-    <div className="overflow-x-auto">
-      
-      <table className="min-w-full text-sm  divide-zinc-200">
-        <thead>
-          <tr>
-            <th className="text-left font-medium">Name</th>
-            {!isTicketFormVisible && (
-              <>
-            <th className="text-left font-medium">Status</th>
-            <th className="text-left font-medium">Price</th>
-            <th className="text-left font-medium">Product Type</th>
-            <th className="text-left font-medium">Modified</th>
-            <th className="text-left font-medium">Published</th>
-            <th className="text-left font-medium">Actions</th>
+          <div className="flex justify-between items-center p-4 sticky top-0 z-10 bg-zinc-900 shadow">
+          <h2 className="text-xl font-bold">
+          {isTicketSelecting ? `${selectedTickets.length > 0 ? `${selectedTickets.length} Tickets(s) selected` : 'Select Tickets...'}` : 'Lines'}
+          </h2>
+        <div className="flex space-x-2">
+        {isTicketSelecting ? (
+                <>
+                {selectedTickets.length > 0 && (
+                  <>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={(handleExportAllTickets)}>Export</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Delete')}>Delete</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Draft')}>Draft</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Archive')}>Archive</button>
+                  </>
+                )}
+                <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleTicketCancelClick}>Cancel</button>
+              </>
+          ) : (
+            <>
+              {/* Buttons to show when not in selecting mode */}
+              <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-zinc-700" value={searchTicketTerm} onChange={handleTicketSearchChange} />
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterTicketClick}>Filter</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSelectClick}>Select</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => handleExportAllLines()}>Export</button>
+
+              <input type="file" className="hidden" id="import-input" onChange={handleTicketImportClick} />
+              <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Import</label>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSettingsClick}>Settings</button>
+              <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={() => { setIsLineFormVisible(true); resetLineFormStates(); }}>+ New Ticket</button>
             </>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {tickets.map((ticket, index) => (
-            <tr
-              key={ticket._id}
-              style={{ backgroundColor: index % 2 === 0 ? '#292929' : '#2D2D2D' }}
-              onClick={() => handleTicketSelect(ticket)}
-              className="hover:bg-zinc-700 cursor-pointer"
-            >
-              <td className="p-2">{ticket.name}</td>
-              <td className={`p-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-zinc-300 text-white-800'}`}>
-                {ticket.status}
-              </td>
-              {/* Other cells... */}
-              <td className="p-2 text-left">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    pinTicket(ticket._id);
-                  }}
-                  disabled={isTicketFormVisible}
-                  className="text-white-600 hover:text-white-900"
-                >
-                  {/* SVG or Font Icon for Pin */}
-                  📌
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    </ul>
-  </div>
-)}
-
-
-{isTicketFormVisible && (
-  <main className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto">
-  {/* Header starts here */}
-
-  <div className="flex items-center justify-between mb-8">
-  {/* Back arrow and title */}
-  <div className="flex items-center">
-  <button
-  className="text-white p-2 bg-zinc-800 rounded-full hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-600 flex items-center justify-center"
-  onClick={() => setIsTicketFormVisible(false)}
-  style={{ width: '50px', height: '50px' }} // Set the button size explicitly if you need a square button
->
-  {/* Back arrow icon */}
-  <SVGArrow />
-</button>
-    <h2 className="text-xl font-semibold text-white">{ticketData.name || 'New Line'}</h2>
-  </div>
-
-  {/* Action Buttons */}
-<div className="flex relative text-left">
-  {/* Cancel button */}
-  <button
-          className="text-white bg-zinc-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
-          onClick={() => setIsTicketModalVisible(true)}
-        >
-          Cancel
-        </button>
-
-  <button
-    type="submit"
-    onClick={() => setIsTicketDropdownOpen(!isTicketDropdownOpen)}
-    className="inline-flex justify-center w-full rounded-md border border-zinc-300 shadow-sm px-4 py-2 bg-zinc-900 text-sm font-medium text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-100 focus:ring-zinc-700"
-    id="menu-button"
-    aria-expanded="true"
-    aria-haspopup="true"
+          )}
+        </div>
+      </div>
+    
+    )} 
+    <div className="p-4 flex justify-between items-center">
+      
+      <h2 className="text-xl font-bold">Tickets</h2>
+      {!isTicketFormVisible && (
+        <div className="flex items-center">
+          {/* Buttons go here */}
+          <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-zinc-700" />
+          <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterTicketClick}>Filter</button>
+          {!isSelecting && (
+        <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSelectClick}>Select</button>
+      )}
+          <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Export</button>
+          <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Import</button>
+          <button className="ml-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded">Settings</button>
+          <button
+    className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    onClick={() => {
+      // Show the ticket form
+      setIsTicketFormVisible(true);
+      // Reset form fields using react-hook-form's reset function
+      reset();
+      // Reset custom state management for the ticket data
+      setTicketData(initialTicketData);
+      // Additionally, reset any other state variables related to the ticket form here
+    }}
   >
-    {lineEditMode ? 'Save' : 'Create'}
-    <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-    </svg>
+            + New Ticket
+          </button>
+        </div>
+      )}
+    </div>
+      <ul className="overflow-y-auto">
+      <div className="overflow-x-auto">
+        
+        <table className="min-w-full text-sm  divide-zinc-200">
+          <thead>
+            <tr>
+              <th className="text-left font-medium">Name</th>
+              {!isTicketFormVisible && (
+                <>
+              <th className="text-left font-medium">Status</th>
+              <th className="text-left font-medium">Price</th>
+              <th className="text-left font-medium">Product Type</th>
+              <th className="text-left font-medium">Modified</th>
+              <th className="text-left font-medium">Published</th>
+              <th className="text-left font-medium">Actions</th>
+              </>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {tickets.map((ticket, index) => (
+              <tr
+                key={ticket._id}
+                style={{ backgroundColor: index % 2 === 0 ? '#292929' : '#2D2D2D' }}
+                onClick={() => handleTicketSelect(ticket)}
+                className="hover:bg-zinc-700 cursor-pointer"
+              >
+                <td className="p-2">{ticket.name}</td>
+                <td className={`p-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-zinc-300 text-white-800'}`}>
+                  {ticket.status}
+                </td>
+                {/* Other cells... */}
+                <td className="p-2 text-left">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      pinTicket(ticket._id);
+                    }}
+                    disabled={isTicketFormVisible}
+                    className="text-white-600 hover:text-white-900"
+                  >
+                    {/* SVG or Font Icon for Pin */}
+                    📌
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      </ul>
+    </div>
+  )}
+  
+  {isTicketFormVisible && (
+    <main className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto">
+    {/* Header starts here */}
+  
+    <div className="flex items-center justify-between mb-8">
+    {/* Back arrow and title */}
+    <div className="flex items-center">
+    <button
+    className="text-white p-2 bg-zinc-800 rounded-full hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-600 flex items-center justify-center"
+    onClick={() => setIsTicketFormVisible(false)}
+    style={{ width: '50px', height: '50px' }} // Set the button size explicitly if you need a square button
+  >
+    {/* Back arrow icon */}
+    <SVGArrow />
   </button>
-
-  {/* Dropdown menu, show/hide based on menu state. */}
-<div
-  ref={TicketformRef}
-  className={`${isTicketDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-10 w-56 rounded-md shadow-lg bg-zinc-900 ring-1 ring-black ring-opacity-5 focus:outline-none`}
-  role="menu"
-  aria-orientation="vertical"
-  aria-labelledby="menu-button"
-  tabIndex="-1"
->
-<div className="relative py-1" role="none">
-  {/* Button for Publish */}
-  <div className="group">
-    <button
-      onClick={() => {
-        document.getElementById('ticketForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-        handleTicketPublish();
-      }}
-      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
-      role="menuitem"
-      tabIndex="-1"
-      id="menu-item-0"
-    >
-      {lineEditMode ? 'Save' : 'Publish'}
-    </button>
-    <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
-      Publish the item to your live site.
+      <h2 className="text-xl font-semibold text-white">{ticketData.name || 'New Line'}</h2>
     </div>
-  </div>
-
-  {/* Button for Save as draft */}
-  <div className="group mt-1">
+  
+    {/* Action Buttons */}
+  <div className="flex relative text-left">
+    {/* Cancel button */}
     <button
-      onClick={() => {
-        handleTicketDraft();
-        handleSubmit(onTicketSubmit)
-      }}
-      className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
-      role="menuitem"
-      tabIndex="-1"
-      id="menu-item-1"
+            className="text-white bg-zinc-600 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg px-5 py-2 mx-4"
+            onClick={() => setIsTicketModalVisible(true)}
+          >
+            Cancel
+          </button>
+  
+    <button
+      type="submit"
+      onClick={() => setIsTicketDropdownOpen(!isTicketDropdownOpen)}
+      className="inline-flex justify-center w-full rounded-md border border-zinc-300 shadow-sm px-4 py-2 bg-zinc-900 text-sm font-medium text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-100 focus:ring-zinc-700"
+      id="menu-button"
+      aria-expanded="true"
+      aria-haspopup="true"
     >
-      Save as draft
+      {lineEditMode ? 'Save' : 'Create'}
+      <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+      </svg>
     </button>
-    <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
-      Save the item without publishing it.
+  
+    {/* Dropdown menu, show/hide based on menu state. */}
+  <div
+    ref={TicketformRef}
+    className={`${isTicketDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-10 w-56 rounded-md shadow-lg bg-zinc-900 ring-1 ring-black ring-opacity-5 focus:outline-none`}
+    role="menu"
+    aria-orientation="vertical"
+    aria-labelledby="menu-button"
+    tabIndex="-1"
+  >
+  <div className="relative py-1" role="none">
+    {/* Button for Publish */}
+    <div className="group">
+      <button
+        onClick={() => {
+          document.getElementById('ticketForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+          handleTicketPublish();
+        }}
+        className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
+        role="menuitem"
+        tabIndex="-1"
+        id="menu-item-0"
+      >
+        {lineEditMode ? 'Save' : 'Publish'}
+      </button>
+      <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
+        Publish the item to your live site.
+      </div>
     </div>
-  </div>
-</div>
-</div>
-</div>
-</div>
-
-  {/* Header ends here */}
-
-  {isTicketModalVisible && (
-  <div className="fixed inset-0 bg-zinc-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center" style={{zIndex: 999}}>
-    <div className="bg-zinc-900 rounded-lg max-w-sm mx-auto p-4 shadow-lg">
-      <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
-      <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
-      <div className="flex justify-end mt-4">
-        <button onClick={() => setIsTicketModalVisible(false)} className="bg-zinc-800 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded-l">
-          Keep editing
-        </button>
-        <button onClick={handleTicketCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
-          Exit Without Saving
-        </button>
+  
+    {/* Button for Save as draft */}
+    <div className="group mt-1">
+      <button
+        onClick={() => {
+          handleTicketDraft();
+          handleSubmit(onTicketSubmit)
+        }}
+        className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
+        role="menuitem"
+        tabIndex="-1"
+        id="menu-item-1"
+      >
+        Save as draft
+      </button>
+      <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
+        Save the item without publishing it.
       </div>
     </div>
   </div>
-)}
-
-  <form onSubmit={handleSubmit(onTicketSubmit)} id="ticketForm" className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
-    {/* Product Type Dropdown */}
+  </div>
+  </div>
+  </div>
+  
+    {/* Header ends here */}
+  
+    {isTicketModalVisible && (
+    <div className="fixed inset-0 bg-zinc-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center" style={{zIndex: 999}}>
+      <div className="bg-zinc-900 rounded-lg max-w-sm mx-auto p-4 shadow-lg">
+        <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
+        <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
+        <div className="flex justify-end mt-4">
+          <button onClick={() => setIsTicketModalVisible(false)} className="bg-zinc-800 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded-l">
+            Keep editing
+          </button>
+          <button onClick={handleTicketCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
+            Exit Without Saving
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+  
+    <form onSubmit={handleSubmit(onTicketSubmit)} id="ticketForm" className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
+      {/* Product Type Dropdown */}
+      <div className="mb-4">
+        <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
+        <select
+          id="productType"
+          name="productType"
+          value={ticketData.productType}
+          onChange={handleTicketInputChange}
+          className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+        >
+          <option value="Physical">Physical</option>
+          <option value="Digital">Digital</option>
+          <option value="Service">Service</option>
+          <option value="Advance">Advance</option>
+        </select>
+        <p className="text-xs mt-1">
+          Service products do not require a shipping address during checkout (e.g., classes, consultations).
+        </p>
+      </div>
+  
+  {/* Name Input */}
+  <div className="mb-4">
+    <label htmlFor="name" className="block text-sm font-medium mb-2">
+      Name <span className="text-red-500">*</span>
+    </label>
+    <input
+      id="name"
+      type="text"
+      name="name"
+      value={ticketData.name}
+      onChange={handleTicketInputChange}
+      placeholder="Ticket Name"
+      required
+      className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
+    />
+  </div>
+  
+  
+  {/* Slug Input */}
+  <div>
+    <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
+    <input
+      id="slug"
+      {...register('slug', { required: 'Slug is required' })}
+      className="w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
+      placeholder='slug'
+      value={ticketData.slug || ''} 
+      onChange={handleTicketSlugChange}
+    />
+    {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
+    <p className="text-white mt-2">www.tri-statecoach.com/category/{ticketData.slug || ''}</p>
+  </div>
+  
+  
+      {/* Description TextArea */}
+      <div className="mb-4">
+        <label htmlFor="description" className="block text-sm font-medium mb-2">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          value={ticketData.description}
+          onChange={handleTicketInputChange}
+          placeholder="Description"
+          className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+        ></textarea>
+      </div>
+  
+      {/* Categories Select */}
+      <div className="mb-4">
+        <label htmlFor="categories" className="block text-sm font-medium mb-2">
+          Categories
+        </label>
+        <p className="text-xs mb-4">
+          Add this product to one or more categories.
+        </p>
+        <select
+          id="categories"
+          name="categories"
+          multiple
+          value={selectedCategories}
+          onChange={handleCategorySelect}
+          className="w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+        >
+          {lines.map((line) => (
+            <option key={line._id} value={line.name}>
+              {line.name}
+            </option>
+          ))}
+        </select>
+        {/* Display selected categories */}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {selectedCategories.map((category) => (
+            <span
+              key={category}
+              className="flex items-center px-3 py-1 text-sm bg-zinc-600 rounded-full"
+            >
+              {category}
+              <button
+                type="button"
+                onClick={() => handleRemoveCategory(category)}
+                className="flex items-center justify-center w-4 h-4 ml-2 rounded-full hover:text-white-300"
+              >
+                &times;
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
+  
+  
+  {/* Media Section */}
+  <div className="mb-4 bg-zinc-100 p-4 rounded">
     <div className="mb-4">
-      <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
-      <select
-        id="productType"
-        name="productType"
-        value={ticketData.productType}
+      <label className="block text-sm font-medium text-white-700 mb-2">Main image</label>
+      {selectedImage ? (
+        <div className="flex items-center space-x-2 mb-2">
+          <img src={selectedImage} alt="Selected" className="h-20 w-20 object-cover rounded" />
+          <div className="flex flex-col">
+            <span className="text-xs font-medium">Filename: {selectedImage.name}</span>
+            <span className="text-xs text-white-500">Size: {selectedImage.size} KB</span>
+          </div>
+          <button type="button" onClick={() => setSelectedImage(null)} className="text-white-500 hover:text-white-700">
+            Replace
+          </button>
+          <button type="button" onClick={deleteImage} className="text-white-500 hover:text-white-700">
+            Delete
+          </button>
+        </div>
+      ) : (
+        <div className="flex justify-center items-center w-full">
+          <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-zinc-200 hover:border-zinc-400 rounded-lg group">
+            <div className="flex flex-col items-center justify-center pt-7">
+              <svg className="w-10 h-10 text-white-400 group-hover:text-white-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
+              <p className="pt-1 text-sm tracking-wider text-white-400 group-hover:text-white-600">
+                Click to browse for files
+              </p>
+            </div>
+            <input
+              type="file"
+              id="mainImage"
+              name="mainImage"
+              onChange={handleImageChange}
+              className="opacity-0"
+            />
+          </label>
+        </div>
+      )}
+    </div>
+  </div>
+  
+  
+  {/* Billing Section */}
+  <div className="bg-zinc-800 p-4 rounded text-white">
+    <h4 className="text-lg font-semibold mb-4">Billing</h4>
+    <div className="flex items-center gap-4 mb-4">
+      <div className="flex-1">
+        <label htmlFor="price" className="block text-sm font-medium mb-1">Price <span className='text-red-500'>*</span></label>
+        <div className="flex items-center bg-zinc-700 rounded">
+          <span className="pl-2 text-white-300">$</span>
+          <input
+            id="price"
+            type="number"
+            name="price"
+            value={ticketData.price}
+            onChange={handleTicketInputChange}
+            placeholder="0.00"
+            className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
+          />
+        </div>
+      </div>
+      <div className="flex-1">
+        <label htmlFor="compareAtPrice" className="block text-sm font-medium mb-1">Compare-at price</label>
+        <div className="flex items-center bg-zinc-700 rounded">
+          <span className="pl-2 text-white-300">$</span>
+          <input
+            id="compareAtPrice"
+            type="text"
+            name="compareAtPrice"
+            value={ticketData.compareAtPrice}
+            onChange={handleTicketInputChange}
+            placeholder="0.00"
+            className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  
+  {/* Product Tax Class */}
+  <div>
+    <label htmlFor="productTaxClass" className="block mb-2 text-sm font-medium text-white-700">Product Tax Class</label>
+    <select
+      id="productTaxClass"
+      name="productTaxClass"
+      value={ticketData.productTaxClass}
+      onChange={handleTicketInputChange}
+      className="block w-full p-2 mb-2 text-sm text-white-700 bg-zinc border border-zinc-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+    >
+      <option value="Standard">Standard automatic tax calculation</option>
+      <option value="Exempt">Exempt from taxes</option>
+      {/* Additional tax class options */}
+    </select>
+    <p className="text-xs text-white-500">Enable tax calculation to collect sales tax from your customers.</p>
+  </div>
+  {/* Identifiers Section */}
+  <div>
+    <label htmlFor="sku" className="block mb-2 text-sm font-medium text-white-700">SKU</label>
+    <input
+      id="sku"
+      type="text"
+      name="sku"
+      value={ticketData.sku}
+      onChange={handleTicketInputChange}
+      className="block w-full p-2 mb-2 text-sm text-white-700 bg-zinc border border-zinc-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+    />
+  </div>
+  
+  {/* Inventory Section */}
+  <div className="mb-4 flex items-center justify-between">
+    <span className="text-sm font-medium text-white">Track inventory</span>
+    <label htmlFor="trackInventory" className="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        id="trackInventory"
+        name="trackInventory"
+        className="sr-only peer"
+        checked={ticketData.trackInventory}
+        onChange={(e) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
+      />
+      <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300  rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc after:border-zinc-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all  peer-checked:bg-blue-600"></div>
+      <span className="ml-3 text-sm font-medium text-white e">
+        {ticketData.trackInventory ? 'YES' : 'NO'}
+      </span>
+    </label>
+  </div>
+  
+  <div className="mb-4">
+      <label htmlFor="inventoryQuantity" className="block text-sm font-medium mb-1">Quantity</label>
+      <input
+        type="number"
+        id="inventoryQuantity"
+        name="inventoryQuantity"
+        value={ticketData.inventoryQuantity}
         onChange={handleTicketInputChange}
+        min="0"
+        className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
+      />
+    </div>
+  
+  
+  {/* Custom Fields Section */}
+  <div className="bg-zinc-800 text-white p-4 rounded">
+    <div className="mb-4">
+      <label htmlFor="tripType" className="block text-sm font-medium mb-2">Trip Type</label>
+      <select
+        id="tripType"
+        name="tripType"
+        value={tripType}
+        onChange={e => setTripType(e.target.value)}
         className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
       >
-        <option value="Physical">Physical</option>
-        <option value="Digital">Digital</option>
-        <option value="Service">Service</option>
-        <option value="Advance">Advance</option>
+        <option value="" disabled>Select an option</option>
+        <option value="Round Trip">Round Trip</option>
+        <option value="One Way">One Way</option>
+        <option value="Charter">Charter</option>
+        {/* More options can be added here */}
       </select>
-      <p className="text-xs mt-1">
-        Service products do not require a shipping address during checkout (e.g., classes, consultations).
-      </p>
     </div>
-
-{/* Name Input */}
-<div className="mb-4">
-  <label htmlFor="name" className="block text-sm font-medium mb-2">
-    Name <span className="text-red-500">*</span>
-  </label>
-  <input
-    id="name"
-    type="text"
-    name="name"
-    value={ticketData.name}
-    onChange={handleTicketInputChange}
-    placeholder="Ticket Name"
-    required
-    className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
-  />
-</div>
-
-
-{/* Slug Input */}
-<div>
-  <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
-  <input
-    id="slug"
-    {...register('slug', { required: 'Slug is required' })}
-    className="w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
-    placeholder='slug'
-    value={ticketData.slug || ''} 
-    onChange={handleTicketSlugChange}
-  />
-  {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
-  <p className="text-white mt-2">www.tri-statecoach.com/category/{ticketData.slug || ''}</p>
-</div>
-
-
-    {/* Description TextArea */}
+  
     <div className="mb-4">
-      <label htmlFor="description" className="block text-sm font-medium mb-2">Description</label>
-      <textarea
-        id="description"
-        name="description"
-        value={ticketData.description}
-        onChange={handleTicketInputChange}
-        placeholder="Description"
-        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-      ></textarea>
-    </div>
-
-    {/* Categories Select */}
-    <div className="mb-4">
-      <label htmlFor="categories" className="block text-sm font-medium mb-2">
-        Categories
-      </label>
-      <p className="text-xs mb-4">
-        Add this product to one or more categories.
-      </p>
+      <label htmlFor="lineName" className="block text-sm font-medium mb-2">Line Name <span className='text-red-500'>*</span></label>
       <select
-        id="categories"
-        name="categories"
-        multiple
-        value={selectedCategories}
-        onChange={handleCategorySelect}
-        className="w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+        id="lineName"
+        name="lineName"
+        value={lineName}
+        onChange={e => setLineName(e.target.value)}
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
       >
+        {/* Options will be fetched from the backend */}
         {lines.map((line) => (
           <option key={line._id} value={line.name}>
             {line.name}
           </option>
         ))}
       </select>
-      {/* Display selected categories */}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {selectedCategories.map((category) => (
-          <span
-            key={category}
-            className="flex items-center px-3 py-1 text-sm bg-zinc-600 rounded-full"
-          >
-            {category}
-            <button
-              type="button"
-              onClick={() => handleRemoveCategory(category)}
-              className="flex items-center justify-center w-4 h-4 ml-2 rounded-full hover:text-white-300"
-            >
-              &times;
-            </button>
-          </span>
-        ))}
-      </div>
     </div>
-
-
-{/* Media Section */}
-<div className="mb-4 bg-zinc-100 p-4 rounded">
+  
+  {/* Departure Date */}
   <div className="mb-4">
-    <label className="block text-sm font-medium text-white-700 mb-2">Main image</label>
-    {selectedImage ? (
-      <div className="flex items-center space-x-2 mb-2">
-        <img src={selectedImage} alt="Selected" className="h-20 w-20 object-cover rounded" />
-        <div className="flex flex-col">
-          <span className="text-xs font-medium">Filename: {selectedImage.name}</span>
-          <span className="text-xs text-white-500">Size: {selectedImage.size} KB</span>
-        </div>
-        <button type="button" onClick={() => setSelectedImage(null)} className="text-white-500 hover:text-white-700">
-          Replace
-        </button>
-        <button type="button" onClick={deleteImage} className="text-white-500 hover:text-white-700">
-          Delete
-        </button>
-      </div>
-    ) : (
-      <div className="flex justify-center items-center w-full">
-        <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-zinc-200 hover:border-zinc-400 rounded-lg group">
-          <div className="flex flex-col items-center justify-center pt-7">
-            <svg className="w-10 h-10 text-white-400 group-hover:text-white-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
-            <p className="pt-1 text-sm tracking-wider text-white-400 group-hover:text-white-600">
-              Click to browse for files
-            </p>
-          </div>
-          <input
-            type="file"
-            id="mainImage"
-            name="mainImage"
-            onChange={handleImageChange}
-            className="opacity-0"
-          />
-        </label>
-      </div>
-    )}
-  </div>
-</div>
-
-
-{/* Billing Section */}
-<div className="bg-zinc-800 p-4 rounded text-white">
-  <h4 className="text-lg font-semibold mb-4">Billing</h4>
-  <div className="flex items-center gap-4 mb-4">
-    <div className="flex-1">
-      <label htmlFor="price" className="block text-sm font-medium mb-1">Price <span className='text-red-500'>*</span></label>
-      <div className="flex items-center bg-zinc-700 rounded">
-        <span className="pl-2 text-white-300">$</span>
-        <input
-          id="price"
-          type="number"
-          name="price"
-          value={ticketData.price}
-          onChange={handleTicketInputChange}
-          placeholder="0.00"
-          className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
-        />
-      </div>
-    </div>
-    <div className="flex-1">
-      <label htmlFor="compareAtPrice" className="block text-sm font-medium mb-1">Compare-at price</label>
-      <div className="flex items-center bg-zinc-700 rounded">
-        <span className="pl-2 text-white-300">$</span>
-        <input
-          id="compareAtPrice"
-          type="text"
-          name="compareAtPrice"
-          value={ticketData.compareAtPrice}
-          onChange={handleTicketInputChange}
-          placeholder="0.00"
-          className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
-        />
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-{/* Product Tax Class */}
-<div>
-  <label htmlFor="productTaxClass" className="block mb-2 text-sm font-medium text-white-700">Product Tax Class</label>
-  <select
-    id="productTaxClass"
-    name="productTaxClass"
-    value={ticketData.productTaxClass}
-    onChange={handleTicketInputChange}
-    className="block w-full p-2 mb-2 text-sm text-white-700 bg-zinc border border-zinc-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
-  >
-    <option value="Standard">Standard automatic tax calculation</option>
-    <option value="Exempt">Exempt from taxes</option>
-    {/* Additional tax class options */}
-  </select>
-  <p className="text-xs text-white-500">Enable tax calculation to collect sales tax from your customers.</p>
-</div>
-{/* Identifiers Section */}
-<div>
-  <label htmlFor="sku" className="block mb-2 text-sm font-medium text-white-700">SKU</label>
-  <input
-    id="sku"
-    type="text"
-    name="sku"
-    value={ticketData.sku}
-    onChange={handleTicketInputChange}
-    className="block w-full p-2 mb-2 text-sm text-white-700 bg-zinc border border-zinc-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
-  />
-</div>
-
-{/* Inventory Section */}
-<div className="mb-4 flex items-center justify-between">
-  <span className="text-sm font-medium text-white">Track inventory</span>
-  <label htmlFor="trackInventory" className="relative inline-flex items-center cursor-pointer">
+    <label htmlFor="departureDate" className="block text-sm font-medium text-white mb-2">Departure Date</label>
     <input
-      type="checkbox"
-      id="trackInventory"
-      name="trackInventory"
-      className="sr-only peer"
-      checked={ticketData.trackInventory}
-      onChange={(e) => setTicketData({ ...ticketData, trackInventory: e.target.checked })}
+      id="departureDate"
+      type="datetime-local"
+      name="departureDate"
+      value={departureDate}
+      onChange={e => setDepartureDate(e.target.value)}
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     />
-    <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300  rounded-full peer  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc after:border-zinc-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all  peer-checked:bg-blue-600"></div>
-    <span className="ml-3 text-sm font-medium text-white e">
-      {ticketData.trackInventory ? 'YES' : 'NO'}
-    </span>
-  </label>
-</div>
-
-<div className="mb-4">
-    <label htmlFor="inventoryQuantity" className="block text-sm font-medium mb-1">Quantity</label>
+  </div>
+  
+  {/* Return Date */}
+  <div className="mb-4">
+    <label htmlFor="returnDate" className="block text-sm font-medium text-white mb-2">Return Date</label>
     <input
-      type="number"
-      id="inventoryQuantity"
-      name="inventoryQuantity"
-      value={ticketData.inventoryQuantity}
+      id="returnDate"
+      type="datetime-local"
+      name="returnDate"
+      value={returnDate}
+      onChange={e => setReturnDate(e.target.value)}
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
+  </div>
+  
+  
+  
+    {/* Stops Input */}
+  <div className="mb-4">
+    <label htmlFor="stops" className="block text-sm font-medium mb-2">Stops</label>
+    <input
+      id="stops"
+      type="text"
+      name="stops"
+      value={ticketData.stops} // Assuming you have 'stops' state in ticketData
       onChange={handleTicketInputChange}
-      min="0"
-      className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
+      placeholder="e.g., Commack, Hicksville, Fresh Meadows"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     />
   </div>
-
-
-{/* Custom Fields Section */}
-<div className="bg-zinc-800 text-white p-4 rounded">
+  
+  {/* 1st Pick Up Time */}
   <div className="mb-4">
-    <label htmlFor="tripType" className="block text-sm font-medium mb-2">Trip Type</label>
-    <select
-      id="tripType"
-      name="tripType"
-      value={tripType}
-      onChange={e => setTripType(e.target.value)}
-      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-    >
-      <option value="" disabled>Select an option</option>
-      <option value="Round Trip">Round Trip</option>
-      <option value="One Way">One Way</option>
-      <option value="Charter">Charter</option>
-      {/* More options can be added here */}
-    </select>
-  </div>
-
-  <div className="mb-4">
-    <label htmlFor="lineName" className="block text-sm font-medium mb-2">Line Name <span className='text-red-500'>*</span></label>
-    <select
-      id="lineName"
-      name="lineName"
-      value={lineName}
-      onChange={e => setLineName(e.target.value)}
-      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-    >
-      {/* Options will be fetched from the backend */}
-      {lines.map((line) => (
-        <option key={line._id} value={line.name}>
-          {line.name}
-        </option>
-      ))}
-    </select>
-  </div>
-
-{/* Departure Date */}
-<div className="mb-4">
-  <label htmlFor="departureDate" className="block text-sm font-medium text-white mb-2">Departure Date</label>
-  <input
-    id="departureDate"
-    type="datetime-local"
-    name="departureDate"
-    value={departureDate}
-    onChange={e => setDepartureDate(e.target.value)}
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* Return Date */}
-<div className="mb-4">
-  <label htmlFor="returnDate" className="block text-sm font-medium text-white mb-2">Return Date</label>
-  <input
-    id="returnDate"
-    type="datetime-local"
-    name="returnDate"
-    value={returnDate}
-    onChange={e => setReturnDate(e.target.value)}
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-
-
-  {/* Stops Input */}
-<div className="mb-4">
-  <label htmlFor="stops" className="block text-sm font-medium mb-2">Stops</label>
-  <input
-    id="stops"
-    type="text"
-    name="stops"
-    value={ticketData.stops} // Assuming you have 'stops' state in ticketData
-    onChange={handleTicketInputChange}
-    placeholder="e.g., Commack, Hicksville, Fresh Meadows"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* 1st Pick Up Time */}
-<div className="mb-4">
-  <label htmlFor="firstPickUpTime" className="block text-sm font-medium mb-2">1st Pick Up Time</label>
-  <input
-    id="firstPickUpTime"
-    type="datetime-local"
-    name="firstPickUpTime"
-    value={ticketData.firstPickUpTime} // Assuming you have 'firstPickUpTime' state in ticketData
-    onChange={handleTicketInputChange}
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* 1st Pick Up Location Text Area */}
-<div className="mb-4">
-  <label htmlFor="firstPickUpLocation" className="block text-sm font-medium mb-2">1st Pick Up Location</label>
-  <textarea
-    id="firstPickUpLocation"
-    name="firstPickUpLocation"
-    value={ticketData.firstPickUpLocation} // Assuming you have 'firstPickUpLocation' state in ticketData
-    onChange={handleTicketInputChange}
-    placeholder="Enter the first pick up location"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
- {/* Second Pick Up Time Input */}
- <div className="mb-4">
-    <label htmlFor="secondPickUpTime" className="block text-sm font-medium mb-2">2nd Pick Up Time</label>
+    <label htmlFor="firstPickUpTime" className="block text-sm font-medium mb-2">1st Pick Up Time</label>
     <input
-      id="secondPickUpTime"
+      id="firstPickUpTime"
       type="datetime-local"
-      name="secondPickUpTime"
-      value={secondPickUpTime}
-      onChange={e => setSecondPickUpTime(e.target.value)}
+      name="firstPickUpTime"
+      value={ticketData.firstPickUpTime} // Assuming you have 'firstPickUpTime' state in ticketData
+      onChange={handleTicketInputChange}
       className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     />
   </div>
-
-  {/* Second Pick Up Location Input */}
+  
+  {/* 1st Pick Up Location Text Area */}
   <div className="mb-4">
-    <label htmlFor="secondPickUpLocation" className="block text-sm font-medium mb-2">2nd Pick Up Location</label>
+    <label htmlFor="firstPickUpLocation" className="block text-sm font-medium mb-2">1st Pick Up Location</label>
     <textarea
-      id="secondPickUpLocation"
-      name="secondPickUpLocation"
-      value={secondPickUpLocation}
-      onChange={e => setSecondPickUpLocation(e.target.value)}
-      placeholder="Enter the second pick up location"
+      id="firstPickUpLocation"
+      name="firstPickUpLocation"
+      value={ticketData.firstPickUpLocation} // Assuming you have 'firstPickUpLocation' state in ticketData
+      onChange={handleTicketInputChange}
+      placeholder="Enter the first pick up location"
       rows="3"
       className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     ></textarea>
   </div>
-
- {/* 3rd Pick Up Time Input */}
- <div className="mb-4">
-    <label htmlFor="thirdPickUpTime" className="block text-sm font-medium mb-2">3rd Pick Up Time</label>
+  
+   {/* Second Pick Up Time Input */}
+   <div className="mb-4">
+      <label htmlFor="secondPickUpTime" className="block text-sm font-medium mb-2">2nd Pick Up Time</label>
+      <input
+        id="secondPickUpTime"
+        type="datetime-local"
+        name="secondPickUpTime"
+        value={secondPickUpTime}
+        onChange={e => setSecondPickUpTime(e.target.value)}
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+      />
+    </div>
+  
+    {/* Second Pick Up Location Input */}
+    <div className="mb-4">
+      <label htmlFor="secondPickUpLocation" className="block text-sm font-medium mb-2">2nd Pick Up Location</label>
+      <textarea
+        id="secondPickUpLocation"
+        name="secondPickUpLocation"
+        value={secondPickUpLocation}
+        onChange={e => setSecondPickUpLocation(e.target.value)}
+        placeholder="Enter the second pick up location"
+        rows="3"
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+      ></textarea>
+    </div>
+  
+   {/* 3rd Pick Up Time Input */}
+   <div className="mb-4">
+      <label htmlFor="thirdPickUpTime" className="block text-sm font-medium mb-2">3rd Pick Up Time</label>
+      <input
+        id="thirdPickUpTime"
+        type="datetime-local"
+        name="thirdPickUpTime"
+        value={secondPickUpTime}
+        onChange={e => setThirdPickUpTime(e.target.value)}
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+      />
+    </div>
+  
+    {/* 3rd Pick Up Location Input */}
+    <div className="mb-4">
+      <label htmlFor="thirdPickUpLocation" className="block text-sm font-medium mb-2">3rd Pick Up Location</label>
+      <textarea
+        id="thirdPickUpLocation"
+        name="thirdPickUpLocation"
+        value={thirdPickUpLocation}
+        onChange={e => setThirdPickUpLocation(e.target.value)}
+        placeholder="Enter the second pick up location"
+        rows="3"
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+      ></textarea>
+    </div>
+  
+  
+   {/* Final Pick Up Time Input */}
+   <div className="mb-4">
+      <label htmlFor="finalPickUpTime" className="block text-sm font-medium mb-2">Final Pick Up Time</label>
+      <input
+        id="finalPickUpTime"
+        type="datetime-local"
+        name="finalPickUpTime"
+        value={finalPickUpTime}
+        onChange={e => setSecondPickUpTime(e.target.value)}
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+      />
+    </div>
+  
+    {/* Final Pick Up Location Input */}
+    <div className="mb-4">
+      <label htmlFor="finalPickUpLocation" className="block text-sm font-medium mb-2">Final Pick Up Location</label>
+      <textarea
+        id="finalPickUpLocation"
+        name="finalPickUpLocation"
+        value={secondPickUpLocation}
+        onChange={e => setFinalPickUpLocation(e.target.value)}
+        placeholder="Enter the Final pick up location"
+        rows="3"
+        className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+      ></textarea>
+    </div>
+  
+    {/* First Drop Off Location Input */}
+  <div className="mb-4">
+    <label htmlFor="firstDropOffLocation" className="block text-sm font-medium mb-2">1st Drop Off Location</label>
     <input
-      id="thirdPickUpTime"
-      type="datetime-local"
-      name="thirdPickUpTime"
-      value={secondPickUpTime}
-      onChange={e => setThirdPickUpTime(e.target.value)}
+      id="firstDropOffLocation"
+      type="text"
+      name="firstDropOffLocation"
+      value={firstDropOffLocation}
+      onChange={e => setFirstDropOffLocation(e.target.value)}
+      placeholder="Enter the first drop off location"
       className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     />
   </div>
-
-  {/* 3rd Pick Up Location Input */}
+  
+  {/* Second Drop Off Location Input */}
   <div className="mb-4">
-    <label htmlFor="thirdPickUpLocation" className="block text-sm font-medium mb-2">3rd Pick Up Location</label>
+    <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">2nd Drop Off Location</label>
+    <input
+      id="secondDropOffLocation"
+      type="text"
+      name="secondDropOffLocation"
+      value={secondDropOffLocation}
+      onChange={e => setSecondDropOffLocation(e.target.value)}
+      placeholder="Enter the first drop off location"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
+  </div>
+  
+  {/* 3rd Drop Off Location Input */}
+  <div className="mb-4">
+    <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">3rd Drop Off Location</label>
+    <input
+      id="thirdDropOffLocation"
+      type="text"
+      name="thirdDropOffLocation"
+      value={thirdDropOffLocation}
+      onChange={e => setThirdDropOffLocation(e.target.value)}
+      placeholder="Enter the first drop off location"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
+  </div>
+  
+  {/* Final Drop Off Location Input */}
+  <div className="mb-4">
+    <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">Final Drop Off Location</label>
+    <input
+      id="finalDropOffLocation"
+      type="text"
+      name="finalDropOffLocation"
+      value={finalDropOffLocation}
+      onChange={e => setFinalDropOffLocation(e.target.value)}
+      placeholder="Enter the first drop off location"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
+  </div>
+  
+  {/* Suggested Tip for Driver Input */}
+  <div className="mb-4">
+    <label htmlFor="suggestedTipForDriver" className="block text-sm font-medium mb-2">Suggested Tip For Driver</label>
+    <input
+      id="suggestedTipForDriver"
+      type="number"
+      name="suggestedTipForDriver"
+      value={suggestedTipForDriver}
+      onChange={e => setSuggestedTipForDriver(e.target.value)}
+      placeholder="Suggested tip amount"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
+  </div>
+  
+  {/* 1st Pick Up Time (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="firstPickUpTimeReturn" className="block text-sm font-medium mb-2">1st Pick Up Time (Return)</label>
+    <input
+      id="firstPickUpTimeReturn"
+      type="datetime-local"
+      name="firstPickUpTimeReturn"
+      value={firstPickUpTimeReturn} // Update this with your state
+      onChange={e => setFirstPickUpTimeReturn(e.target.value)} // Update this with your handler
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
+  </div>
+  
+  {/* 1st Pick Up Location (Return) Text Area */}
+  <div className="mb-4">
+    <label htmlFor="firstPickUpLocationReturn" className="block text-sm font-medium mb-2">1st Pick Up Location (Return)</label>
     <textarea
-      id="thirdPickUpLocation"
-      name="thirdPickUpLocation"
-      value={thirdPickUpLocation}
-      onChange={e => setThirdPickUpLocation(e.target.value)}
-      placeholder="Enter the second pick up location"
+      id="firstPickUpLocationReturn"
+      name="firstPickUpLocationReturn"
+      value={firstPickUpLocationReturn} // Update this with your state
+      onChange={e => setFirstPickUpLocationReturn(e.target.value)} // Update this with your handler
+      placeholder="Enter the first pick up location for the return journey"
       rows="3"
       className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     ></textarea>
   </div>
-
-
- {/* Final Pick Up Time Input */}
- <div className="mb-4">
-    <label htmlFor="finalPickUpTime" className="block text-sm font-medium mb-2">Final Pick Up Time</label>
+  
+  {/* 2nd Pick Up Time (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">2nd Pick Up Time (Return)</label>
     <input
-      id="finalPickUpTime"
+      id="secondPickUpTimeReturn"
       type="datetime-local"
-      name="finalPickUpTime"
-      value={finalPickUpTime}
-      onChange={e => setSecondPickUpTime(e.target.value)}
+      name="secondPickUpTimeReturn"
+      value={secondPickUpTimeReturn} // Update this with your state
+      onChange={e => setSecondPickUpTimeReturn(e.target.value)} // Update this with your handler
       className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     />
   </div>
-
-  {/* Final Pick Up Location Input */}
+  
+  {/* 2nd Pick Up Location (Return) Text Area */}
   <div className="mb-4">
-    <label htmlFor="finalPickUpLocation" className="block text-sm font-medium mb-2">Final Pick Up Location</label>
+    <label htmlFor="secondPickUpLocationReturn" className="block text-sm font-medium mb-2">2nd Pick Up Location (Return)</label>
     <textarea
-      id="finalPickUpLocation"
-      name="finalPickUpLocation"
-      value={secondPickUpLocation}
-      onChange={e => setFinalPickUpLocation(e.target.value)}
-      placeholder="Enter the Final pick up location"
+      id="secondPickUpLocationReturn"
+      name="secondPickUpLocationReturn"
+      value={secondPickUpLocationReturn} // Update this with your state
+      onChange={e => setSecondPickUpLocationReturn(e.target.value)} // Update this with your handler
+      placeholder="Enter the second pick up location for the return journey"
       rows="3"
       className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
     ></textarea>
   </div>
-
-  {/* First Drop Off Location Input */}
-<div className="mb-4">
-  <label htmlFor="firstDropOffLocation" className="block text-sm font-medium mb-2">1st Drop Off Location</label>
-  <input
-    id="firstDropOffLocation"
-    type="text"
-    name="firstDropOffLocation"
-    value={firstDropOffLocation}
-    onChange={e => setFirstDropOffLocation(e.target.value)}
-    placeholder="Enter the first drop off location"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* Second Drop Off Location Input */}
-<div className="mb-4">
-  <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">2nd Drop Off Location</label>
-  <input
-    id="secondDropOffLocation"
-    type="text"
-    name="secondDropOffLocation"
-    value={secondDropOffLocation}
-    onChange={e => setSecondDropOffLocation(e.target.value)}
-    placeholder="Enter the first drop off location"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* 3rd Drop Off Location Input */}
-<div className="mb-4">
-  <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">3rd Drop Off Location</label>
-  <input
-    id="thirdDropOffLocation"
-    type="text"
-    name="thirdDropOffLocation"
-    value={thirdDropOffLocation}
-    onChange={e => setThirdDropOffLocation(e.target.value)}
-    placeholder="Enter the first drop off location"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* Final Drop Off Location Input */}
-<div className="mb-4">
-  <label htmlFor="secondDropOffLocation" className="block text-sm font-medium mb-2">Final Drop Off Location</label>
-  <input
-    id="finalDropOffLocation"
-    type="text"
-    name="finalDropOffLocation"
-    value={finalDropOffLocation}
-    onChange={e => setFinalDropOffLocation(e.target.value)}
-    placeholder="Enter the first drop off location"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* Suggested Tip for Driver Input */}
-<div className="mb-4">
-  <label htmlFor="suggestedTipForDriver" className="block text-sm font-medium mb-2">Suggested Tip For Driver</label>
-  <input
-    id="suggestedTipForDriver"
-    type="number"
-    name="suggestedTipForDriver"
-    value={suggestedTipForDriver}
-    onChange={e => setSuggestedTipForDriver(e.target.value)}
-    placeholder="Suggested tip amount"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* 1st Pick Up Time (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="firstPickUpTimeReturn" className="block text-sm font-medium mb-2">1st Pick Up Time (Return)</label>
-  <input
-    id="firstPickUpTimeReturn"
-    type="datetime-local"
-    name="firstPickUpTimeReturn"
-    value={firstPickUpTimeReturn} // Update this with your state
-    onChange={e => setFirstPickUpTimeReturn(e.target.value)} // Update this with your handler
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* 1st Pick Up Location (Return) Text Area */}
-<div className="mb-4">
-  <label htmlFor="firstPickUpLocationReturn" className="block text-sm font-medium mb-2">1st Pick Up Location (Return)</label>
-  <textarea
-    id="firstPickUpLocationReturn"
-    name="firstPickUpLocationReturn"
-    value={firstPickUpLocationReturn} // Update this with your state
-    onChange={e => setFirstPickUpLocationReturn(e.target.value)} // Update this with your handler
-    placeholder="Enter the first pick up location for the return journey"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
-{/* 2nd Pick Up Time (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">2nd Pick Up Time (Return)</label>
-  <input
-    id="secondPickUpTimeReturn"
-    type="datetime-local"
-    name="secondPickUpTimeReturn"
-    value={secondPickUpTimeReturn} // Update this with your state
-    onChange={e => setSecondPickUpTimeReturn(e.target.value)} // Update this with your handler
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* 2nd Pick Up Location (Return) Text Area */}
-<div className="mb-4">
-  <label htmlFor="secondPickUpLocationReturn" className="block text-sm font-medium mb-2">2nd Pick Up Location (Return)</label>
-  <textarea
-    id="secondPickUpLocationReturn"
-    name="secondPickUpLocationReturn"
-    value={secondPickUpLocationReturn} // Update this with your state
-    onChange={e => setSecondPickUpLocationReturn(e.target.value)} // Update this with your handler
-    placeholder="Enter the second pick up location for the return journey"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
-{/* 3rd Pick Up Time (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">3rd Pick Up Time (Return)</label>
-  <input
-    id="thirdPickUpTimeReturn"
-    type="datetime-local"
-    name="thirdPickUpTimeReturn"
-    value={thirdPickUpTimeReturn} // Update this with your state
-    onChange={e => setThirdPickUpTimeReturn(e.target.value)} // Update this with your handler
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* 3rd Pick Up Location (Return) Text Area */}
-<div className="mb-4">
-  <label htmlFor="thirdPickUpLocationReturn" className="block text-sm font-medium mb-2">3rd Pick Up Location (Return)</label>
-  <textarea
-    id="thirdPickUpLocationReturn"
-    name="thirdPickUpLocationReturn"
-    value={thirdPickUpLocationReturn} // Update this with your state
-    onChange={e => setThirdPickUpLocationReturn(e.target.value)} // Update this with your handler
-    placeholder="Enter the second pick up location for the return journey"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
-{/* Final Pick Up Time (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">Final Pick Up Time (Return)</label>
-  <input
-    id="finalPickUpTimeReturn"
-    type="datetime-local"
-    name="finalPickUpTimeReturn"
-    value={finalPickUpTimeReturn} // Update this with your state
-    onChange={e => setFinalPickUpTimeReturn(e.target.value)} // Update this with your handler
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
-{/* Final Pick Up Location (Return) Text Area */}
-<div className="mb-4">
-  <label htmlFor="thirdPickUpLocationReturn" className="block text-sm font-medium mb-2">Final Pick Up Location (Return)</label>
-  <textarea
-    id="finalPickUpLocationReturn"
-    name="finalPickUpLocationReturn"
-    value={finalPickUpLocationReturn} // Update this with your state
-    onChange={e => setFinalPickUpLocationReturn(e.target.value)} // Update this with your handler
-    placeholder="Enter the second pick up location for the return journey"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
-  {/* 1st Drop Off Location (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="firstDropOffLocationReturn" className="block text-sm font-medium mb-2">1st Drop Off Location (Return)</label>
-  <textarea
-    id="firstDropOffLocationReturn"
-    name="firstDropOffLocationReturn"
-    value={firstDropOffLocationReturn}
-    onChange={e => setFirstDropOffLocationReturn(e.target.value)}
-    placeholder="Enter the first drop off location for the return journey"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
-{/* 2nd Drop Off Location (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="secondDropOffLocationReturn" className="block text-sm font-medium mb-2">2nd Drop Off Location (Return)</label>
-  <textarea
-    id="secondDropOffLocationReturn"
-    name="secondDropOffLocationReturn"
-    value={secondDropOffLocationReturn}
-    onChange={e => setSecondDropOffLocationReturn(e.target.value)}
-    placeholder="Enter the second drop off location for the return journey"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
-{/* 3rd Drop Off Location (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="thirdDropOffLocationReturn" className="block text-sm font-medium mb-2">3rd Drop Off Location (Return)</label>
-  <textarea
-    id="thirdDropOffLocationReturn"
-    name="thirdDropOffLocationReturn"
-    value={thirdDropOffLocationReturn}
-    onChange={e => setThirdDropOffLocationReturn(e.target.value)}
-    placeholder="Enter the third drop off location for the return journey"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
-{/* Final Drop Off Location (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="finalDropOffLocationReturn" className="block text-sm font-medium mb-2">Final Drop Off Location (Return)</label>
-  <textarea
-    id="finalDropOffLocationReturn"
-    name="finalDropOffLocationReturn"
-    value={finalDropOffLocationReturn}
-    onChange={e => setFinalDropOffLocationReturn(e.target.value)}
-    placeholder="Enter the final drop off location for the return journey"
-    rows="3"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  ></textarea>
-</div>
-
-{/* Suggested Tip for Driver (Return) Input */}
-<div className="mb-4">
-  <label htmlFor="suggestedTipForDriverReturn" className="block text-sm font-medium mb-2">Suggested Tip For Driver (Return)</label>
-  <input
-    id="suggestedTipForDriverReturn"
-    type="number"
-    name="suggestedTipForDriverReturn"
-    value={suggestedTipForDriverReturn}
-    onChange={e => setSuggestedTipForDriverReturn(e.target.value)}
-    placeholder="Suggested tip amount for the return journey"
-    className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-  />
-</div>
-
+  
+  {/* 3rd Pick Up Time (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">3rd Pick Up Time (Return)</label>
+    <input
+      id="thirdPickUpTimeReturn"
+      type="datetime-local"
+      name="thirdPickUpTimeReturn"
+      value={thirdPickUpTimeReturn} // Update this with your state
+      onChange={e => setThirdPickUpTimeReturn(e.target.value)} // Update this with your handler
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
   </div>
-  </form>
-</main>
-
+  
+  {/* 3rd Pick Up Location (Return) Text Area */}
+  <div className="mb-4">
+    <label htmlFor="thirdPickUpLocationReturn" className="block text-sm font-medium mb-2">3rd Pick Up Location (Return)</label>
+    <textarea
+      id="thirdPickUpLocationReturn"
+      name="thirdPickUpLocationReturn"
+      value={thirdPickUpLocationReturn} // Update this with your state
+      onChange={e => setThirdPickUpLocationReturn(e.target.value)} // Update this with your handler
+      placeholder="Enter the second pick up location for the return journey"
+      rows="3"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+  
+  {/* Final Pick Up Time (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="secondPickUpTimeReturn" className="block text-sm font-medium mb-2">Final Pick Up Time (Return)</label>
+    <input
+      id="finalPickUpTimeReturn"
+      type="datetime-local"
+      name="finalPickUpTimeReturn"
+      value={finalPickUpTimeReturn} // Update this with your state
+      onChange={e => setFinalPickUpTimeReturn(e.target.value)} // Update this with your handler
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
+  </div>
+  
+  {/* Final Pick Up Location (Return) Text Area */}
+  <div className="mb-4">
+    <label htmlFor="thirdPickUpLocationReturn" className="block text-sm font-medium mb-2">Final Pick Up Location (Return)</label>
+    <textarea
+      id="finalPickUpLocationReturn"
+      name="finalPickUpLocationReturn"
+      value={finalPickUpLocationReturn} // Update this with your state
+      onChange={e => setFinalPickUpLocationReturn(e.target.value)} // Update this with your handler
+      placeholder="Enter the second pick up location for the return journey"
+      rows="3"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+  
+    {/* 1st Drop Off Location (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="firstDropOffLocationReturn" className="block text-sm font-medium mb-2">1st Drop Off Location (Return)</label>
+    <textarea
+      id="firstDropOffLocationReturn"
+      name="firstDropOffLocationReturn"
+      value={firstDropOffLocationReturn}
+      onChange={e => setFirstDropOffLocationReturn(e.target.value)}
+      placeholder="Enter the first drop off location for the return journey"
+      rows="3"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+  
+  {/* 2nd Drop Off Location (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="secondDropOffLocationReturn" className="block text-sm font-medium mb-2">2nd Drop Off Location (Return)</label>
+    <textarea
+      id="secondDropOffLocationReturn"
+      name="secondDropOffLocationReturn"
+      value={secondDropOffLocationReturn}
+      onChange={e => setSecondDropOffLocationReturn(e.target.value)}
+      placeholder="Enter the second drop off location for the return journey"
+      rows="3"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+  
+  {/* 3rd Drop Off Location (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="thirdDropOffLocationReturn" className="block text-sm font-medium mb-2">3rd Drop Off Location (Return)</label>
+    <textarea
+      id="thirdDropOffLocationReturn"
+      name="thirdDropOffLocationReturn"
+      value={thirdDropOffLocationReturn}
+      onChange={e => setThirdDropOffLocationReturn(e.target.value)}
+      placeholder="Enter the third drop off location for the return journey"
+      rows="3"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+  
+  {/* Final Drop Off Location (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="finalDropOffLocationReturn" className="block text-sm font-medium mb-2">Final Drop Off Location (Return)</label>
+    <textarea
+      id="finalDropOffLocationReturn"
+      name="finalDropOffLocationReturn"
+      value={finalDropOffLocationReturn}
+      onChange={e => setFinalDropOffLocationReturn(e.target.value)}
+      placeholder="Enter the final drop off location for the return journey"
+      rows="3"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    ></textarea>
+  </div>
+  
+  {/* Suggested Tip for Driver (Return) Input */}
+  <div className="mb-4">
+    <label htmlFor="suggestedTipForDriverReturn" className="block text-sm font-medium mb-2">Suggested Tip For Driver (Return)</label>
+    <input
+      id="suggestedTipForDriverReturn"
+      type="number"
+      name="suggestedTipForDriverReturn"
+      value={suggestedTipForDriverReturn}
+      onChange={e => setSuggestedTipForDriverReturn(e.target.value)}
+      placeholder="Suggested tip amount for the return journey"
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    />
+  </div>
+  
+    </div>
+    </form>
+  </main>
+  
+  )}
+  </div>
 )}
-</div>
 
-<div className="flex-grow flex flex-row bg-zinc-800 text-white">
+{!isTicketListVisible && (
+  <div className="flex-grow flex flex-row bg-zinc-800 text-white">
 {isLineListVisible && (
   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
     
@@ -2264,19 +2386,19 @@ const cancelLineFormDelete = () => {
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Archive')}>Archive</button>
                   </>
                 )}
-                <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleCancelClick}>Cancel</button>
+                <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleLineCancelClick}>Cancel</button>
               </>
           ) : (
             <>
               {/* Buttons to show when not in selecting mode */}
               <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-zinc-700" value={searchTerm} onChange={handleSearchChange} />
               <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterLineClick}>Filter</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleSelectClick}>Select</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleLineSelectClick}>Select</button>
               <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => handleExportAllLines()}>Export</button>
 
-              <input type="file" className="hidden" id="import-input" onChange={handleImportClick} />
+              <input type="file" className="hidden" id="import-input" onChange={handleLineImportClick} />
               <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Import</label>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleSettingsClick}>Settings</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleLineSettingsClick}>Settings</button>
               <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={() => { setIsLineFormVisible(true); resetLineFormStates(); }}>+ New Line</button>
             </>
           )}
@@ -2848,6 +2970,8 @@ const cancelLineFormDelete = () => {
   </main>
 )}
 </div>
+)}
+
 </div>
 </div>
     </>
