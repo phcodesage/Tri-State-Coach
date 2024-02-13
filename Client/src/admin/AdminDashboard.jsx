@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { jwtDecode } from "jwt-decode";
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid'
+import { jwtDecode } from "jwt-decode";// Assuming 'jwt_decode' is the correct named export
+import { useForm } from 'react-hook-form';
+import { v4 as uuidv4 } from 'uuid';
 import Multiselect from 'multiselect-react-dropdown';
-
 
 
 const AdminDashboard = () => {
@@ -59,7 +58,9 @@ const [currentDeletingLine, setCurrentDeletingLine] = useState(null);
 const [selectedLineIds, setSelectedLineIds] = useState([]);
 const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
 const [showCannotDeleteModal, setShowCannotDeleteModal] = useState(false);
+const [value, setValue] = useState('');
 const [lineToDelete, setLineToDelete] = useState(null);
+const [lineEditMode, setLineEditMode] = useState(false);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -162,7 +163,7 @@ const resetLineFormStates = () => {
   });
   setSelectedProducts([]);
   setCurrentLineId(null);
-  setEditMode(false);
+  setLineEditMode(false);
   setLineName("");
   // Reset any additional state related to the line form here
 };
@@ -170,7 +171,7 @@ const resetLineFormStates = () => {
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
 const [isLineModalVisible, setIsLineModalVisible] = useState(false);
-const { register, handleSubmit, watch, setValue, trigger, formState: { errors }, reset } = useForm();
+const { register, handleSubmit, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
 // At the top of your component, create a ref for the form
 const TicketformRef = useRef(null);
@@ -186,9 +187,9 @@ const [editline, setEditLine] = useState({
 })
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
-const lineDropDownRef = useRef<HTMLDivElement>(null);
+const lineDropDownRef = useRef(null);
 
-const [editMode, setEditMode] = useState(false);
+
 const [currentLineId, setCurrentLineId] = useState(null);
 let timeoutId;
 const isMounted = useRef(true);
@@ -261,7 +262,7 @@ const handleEditLineClick = async (line) => {
 
   setSelectedProducts(productDetails); // Set the selected products for the line with full details
   setIsLineFormVisible(true); // Show the line form for editing
-  setEditMode(true); // Enable edit mode
+  setLineEditMode(true); // Enable edit mode
   // Automatically fill the lineName and lineSlug when editing a line
   setLineName(line.name); // Set line name to state
   setLineSlug(line.slug); // Set line slug to state
@@ -595,7 +596,7 @@ useEffect(() => {
       // Add other necessary fields like selectedProducts, etc.
       setSelectedProducts(lineData.products); // Assuming `products` is an array of product objects
       // Set the edit mode to true
-      setEditMode(true);
+      setLineEditMode(true);
     } catch (error) {
       console.error('Error fetching line data:', error);
     }
@@ -631,7 +632,7 @@ useEffect(() => {
         );
         setIsLineFormVisible(false);
         reset();
-        setEditMode(false);
+        setLineEditMode(false);
         setCurrentLineId(null);
         setLastAction('');
       }
@@ -695,7 +696,7 @@ const handleCreateLineSubmission = handleSubmit(async (data) => {
       setLines(currentLines => currentLineId ? currentLines.map(line => line._id === currentLineId ? response.data : line) : [...currentLines, response.data]);
       setIsLineFormVisible(false);
       reset();
-      setEditMode(false);
+      setLineEditMode(false);
       setCurrentLineId(null);
       setLastAction(''); // Reset lastAction to prevent repeated submissions
     }
@@ -952,7 +953,7 @@ const handleEditLineSubmission = async () => {
         currentLines.map(line => line._id === currentLineId ? { ...line, ...lineDataToUpdate } : line)
       );
       setIsLineFormVisible(false); // Hide the form after successful edit
-      setEditMode(false); // Exit edit mode
+      setLineEditMode(false); // Exit edit mode
       // Reset other states if necessary
     }
   } catch (error) {
@@ -981,11 +982,19 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [searchTerm]);
 
+const handleFilterTicketClick = () => {
+  setIsLineFilterModalVisible(true);
+
+  // Here you would typically set some state to show a filter modal or dropdown
+};
+
 const handleFilterLineClick = () => {
   setIsLineFilterModalVisible(true);
 
   // Here you would typically set some state to show a filter modal or dropdown
 };
+
+
 
 const handleLineFilterCloseModal = () => {
   setIsLineFilterModalVisible(false);
@@ -1033,6 +1042,13 @@ const handleLineSelectClick = () => {
   setIsSelectActive(!isSelectActive);
   if (!isSelectActive) {
     clearLineSelection();
+  }
+};
+
+const handleTicketSelectClick = () => {
+  setIsTicketSelectActive(!isSelectActive);
+  if (!isSelectActive) {
+    clearTicketSelection();
   }
 };
 
@@ -1256,6 +1272,7 @@ const confirmDeleteLine = async () => {
         setLines(lines.filter((line) => line._id !== lineToDelete));
         // Close the modal
         setShowDeleteConfirmationModal(false);
+        setIsLineFormVisible(false)
       }
     } catch (error) {
       console.error('Error deleting line:', error);
@@ -1326,9 +1343,9 @@ const cancelLineFormDelete = () => {
 </aside>
 <div className="ml-64 flex flex-col flex-grow">
 {/* List of tickets */}
-
+<div className="flex-grow flex flex-row bg-zinc-800 text-white">
 {isTicketListVisible && (
-  <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/3' : 'w-full'} ml-auto bg-zinc-800 text-white transition-width duration-300 ease-in-out`}>
+  <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
     
   <div className="p-4 flex justify-between items-center">
     
@@ -1453,7 +1470,7 @@ const cancelLineFormDelete = () => {
     aria-expanded="true"
     aria-haspopup="true"
   >
-    {editMode ? 'Save' : 'Create'}
+    {lineEditMode ? 'Save' : 'Create'}
     <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
     </svg>
@@ -1481,7 +1498,7 @@ const cancelLineFormDelete = () => {
       tabIndex="-1"
       id="menu-item-0"
     >
-      {editMode ? 'Save' : 'Publish'}
+      {lineEditMode ? 'Save' : 'Publish'}
     </button>
     <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
       Publish the item to your live site.
@@ -2224,7 +2241,7 @@ const cancelLineFormDelete = () => {
 </main>
 
 )}
-
+</div>
 
 <div className="flex-grow flex flex-row bg-zinc-800 text-white">
 {isLineListVisible && (
@@ -2577,7 +2594,7 @@ const cancelLineFormDelete = () => {
   {/* Action Buttons */}
 <div className="flex relative text-left">
 {/* Status Display */}
-{editMode && (
+{lineEditMode && (
 <div className="flex items-center">
   {newLine.status === 'Published' ? (
     <span className="flex items-center">
@@ -2618,7 +2635,7 @@ const cancelLineFormDelete = () => {
     aria-expanded="true"
     aria-haspopup="true"
   >
-    {editMode ? 'Save' : 'Create'}
+    {lineEditMode ? 'Save' : 'Create'}
     <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
     </svg>
@@ -2643,7 +2660,7 @@ const cancelLineFormDelete = () => {
       tabIndex="-1"
       id="menu-item-0"
     >
-      {editMode ? 'Save' : 'Publish'}
+      {lineEditMode ? 'Save' : 'Publish'}
     </button>
     <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
       Publish the item to your live site.
@@ -2761,7 +2778,7 @@ const cancelLineFormDelete = () => {
 </div>
       </form>
              {/* Details Section */}
-             {editMode && (
+             {lineEditMode && (
        <div className="bg-zinc-800 p-4 text-white rounded mt-4">
       <div className="mb-3">
         <label className="font-semibold">Item ID</label>
@@ -2790,40 +2807,41 @@ const cancelLineFormDelete = () => {
        )}
 
 {showDeleteConfirmationModal && (
-        <div className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-          <div className="relative p-4 w-full max-w-md max-h-full">
-            <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
-              <button
-                type="button"
-                className="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                onClick={cancelLineFormDelete}
-              >
-                {/* Close icon */}
-              </button>
-              <div className="p-4 md:p-5 text-center">
-                {/* Alert icon */}
-                <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-                  Are you sure you want to delete this product?
-                </h3>
-                <button
-                  type="button"
-                  className="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2"
-                  onClick={confirmDeleteLine}
-                >
-                  Yes, I'm sure
-                </button>
-                <button
-                  type="button"
-                  className="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
-                  onClick={cancelLineFormDelete}
-                >
-                  No, cancel
-                </button>
-              </div>
-            </div>
-          </div>
+  <div className="flex overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center">
+    <div className="relative p-4 w-full max-w-md h-auto">
+      <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
+        <button
+          type="button"
+          className="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+          onClick={cancelLineFormDelete}
+        >
+          {/* Close icon */}
+        </button>
+        <div className="p-4 md:p-5 text-center">
+          {/* Alert icon */}
+          <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+            Are you sure you want to delete this product?
+          </h3>
+          <button
+            type="button"
+            className="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2"
+            onClick={confirmDeleteLine}
+          >
+            Yes, I'm sure
+          </button>
+          <button
+            type="button"
+            className="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
+            onClick={cancelLineFormDelete}
+          >
+            No, cancel
+          </button>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
    
 
