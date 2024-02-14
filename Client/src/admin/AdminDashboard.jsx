@@ -486,6 +486,7 @@ useEffect(() => {
 
 useEffect(() => {
   const fetchTickets = async () => {
+    setTicketLoading(true)
     try {
       const response = await axios.get('http://localhost:5000/api/tickets', {
         headers: {
@@ -1544,7 +1545,7 @@ useEffect(() => {
       <ul className="overflow-y-auto">
       <div className="overflow-x-auto">
         
-        <table className="min-w-full text-sm  divide-zinc-200">
+      <table className="min-w-full text-sm divide-zinc-200">
           <thead>
             <tr>
               <th className="text-left font-medium">Name</th>
@@ -1560,35 +1561,28 @@ useEffect(() => {
               )}
             </tr>
           </thead>
-          <tbody>
-            {tickets.map((ticket, index) => (
-              <tr
-                key={ticket._id}
-                style={{ backgroundColor: index % 2 === 0 ? '#292929' : '#2D2D2D' }}
-                onClick={() => handleTicketSelect(ticket)}
-                className="hover:bg-zinc-700 cursor-pointer"
-              >
-                <td className="p-2">{ticket.name}</td>
-                <td className={`p-2 inline-flex text-xs leading-5 font-semibold rounded-full ${ticket.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-zinc-300 text-white-800'}`}>
-                  {ticket.status}
-                </td>
-                {/* Other cells... */}
-                <td className="p-2 text-left">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      pinTicket(ticket._id);
-                    }}
-                    
-                    className="text-white-600 hover:text-white-900"
-                  >
-                    {/* SVG or Font Icon for Pin */}
-                    📌
-                  </button>
+          <tbody className="divide-zinc-200">
+          {ticketLoading ? (
+            [...Array(5)].map((_, index) => (
+              <tr key={`skeleton-${index}`}>
+                <td colSpan="6" className="text-center py-4">
+                  {/* Loading animation skeleton */}
                 </td>
               </tr>
-            ))}
+            ))
+          ) : tickets && tickets.length > 0 ? (
+            tickets.map((ticket, index) => (
+              <tr key={ticket._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`}>
+                {/* Ticket details including status, price, etc. */}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" className="text-center py-2 text-white">
+                No tickets available.
+              </td>
+            </tr>
+          )}
           </tbody>
         </table>
       </div>
@@ -1597,7 +1591,7 @@ useEffect(() => {
   )}
   
   {isTicketFormVisible && (
-    <main tabIndex="-1" className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto relativew-full">
+    <main tabIndex="-1" className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto relati0ve w-full">
     {/* Header starts here */}
   
     <div className="flex items-center justify-between mb-8">
