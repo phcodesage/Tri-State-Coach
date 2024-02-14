@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";// Assuming 'jwt_decode' is the correct named export
 import { useForm } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import Multiselect from 'multiselect-react-dropdown';
-
+import React from 'react';
 
 const AdminDashboard = () => {
 const authToken = localStorage.getItem('token');
@@ -485,24 +485,43 @@ useEffect(() => {
 
 
 useEffect(() => {
-  const fetchTickets = async () => {
-    setTicketLoading(true)
-    try {
-      const response = await axios.get('http://localhost:5000/api/tickets', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
-      checkTokenExpiration(response); // Check if token has expired
-      setTickets(response.data);
-    } catch (error) {
-      console.error('Fetch error:', error);
-      checkTokenExpiration(error.response); // Check if token has expired
-    }
-  };
-
   fetchTickets();
-}, [authToken, navigate]);
+}, []);
+
+
+const fetchTickets = async () => {
+  if (!isTicketListVisible) return; // Exit if the ticket list is not visible
+
+  setTicketLoading(true); // Start the loading animation
+
+  let timeoutId = setTimeout(() => {
+    // This block only executes if the request takes longer than 5 seconds
+    if (isTicketMounted.current) {
+      setTicketLoading(false);
+    }
+  }, 5000);
+
+  try {
+    const response = await axios.get('http://localhost:5000/api/tickets', {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
+    });
+
+    // Clear the timeout when the data is fetched before 5 seconds
+    clearTimeout(timeoutId);
+
+    if (isTicketMounted.current) {
+      setTickets(response.data);
+      setTicketLoading(false); // Stop the loading animation
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    if (isTicketMounted.current) {
+      setTicketLoading(false); // Ensure loading is stopped even on error
+    }
+  }
+};
 
 const [selectedTicket, setSelectedTicket] = useState(null);
 const [selectedCategories, setSelectedCategories] = useState([]);
@@ -1441,6 +1460,8 @@ const cancelLineFormDelete = () => {
 useEffect(() => {
   console.log(`Ticket form visibility: ${isTicketFormVisible}`);
 }, [isTicketFormVisible]);
+
+
   return (
     <>
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-900">
@@ -1542,51 +1563,127 @@ useEffect(() => {
       </div>
     
     )} 
-      <ul className="overflow-y-auto">
       <div className="overflow-x-auto">
         
       <table className="min-w-full text-sm divide-zinc-200">
           <thead>
             <tr>
-              <th className="text-left font-medium">Name</th>
+            {isTicketSelecting && (
+          <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">
+        <input
+          type="checkbox"
+          checked={selectedTickets.length === tickets.length && tickets.length > 0}
+          onChange={handleSelectAllTickets}
+          disabled={tickets.length === 0} // Optional: Disable if no lines are available
+        />
+      </th>
+          )}
               {!isTicketFormVisible && (
                 <>
-              <th className="text-left font-medium">Status</th>
-              <th className="text-left font-medium">Price</th>
-              <th className="text-left font-medium">Product Type</th>
-              <th className="text-left font-medium">Modified</th>
-              <th className="text-left font-medium">Published</th>
-
+            <th className="px-4 py-2 font-medium text-left text-white">Name</th>
+            <th className="px-4 py-2 font-medium text-left text-white">Status</th>
+            <th className="px-4 py-2 font-medium text-left text-white">Price</th>
+            <th className="px-4 py-2 font-medium text-left text-white">Product Type</th>
+            <th className="px-4 py-2 font-medium text-left text-white">Modified</th>
+            <th className="px-4 py-2 font-medium text-left text-white">Published</th>
               </>
               )}
             </tr>
           </thead>
-          <tbody className="divide-zinc-200">
-          {ticketLoading ? (
-            [...Array(5)].map((_, index) => (
-              <tr key={`skeleton-${index}`}>
-                <td colSpan="6" className="text-center py-4">
-                  {/* Loading animation skeleton */}
-                </td>
-              </tr>
-            ))
-          ) : tickets && tickets.length > 0 ? (
-            tickets.map((ticket, index) => (
-              <tr key={ticket._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`}>
-                {/* Ticket details including status, price, etc. */}
-              </tr>
-            ))
+          <tbody className=" divide-zinc-200">
+  {ticketLoading ? (
+    // Render multiple skeleton rows to match the expected number of data rows
+    [...Array(5)].map((_, index) => (
+      <tr key={`skeleton-${index}`}>
+        <td colSpan="5" className="text-center py-4">
+          <div role="status" className="animate-pulse">
+            <div className="h-3.5 bg-zinc-200 rounded-full  w-48 mb-4"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  max-w-[800px] mb-2.5"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  mb-2.5"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  max-w-[900px] mb-2.5"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  max-w-[950px] mb-2.5"></div>
+            <div className="h-3 bg-zinc-200 rounded-full  max-w-[750px]"></div>
+            <span className="sr-only">Loading...</span>
+          </div>
+        </td>
+      </tr>
+    ))
+  ) : tickets && tickets.length > 0 ? (
+    tickets.map((ticket, index) => (
+      ticket && ticket.name ? (
+
+        <tr key={ticket._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
+          if (isTicketSelecting) {
+            // Prevent the default action to allow checkbox toggling without entering edit mode
+            e.preventDefault();
+            // Toggle selection state of the line
+            toggleTicketSelection(ticket._id);
+          } else {
+            // Not in selecting mode, handle entering edit mode
+            handleEditTicketClick(ticket);
+          }
+        }}
+      >
+    {isTicketSelecting && (
+      <td className="px-4 py-2 whitespace-nowrap">
+        <input
+          type="checkbox"
+          checked={selectedTicket.includes(ticket._id)}
+          onChange={() => toggleTicketSelection(ticket._id)}
+        />
+      </td>
+    )}
+          <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.name}</td>
+          {!isTicketFormVisible && (
+            <>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status === 'Published' ? (
+            <span className="flex items-center">
+              <svg className='w-4 h-4 mr-2'
+                viewBox="0 0 16 16"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+              >
+                <g id="SVGRepo_bgCarrier" strokeWidth={0} />
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                <g id="SVGRepo_iconCarrier">
+                  <path fill="#02973b" d="M8 3a5 5 0 100 10A5 5 0 008 3z" />
+                </g>
+              </svg>
+
+              <span className="text-green-400">Published</span>
+            </span>
           ) : (
-            <tr>
-              <td colSpan="6" className="text-center py-2 text-white">
-                No tickets available.
+            <span className="flex items-center">
+              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
+              <span className="text-orange-300">Draft</span>
+            </span>
+          )}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.productsCount}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">
+                {ticket.lastEdited ? new Date(ticket.lastEdited).toLocaleString() : 'Not Edited'}
               </td>
-            </tr>
+              <td className="px-4 py-2 text-white whitespace-nowrap">
+                {ticket.created ? new Date(ticket.created).toLocaleString() : 'Not Published'}
+              </td>
+            </>
           )}
-          </tbody>
+        </tr>
+      )  : (
+        <tr key={`empty-${index}`}>
+          <td colSpan="5" className="text-center py-2 text-white">Ticket data is missing</td>
+        </tr>
+      )
+    ))
+  ) : (
+    <tr>
+      <td colSpan="5" className="text-center py-2 text-white">
+        No Ticket available.
+      </td>
+    </tr>
+  )}
+</tbody>
         </table>
       </div>
-      </ul>
     </div>
   )}
   
@@ -3012,5 +3109,6 @@ useEffect(() => {
     </>
   );
 }
-  
+
+
 export default AdminDashboard;
