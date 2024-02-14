@@ -19,6 +19,7 @@ const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isLineListVisible, setIsLineListVisible] = useState(false);
 const [tripType, setTripType] = useState('');
 const [lineName, setLineName] = useState('');
+const [ticketName, setTicketName] = useState('');
 const [productsCount, setProductsCount] = useState(0);
 const [departureDate, setDepartureDate] = useState('');
 const [returnDate, setReturnDate] = useState('');
@@ -237,6 +238,12 @@ const [lineSlug, setLineSlug] = useState('');
 const [dropdownOpen, setDropdownOpen] = useState(false);
 const [pinnedTickets, setPinnedTickets] = useState([]);
 const [editline, setEditLine] = useState({
+  name: "",
+  slug: "",
+  status: "",
+  products: []
+})
+const [editTicket, setEditTicket] = useState({
   name: "",
   slug: "",
   status: "",
@@ -647,6 +654,15 @@ const initialTicketData = {
 
   
 const [newLine, setNewLine] = useState({
+  name: "",
+  slug: "",
+  status: "", // default value
+  products: [], // default value, assuming it's a new line with no products yet
+  modified: new Date().toISOString(),
+  published: new Date().toISOString(),
+});
+
+const [newTicket, setNewTicket] = useState({
   name: "",
   slug: "",
   status: "", // default value
@@ -1073,7 +1089,8 @@ const handleTicketInputChange = (event) => {
 const handleTicketCancel = () => {
   reset(); // This will reset react-hook-form fields
   resetTicketFormStates(); // This will reset custom state management
-  setIsTicketModalVisible(false)
+  setIsTicketModalVisible(false);
+  setIsTicketFormVisible(false);
 };
 
 const handleLineCancel = () => {
