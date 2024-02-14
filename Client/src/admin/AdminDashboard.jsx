@@ -61,7 +61,7 @@ const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(f
 const [value, setValue] = useState('');
 const [lineToDelete, setLineToDelete] = useState(null);
 const [lineEditMode, setLineEditMode] = useState(false);
-const [ticketEditMode, setticketEditMode] = useState(false);
+const [ticketEditMode, setTicketEditMode] = useState(false);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -288,6 +288,7 @@ const handleTicketSlugChange = (e) => {
 };
 
 
+
 useEffect(() => {
   // Define the function inside useEffect to use the ref and state directly
   const handleOutsideClick = (event) => {
@@ -362,38 +363,76 @@ const handleEditLineClick = async (line) => {
 
 const handleEditTicketClick = async (ticket) => {
   setCurrentTicketId(ticket._id); // Save the editing ticket's ID
+  
+  // Ensure price and compareAtPrice are handled correctly
+  const price = ticket.price?.$numberInt ? ticket.price.$numberInt.toString() : ticket.price?.toString() || '';
+  const compareAtPrice = ticket.compareAtPrice?.$numberInt ? ticket.compareAtPrice.$numberInt.toString() : ticket.compareAtPrice?.toString() || '';
 
-  // Map the ticket's product IDs to the full product objects including names
-  const LineDetails = ticket.products.map(product => {
-    // Find the product in the full list of products (tickets) by its ID
-    const fullProduct = tickets.find(t => t._id === product.id);
-    return {
-      id: product.id,
-      name: fullProduct ? fullProduct.name : 'Unknown Product', // Fallback to 'Unknown Product' if not found
-      count: product.count,
-    };
-  });
-
+  // Set the form states with the ticket's information, handling potentially missing parts
   setEditTicket({
+    productType: ticket.productType,
     name: ticket.name,
     slug: ticket.slug,
-    status: ticket.status,
-    products: productDetails,
-  });
-  setNewTicket({
-    name: ticket.name,
-    slug: ticket.slug,
-    status: ticket.status,
-    products: productDetails,
+    description: ticket.description || '', // Provide a fallback if description is missing
+    categories: ticket.categories || [], // Provide an empty array as fallback
+    images: ticket.images || [], // Provide an empty array as fallback
+    price: price,
+    compareAtPrice: compareAtPrice,
+    sku: ticket.sku || '', // Provide an empty string as fallback
+    trackInventory: ticket.trackInventory || false,
+    inventoryQuantity: ticket.inventoryQuantity ? ticket.inventoryQuantity.toString() : '0', // Convert number to string or '0'
+    inventoryPolicy: ticket.inventoryPolicy || '', // Provide an empty string as fallback
+    requiresShipping: ticket.requiresShipping || false,
   });
 
-  setSelectedProducts(productDetails); // Set the selected products for the ticket with full details
+  // Set the selected categories and images if available
+  setSelectedCategories(ticket.categories || []);
+
+  // For images, set the selected image if exists
+  if (ticket.images && ticket.images.length > 0) {
+    setSelectedImage(ticket.images[0]);
+  } else {
+    setSelectedImage(null); // No images present
+  }
+  
   setIsTicketFormVisible(true); // Show the ticket form for editing
-  setticketEditMode(true); // Enable edit mode
-  // Automatically fill the ticketName and ticketSlug when editing a ticket
-  setTicketName(ticket.name); // Set ticket name to state
-  setTicketSlug(ticket.slug); // Set ticket slug to state
+  setTicketEditMode(true); // Enable edit mode
 };
+
+
+useEffect(() => {
+  if (ticketEditMode && editTicket) {
+    // Use setValue for each form field
+    setValue("productType", editTicket.productType);
+    setValue("name", editTicket.name);
+    setValue("slug", editTicket.slug);
+    setValue("description", editTicket.description);
+    setValue("price", editTicket.price.toString());
+    setValue("compareAtPrice", editTicket.compareAtPrice?.toString());
+    setValue("sku", editTicket.sku);
+    setValue("trackInventory", editTicket.trackInventory);
+    setValue("inventoryQuantity", editTicket.inventoryQuantity.toString());
+    setValue("inventoryPolicy", editTicket.inventoryPolicy);
+    setValue("requiresShipping", editTicket.requiresShipping);
+    // For categories, since it's a select-multiple, directly update the state
+    setSelectedCategories(editTicket.categories || []);
+    // For images, set the selected image if exists
+    if (editTicket.images && editTicket.images.length > 0) {
+      setSelectedImage(editTicket.images[0]);
+    } else {
+      setSelectedImage(null);
+    }
+  }
+
+  // Cleanup: Reset the form when exiting edit mode
+  return () => {
+    if (!ticketEditMode) {
+      reset(); // Reset form fields to initial values
+      setSelectedCategories([]); // Clear selected categories
+      setSelectedImage(null); // Clear selected image
+    }
+  };
+}, [editTicket, ticketEditMode, setValue, reset]);
 
 
 const handleRemoveProduct = (selectedList, removedItem) => {
@@ -1041,27 +1080,46 @@ const handleTicketInputChange = (event) => {
 
   // Example submit function
   const handleCreateTicketSubmission = async (data) => {
-    if (TicketformRef.current) {
-      // This triggers the form submission
-      TicketformRef.current.submit();
-    }
+    // Prepare the data for submission
+    // Ensure numerical values are correctly parsed
+    const preparedData = {
+      ...data,
+      price: parseFloat(data.price || 0), // Parse price to float
+      compareAtPrice: parseFloat(data.compareAtPrice || 0), // Parse compareAtPrice to float
+      inventoryQuantity: parseInt(data.inventoryQuantity || 0, 10), // Parse inventoryQuantity to integer
+      // Add any additional necessary data transformations here
+    };
+  
     try {
       // Always create a new ticket
       const response = await axios({
         method: 'POST',
         url: 'http://localhost:5000/api/tickets', // Directly point to the POST endpoint
-        data, // Send the form data directly
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        data: preparedData, // Send the prepared form data
+        headers: {
+          'Content-Type': 'application/json', // Specify JSON content type
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Send authorization token
+        },
       });
   
       // Handle success (you might want to do something with response.data)
       console.log('Ticket created successfully:', response.data);
       alert('Ticket submitted successfully!');
+  
+      // Reset the form or redirect the user as needed
+      // resetForm(); // Reset your form here if you have a function to do so
+      // or
+      // window.location.href = '/success-page'; // Redirect to a success page
     } catch (error) {
       console.error('Error submitting ticket:', error);
+      // Check for response from server and log it
+      if (error.response) {
+        console.log('Server responded with:', error.response.data);
+      }
       alert('Failed to submit the ticket. Please check the console for more details.');
     }
   };
+  
 
 
   useEffect(() => {
@@ -1898,7 +1956,7 @@ useEffect(() => {
       id="name"
       type="text"
       name="name"
-      value={ticketData.name}
+      value={ticketData.name || ''}
       onChange={handleTicketInputChange}
       placeholder="Ticket Name"
       required
@@ -1929,7 +1987,7 @@ useEffect(() => {
         <textarea
           id="description"
           name="description"
-          value={ticketData.description}
+          value={ticketData.description || ''}
           onChange={handleTicketInputChange}
           placeholder="Description"
           className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
