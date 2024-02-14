@@ -71,11 +71,19 @@ const initialLineFilterCriteria = {
   created: 'All',
   modified: 'All'
 };
+
+const initialTicketFilterCriteria = {
+  status: 'All',
+  published: 'All',
+  created: 'All',
+  modified: 'All'
+};
 const [isSelectActive, setIsSelectActive] = useState(false);
 const [isTicketSelectActive, setIsTicketSelectActive] = useState(false);
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
-
+const [isTicketFilterModalVisible, setIsTicketFilterModalVisible] = useState(false);
+const [TicketFilterCriteria, setTicketFilterCriteria] = useState(initialTicketFilterCriteria);
 
 const SVGArrow = (props) => (
   <svg
@@ -134,6 +142,21 @@ const getLineStartDateForFilter = (filterValue) => {
   }
 };
 
+const getTicketStartDateForFilter = (filterValue) => {
+  const now = new Date();
+  switch (filterValue) {
+    case 'Last 24 hours':
+      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    case 'Last 7 days':
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    case 'Last 30 days':
+      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    default:
+      // This effectively removes the filter
+      return new Date(0); // Earliest date to ensure all records are included
+  }
+};
+
 const toggleLineSelection = (lineId) => {
   const isSelected = selectedLines.includes(lineId);
   if (isSelected) {
@@ -162,14 +185,7 @@ const handleTicketCancelClick = () => {
   setSelectedTickets([]);
 };
 
-const selectAllLines = () => {
-  setSelectedLines(lines.map((line) => line._id));
-};
 
-// Function to clear all selections
-const clearLineSelection = () => {
-  setSelectedLines([]);
-};
 
 const resetLineFormStates = () => {
   setNewLine({
@@ -191,6 +207,7 @@ const resetLineFormStates = () => {
   // Reset any additional state related to the line form here
 };
 
+
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
 const [isLineModalVisible, setIsLineModalVisible] = useState(false);
@@ -211,12 +228,23 @@ const [editline, setEditLine] = useState({
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
 const lineDropDownRef = useRef(null);
+const ticketDropDownRef = useRef(null);
 
 
 const [currentLineId, setCurrentLineId] = useState(null);
+const [currentTicketId, setCurrentTicketid] = useState(null);
 let timeoutId;
-const isMounted = useRef(true);
-const [automatedValues, setAutomatedValues] = useState({
+const isLineMounted = useRef(true);
+const isTicketMounted = useRef(true);
+
+const [lineAutomatedValues, setLineAutomatedValues] = useState({
+  itemId: '',
+  created: '',
+  lastEdited: '',
+  lastPublished: '',
+});
+
+const [ticketAutomatedValues, setTicketAutomatedValues] = useState({
   itemId: '',
   created: '',
   lastEdited: '',
@@ -292,6 +320,41 @@ const handleEditLineClick = async (line) => {
 
 };
 
+const handleEditTicketClick = async (line) => {
+  setCurrentLineId(line._id); // Save the editing line's ID
+
+  // Map the line's product IDs to the full product objects including names
+  const productDetails = line.products.map(product => {
+    // Find the product in the full list of products (tickets) by its ID
+    const fullProduct = tickets.find(ticket => ticket._id === product.id);
+    return {
+      id: product.id,
+      name: fullProduct ? fullProduct.name : 'Unknown Product', // Fallback to 'Unknown Product' if not found
+      count: product.count,
+    };
+  });
+
+  setEditLine({
+    name: line.name,
+    slug: line.slug,
+    status: line.status,
+    products: productDetails,
+  });
+  setNewLine({
+    name: line.name,
+    slug: line.slug,
+    status: line.status,
+    products: productDetails,
+  });
+
+  setSelectedProducts(productDetails); // Set the selected products for the line with full details
+  setIsLineFormVisible(true); // Show the line form for editing
+  setLineEditMode(true); // Enable edit mode
+  // Automatically fill the lineName and lineSlug when editing a line
+  setLineName(line.name); // Set line name to state
+  setLineSlug(line.slug); // Set line slug to state
+
+};
 
 const handleRemoveProduct = (selectedList, removedItem) => {
   const newList = selectedList.filter(product => product.id !== removedItem.id);
@@ -300,6 +363,7 @@ const handleRemoveProduct = (selectedList, removedItem) => {
 };
 
 const [loading, setLoading] = useState(false);
+const [ticketLoading, setTicketLoading] = useState(false);
 // Create an Axios instance
 const api = axios.create({
   baseURL: 'http://localhost:5000/api',
@@ -349,7 +413,7 @@ useState(() => {
   const newItemId = uuidv4(); // Generate a unique Item ID
   const timestamp = new Date().toISOString(); // Get the current timestamp
 
-  setAutomatedValues({
+  setLineAutomatedValues({
     itemId: newItemId,
     created: timestamp,
     lastEdited: timestamp,
@@ -461,11 +525,17 @@ const handleCategorySelect = (event) => {
   setIsTicketFormVisible(false) // Hide the ticket form when toggling the line form
 };
 
-const toggleTicketFormVisibility = () => {
-  setIsTicketListVisible(!isTicketFormVisible);
+const toggleTicketListVisibility = () => {
+  setIsTicketListVisible(true);
   setIsLineFormVisible(false); // Hide the line form when toggling the ticket form\
   setIsLineListVisible(false);
 };
+
+const toggleTicketFormVisibility = () => {
+  setIsTicketFormVisible(!isTicketFormVisible);
+
+}
+
 
  // or your state management
 const [showCreateOptions, setShowCreateOptions] = useState(false);
@@ -551,7 +621,7 @@ useEffect (() => {
 
     // Set a minimum display time for the loading animation
     timeoutId = setTimeout(() => {
-      if (isMounted) {
+      if (isLineMounted) {
         setLoading(false);
       }
     }, 5000);
@@ -570,7 +640,7 @@ useEffect (() => {
       }
 
       if (Array.isArray(response.data)) {
-        if (isMounted) {
+        if (isLineMounted) {
           setLines(response.data);
           setOriginalLines(response.data); // Keep a copy of the original, unfiltered lines
           setLoading(false);// Stop the loading if data is fetched
@@ -590,12 +660,12 @@ useEffect (() => {
 
 
 useEffect(() => {
-  let isMounted = true;
+  let isLineMounted = true;
 
   if (isLineListVisible) {
     setLoading(true);
     const timeoutId = setTimeout(() => {
-      if (isMounted) {
+      if (isLineMounted) {
         setLoading(false);
       }
     }, 5000);
@@ -604,7 +674,7 @@ useEffect(() => {
     fetchLines().catch(console.error);
 
     return () => {
-      isMounted = false;
+      isLineMounted = false;
       clearTimeout(timeoutId);
     };
   }
@@ -701,7 +771,7 @@ const handleCreateLineSubmission = handleSubmit(async (data) => {
       count: product.count
     })),
     productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
-    ...(currentLineId ? {} : automatedValues),
+    ...(currentLineId ? {} : lineAutomatedValues),
     status: lineStatus,
   };
 
@@ -739,7 +809,7 @@ const handleLineSubmit = handleSubmit(async (data) => {
     })),
     productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
     status: lineStatus, // Use the lineStatus state
-    ...(currentLineId ? {} : automatedValues),
+    ...(currentLineId ? {} : lineAutomatedValues),
   };
 
   // ... rest of the submission logic
@@ -1367,9 +1437,12 @@ const cancelLineFormDelete = () => {
   setShowDeleteConfirmationModal(false);
 };
 
+useEffect(() => {
+  console.log(`Ticket form visibility: ${isTicketFormVisible}`);
+}, [isTicketFormVisible]);
   return (
     <>
-    <div className="flex flex-row min-h-screen bg-zinc-900">
+    <div className="flex flex-col md:flex-row min-h-screen bg-zinc-900">
 <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-white-500 rounded-lg sm:hidden hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-200   0">
    <span className="sr-only">Open sidebar</span>
    <svg className="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -1377,7 +1450,7 @@ const cancelLineFormDelete = () => {
    </svg>
 </button>
 
-<aside id="default-sidebar" className="fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto bg-zinc-200 shadow-lg">
+<aside id="default-sidebar" className={`fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto bg-zinc-200 shadow-lg block md:block`}>
    <div className="fixed inset-y-0 left-0 z-50 flex flex-col w-64 overflow-y-auto bg-zinc-200 shadow-xl">
       <ul className="space-y-2 font-medium">
          <li>
@@ -1386,7 +1459,7 @@ const cancelLineFormDelete = () => {
             </a>
          </li>
          <li>
-         <a href="#" onClick={toggleTicketFormVisibility} className="flex items-center p-2 space-x-3 rounded-lg hover:bg-zinc-100 group">
+         <a href="#" onClick={toggleTicketListVisibility} className="flex items-center p-2 space-x-3 rounded-lg hover:bg-zinc-100 group">
             <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#000000"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#000000"> </path> </g></svg>
                <span className="flex-1">Tickets</span>
                <span className="inline-flex items-center justify-center w-6 h-6 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">{tickets.length} items</span>
@@ -1426,8 +1499,8 @@ const cancelLineFormDelete = () => {
 </aside>
 <div className="ml-64 flex flex-col flex-grow">
 {/* List of tickets */}
-{!isLineListVisible && (
-  <div className="flex-grow flex flex-row bg-zinc-800 text-white">
+
+<div className={`${isLineListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
   {isTicketListVisible && (
     <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
      
@@ -1461,7 +1534,7 @@ const cancelLineFormDelete = () => {
               <input type="file" className="hidden" id="import-input" onChange={handleTicketImportClick} />
               <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Import</label>
               <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSettingsClick}>Settings</button>
-              <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={() => { setIsLineFormVisible(true); resetLineFormStates(); }}>+ New Ticket</button>
+              <button data-modal-target="ticket-form-modal" data-modal-toggle="ticket-form-modal" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={toggleTicketFormVisibility}>+ New Ticket</button>
             </>
           )}
         </div>
@@ -1507,7 +1580,7 @@ const cancelLineFormDelete = () => {
                       e.stopPropagation();
                       pinTicket(ticket._id);
                     }}
-                    disabled={isTicketFormVisible}
+                    
                     className="text-white-600 hover:text-white-900"
                   >
                     {/* SVG or Font Icon for Pin */}
@@ -1524,7 +1597,7 @@ const cancelLineFormDelete = () => {
   )}
   
   {isTicketFormVisible && (
-    <main className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto">
+    <main tabIndex="-1" className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto relativew-full">
     {/* Header starts here */}
   
     <div className="flex items-center justify-between mb-8">
@@ -2328,13 +2401,12 @@ const cancelLineFormDelete = () => {
     </div>
     </form>
   </main>
-  
   )}
   </div>
-)}
 
-{!isTicketListVisible && (
-  <div className="flex-grow flex flex-row bg-zinc-800 text-white">
+
+
+  <div className={`${isTicketListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
 {isLineListVisible && (
   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
     
@@ -2877,15 +2949,15 @@ const cancelLineFormDelete = () => {
       </div>
       <div className="mb-3">
         <label className="font-semibold">Created</label>
-        <p>{new Date(automatedValues.created).toLocaleString()} by AI</p>
+        <p>{new Date(lineAutomatedValues.created).toLocaleString()} by AI</p>
       </div>
       <div className="mb-3">
         <label className="font-semibold">Last edited</label>
-        <p>{new Date(automatedValues.lastEdited).toLocaleString()} by AI</p>
+        <p>{new Date(lineAutomatedValues.lastEdited).toLocaleString()} by AI</p>
       </div>
       <div className="mb-3">
         <label className="font-semibold">Last published</label>
-        <p>{new Date(automatedValues.lastPublished).toLocaleString()} by AI</p>
+        <p>{new Date(lineAutomatedValues.lastPublished).toLocaleString()} by AI</p>
       </div>
       <div className="flex gap-2">
         <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={() => handleLineArchive(currentLineId)}>Archive</button>
@@ -2939,7 +3011,7 @@ const cancelLineFormDelete = () => {
   </main>
 )}
 </div>
-)}
+
 
 </div>
 </div>
