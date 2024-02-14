@@ -55,12 +55,8 @@ const [selectedTickets, setSelectedTickets] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
 const [isSelecting, setIsSelecting] = useState(false);
 const [isTicketSelecting, setIsTicketSelecting] = useState(false);
-const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-const [showReferenceError, setShowReferenceError] = useState(false);
-const [currentDeletingLine, setCurrentDeletingLine] = useState(null);
 const [selectedLineIds, setSelectedLineIds] = useState([]);
 const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
-const [showCannotDeleteModal, setShowCannotDeleteModal] = useState(false);
 const [value, setValue] = useState('');
 const [lineToDelete, setLineToDelete] = useState(null);
 const [lineEditMode, setLineEditMode] = useState(false);
@@ -303,6 +299,22 @@ useEffect(() => {
 }, [isDropdownOpen]); // Depend on isDropdownOpen to re-attach the listener when it changes
 
 
+useEffect(() => {
+  // Define the function inside useEffect to use the ref and state directly
+  const handleTicketOutsideClick = (event) => {
+    if (ticketDropDownRef.current && !ticketDropDownRef.current.contains(event.target)) {
+      setIsTicketDropdownOpen(false);
+    }
+  };
+
+  // Add event listener
+  document.addEventListener('mousedown', handleTicketOutsideClick);
+
+  // Remove event listener on cleanup
+  return () => {
+    document.removeEventListener('mousedown', handleTicketOutsideClick);
+  };
+}, [isTicketDropdownOpen]); 
 
 
 const handleEditLineClick = async (line) => {
@@ -1764,7 +1776,7 @@ useEffect(() => {
   
     {/* Dropdown menu, show/hide based on menu state. */}
   <div
-    ref={TicketformRef}
+    ref={ticketDropDownRef}
     className={`${isTicketDropdownOpen ? '' : 'hidden'} origin-top-right absolute right-0 mt-10 w-56 rounded-md shadow-lg bg-zinc-900 ring-1 ring-black ring-opacity-5 focus:outline-none`}
     role="menu"
     aria-orientation="vertical"
