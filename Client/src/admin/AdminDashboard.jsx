@@ -54,6 +54,7 @@ const [searchTicketTerm, setTicketSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
 const [selectedTickets, setSelectedTickets] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
+const [ticketStatus, setTicketStatus] = useState('Draft');
 const [isSelecting, setIsSelecting] = useState(false);
 const [isTicketSelecting, setIsTicketSelecting] = useState(false);
 const [selectedLineIds, setSelectedLineIds] = useState([]);
@@ -231,6 +232,7 @@ const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
 const [isLineModalVisible, setIsLineModalVisible] = useState(false);
 const { register, handleSubmit, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
+const [ticketLastAction, setTicketLastAction] = useState('');
 // At the top of your component, create a ref for the form
 const TicketformRef = useRef(null);
 const [lineTitle, setLineTitle] = useState(''); // State for line title
@@ -880,7 +882,6 @@ useEffect(() => {
 const handleCreateLineSubmission = handleSubmit(async (data) => {
   // Determine the status based on the lastAction before form submission
 
-
   const lineData = {
     ...data,
      // Apply determined status here
@@ -1029,12 +1030,14 @@ const handleLineDraft = () => {
 };
 const handleTicketPublish = () => {
   // Set the lastAction state to 'publish'
-  setLastAction('publish');
+  setTicketLastAction('publish');
+  setTicketStatus('Published');
 };
 
 const handleTicketDraft = () => {
   // Set the lastAction state to 'draft'
   setLastAction('draft');
+  setTicketStatus('Draft');
 };
 
 const handleInputChange = (event, index, value) => {
@@ -1458,6 +1461,13 @@ useEffect(() => {
     handleSubmit(handleCreateLineSubmission)();
   }
 }, [lastAction, lineStatus]); // Depend on lastAction and lineStatus
+
+useEffect(() => {
+  // Check if lastAction has been set, indicating a submit action should follow
+  if (ticketLastAction === 'publish' || ticketLastAction === 'draft') {
+    handleSubmit(handleCreateTicketSubmission)();
+  }
+}, [ticketLastAction, ticketStatus]);
 
 const toggleLineSelectMode = () => {
   setIsSelecting(!isSelecting);
@@ -2038,20 +2048,20 @@ useEffect(() => {
   
   
   {/* Media Section */}
-  <div className="mb-4 bg-zinc-100 p-4 rounded">
+  <div className="mb-4 bg-zinc-200 p-4 rounded">
     <div className="mb-4">
-      <label className="block text-sm font-medium text-white-700 mb-2">Main image</label>
+      <label className="block text-sm font-medium text-zinc-700 mb-2">Main image</label>
       {selectedImage ? (
         <div className="flex items-center space-x-2 mb-2">
           <img src={selectedImage} alt="Selected" className="h-20 w-20 object-cover rounded" />
           <div className="flex flex-col">
-            <span className="text-xs font-medium">Filename: {selectedImage.name}</span>
-            <span className="text-xs text-white-500">Size: {selectedImage.size} KB</span>
+            <span className="text-xs font-medium text-zinc-700">Filename: {selectedImage.name}</span>
+            <span className="text-xs text-zinc-500">Size: {selectedImage.size} KB</span>
           </div>
-          <button type="button" onClick={() => setSelectedImage(null)} className="text-white-500 hover:text-white-700">
+          <button type="button" onClick={() => setSelectedImage(null)} className="text-zinc-500 hover:text-white-700">
             Replace
           </button>
-          <button type="button" onClick={deleteImage} className="text-white-500 hover:text-white-700">
+          <button type="button" onClick={deleteImage} className="text-zinc-500 hover:text-zinc-700">
             Delete
           </button>
         </div>
@@ -2059,8 +2069,8 @@ useEffect(() => {
         <div className="flex justify-center items-center w-full">
           <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-zinc-200 hover:border-zinc-400 rounded-lg group">
             <div className="flex flex-col items-center justify-center pt-7">
-              <svg className="w-10 h-10 text-white-400 group-hover:text-white-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
-              <p className="pt-1 text-sm tracking-wider text-white-400 group-hover:text-white-600">
+              <svg className="w-10 h-10 text-zinc-400 group-hover:text-white-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
+              <p className="pt-1 text-sm tracking-wider text-zinc-400 group-hover:text-white-600">
                 Click to browse for files
               </p>
             </div>
@@ -2125,7 +2135,7 @@ useEffect(() => {
       name="productTaxClass"
       value={ticketData.productTaxClass}
       onChange={handleTicketInputChange}
-      className="block w-full p-2 mb-2 text-sm text-white-700 bg-zinc border border-zinc-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
+      className="block w-full p-2 mb-2 text-sm text-zinc-700 bg-zinc border border-zinc-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"
     >
       <option value="Standard">Standard automatic tax calculation</option>
       <option value="Exempt">Exempt from taxes</option>
@@ -2207,7 +2217,7 @@ useEffect(() => {
         onChange={e => setLineName(e.target.value)}
         className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
       >
-        {/* Options will be fetched from the backend */}
+        <option value="">Select a Line</option> {/* Optional: Add a default option */}
         {lines.map((line) => (
           <option key={line._id} value={line.name}>
             {line.name}
