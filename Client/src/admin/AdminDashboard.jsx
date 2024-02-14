@@ -64,6 +64,7 @@ const [showCannotDeleteModal, setShowCannotDeleteModal] = useState(false);
 const [value, setValue] = useState('');
 const [lineToDelete, setLineToDelete] = useState(null);
 const [lineEditMode, setLineEditMode] = useState(false);
+const [ticketEditMode, setticketEditMode] = useState(false);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -207,6 +208,26 @@ const resetLineFormStates = () => {
   // Reset any additional state related to the line form here
 };
 
+const resetTicketFormStates = () => {
+  setNewTicket({
+    name: "",
+    slug: "",
+    status: "",
+    products: []
+  });
+  setEditTicket({
+    name: "",
+    slug: "",
+    status: "",
+    products: []
+  });
+  setSelectedProducts([]);
+  setCurrentTicketId(null);
+  setticketEditMode(false);
+  setTicketName("");
+  // Reset any additional state related to the line form here
+};
+
 
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
@@ -232,7 +253,7 @@ const ticketDropDownRef = useRef(null);
 
 
 const [currentLineId, setCurrentLineId] = useState(null);
-const [currentTicketId, setCurrentTicketid] = useState(null);
+const [currentTicketId, setCurrentTicketId] = useState(null);
 let timeoutId;
 const isLineMounted = useRef(true);
 const isTicketMounted = useRef(true);
@@ -320,13 +341,13 @@ const handleEditLineClick = async (line) => {
 
 };
 
-const handleEditTicketClick = async (line) => {
-  setCurrentLineId(line._id); // Save the editing line's ID
+const handleEditTicketClick = async (ticket) => {
+  setCurrentTicketId(ticket._id); // Save the editing ticket's ID
 
-  // Map the line's product IDs to the full product objects including names
-  const productDetails = line.products.map(product => {
+  // Map the ticket's product IDs to the full product objects including names
+  const LineDetails = ticket.products.map(product => {
     // Find the product in the full list of products (tickets) by its ID
-    const fullProduct = tickets.find(ticket => ticket._id === product.id);
+    const fullProduct = tickets.find(t => t._id === product.id);
     return {
       id: product.id,
       name: fullProduct ? fullProduct.name : 'Unknown Product', // Fallback to 'Unknown Product' if not found
@@ -334,27 +355,27 @@ const handleEditTicketClick = async (line) => {
     };
   });
 
-  setEditLine({
-    name: line.name,
-    slug: line.slug,
-    status: line.status,
+  setEditTicket({
+    name: ticket.name,
+    slug: ticket.slug,
+    status: ticket.status,
     products: productDetails,
   });
-  setNewLine({
-    name: line.name,
-    slug: line.slug,
-    status: line.status,
+  setNewTicket({
+    name: ticket.name,
+    slug: ticket.slug,
+    status: ticket.status,
     products: productDetails,
   });
 
-  setSelectedProducts(productDetails); // Set the selected products for the line with full details
-  setIsLineFormVisible(true); // Show the line form for editing
-  setLineEditMode(true); // Enable edit mode
-  // Automatically fill the lineName and lineSlug when editing a line
-  setLineName(line.name); // Set line name to state
-  setLineSlug(line.slug); // Set line slug to state
-
+  setSelectedProducts(productDetails); // Set the selected products for the ticket with full details
+  setIsTicketFormVisible(true); // Show the ticket form for editing
+  setticketEditMode(true); // Enable edit mode
+  // Automatically fill the ticketName and ticketSlug when editing a ticket
+  setTicketName(ticket.name); // Set ticket name to state
+  setTicketSlug(ticket.slug); // Set ticket slug to state
 };
+
 
 const handleRemoveProduct = (selectedList, removedItem) => {
   const newList = selectedList.filter(product => product.id !== removedItem.id);
@@ -421,6 +442,18 @@ useState(() => {
   });
 }, []);
 
+
+useState(() => {
+  const newItemId = uuidv4(); // Generate a unique Item ID
+  const timestamp = new Date().toISOString(); // Get the current timestamp
+
+  setTicketAutomatedValues({
+    itemId: newItemId,
+    created: timestamp,
+    lastEdited: timestamp,
+    lastPublished: timestamp,
+  });
+}, []);
 
 // Function to check if the token is expired and redirect to login
 const checkTokenExpiration = (response) => {
@@ -984,29 +1017,28 @@ const handleTicketInputChange = (event) => {
 
 
   // Example submit function
-  const onTicketSubmit = async (data) => {
+  const handleCreateTicketSubmission = async (data) => {
     if (TicketformRef.current) {
       // This triggers the form submission
       TicketformRef.current.submit();
     }
     try {
-      // Determine if it's a new ticket or an update based on some condition, e.g., if there's an ID
-      const isEdit = data.slug; // Simplistic approach for illustration
-      
+      // Always create a new ticket
       const response = await axios({
-        method: isEdit ? 'PATCH' : 'POST',
-        url: `http://localhost:5000/api/tickets${isEdit ? `/${data.slug}` : ''}`,
-        data,
+        method: 'POST',
+        url: 'http://localhost:5000/api/tickets', // Directly point to the POST endpoint
+        data, // Send the form data directly
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       });
-
-
+  
+      // Handle success (you might want to do something with response.data)
+      console.log('Ticket created successfully:', response.data);
       alert('Ticket submitted successfully!');
     } catch (error) {
       console.error('Error submitting ticket:', error);
       alert('Failed to submit the ticket. Please check the console for more details.');
     }
-  }
+  };
 
 
   useEffect(() => {
@@ -1025,13 +1057,6 @@ const handleTicketInputChange = (event) => {
 
 
 // Function to reset all related form states
-const resetTicketFormStates = () => {
-  setTicketData(initialTicketData); // Reset ticketData to its initial state
-  setSelectedTicket(null); // Clear any selected ticket
-  setSelectedImage(null); // Clear selected image
-  setIsTicketFormVisible(false); // Close the form/modal
-  // Add any additional resets for other state variables here
-};
 
 const handleTicketCancel = () => {
   reset(); // This will reset react-hook-form fields
@@ -1450,6 +1475,7 @@ const confirmDeleteLine = async () => {
         // Close the modal
         setShowDeleteConfirmationModal(false);
         setIsLineFormVisible(false)
+        setIsSelecting(false)
       }
     } catch (error) {
       console.error('Error deleting line:', error);
@@ -1730,7 +1756,7 @@ useEffect(() => {
       aria-expanded="true"
       aria-haspopup="true"
     >
-      {lineEditMode ? 'Save' : 'Create'}
+      {ticketEditMode ? 'Save' : 'Create'}
       <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
       </svg>
@@ -1750,7 +1776,7 @@ useEffect(() => {
     <div className="group">
       <button
         onClick={() => {
-          document.getElementById('ticketForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+          
           handleTicketPublish();
         }}
         className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
@@ -1758,7 +1784,7 @@ useEffect(() => {
         tabIndex="-1"
         id="menu-item-0"
       >
-        {lineEditMode ? 'Save' : 'Publish'}
+        {ticketEditMode ? 'Save' : 'Publish'}
       </button>
       <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
         Publish the item to your live site.
@@ -1770,7 +1796,7 @@ useEffect(() => {
       <button
         onClick={() => {
           handleTicketDraft();
-          handleSubmit(onTicketSubmit)
+          
         }}
         className="text-white block w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 relative"
         role="menuitem"
@@ -1807,7 +1833,7 @@ useEffect(() => {
     </div>
   )}
   
-    <form onSubmit={handleSubmit(onTicketSubmit)} id="ticketForm" className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
+    <form onSubmit={handleSubmit(handleCreateTicketSubmission)} ref={TicketformRef} id="ticketForm" className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
       {/* Product Type Dropdown */}
       <div className="mb-4">
         <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
@@ -2507,7 +2533,41 @@ useEffect(() => {
   <div className={`${isTicketListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
 {isLineListVisible && (
   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
-    
+    {showDeleteConfirmationModal && (
+  <div className="flex overflow-y-auto overflow-x-hidden fixed inset-0 z-100 justify-center items-center">
+    <div className="relative p-4 w-full max-w-md h-auto">
+      <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
+        <button
+          type="button"
+          className="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+          onClick={cancelLineFormDelete}
+        >
+          {/* Close icon */}
+        </button>
+        <div className="p-4 md:p-5 text-center">
+          {/* Alert icon */}
+          <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+            Are you sure you want to delete this product?
+          </h3>
+          <button
+            type="button"
+            className="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2"
+            onClick={confirmDeleteLine}
+          >
+            Yes, I'm sure
+          </button>
+          <button
+            type="button"
+            className="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
+            onClick={cancelLineFormDelete}
+          >
+            No, cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     {/* Header with buttons */}
     {!isLineFormVisible && (
           <div className="flex justify-between items-center p-4 sticky top-0 z-10 bg-zinc-900 shadow">
@@ -2520,9 +2580,9 @@ useEffect(() => {
                 {selectedLines.length > 0 && (
                   <>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={(handleExportAllLines)}>Export</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Delete')}>Delete</button>
+                    <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={() => initiateDeleteLine(currentLineId)}>Delete</button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Draft')}>Draft</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Archive')}>Archive</button>
+                    <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={() => handleLineArchive(currentLineId)}>Archive</button>
                   </>
                 )}
                 <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleLineCancelClick}>Cancel</button>
@@ -3068,7 +3128,7 @@ useEffect(() => {
        )}
 
 {showDeleteConfirmationModal && (
-  <div className="flex overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center">
+  <div className="flex overflow-y-auto overflow-x-hidden fixed inset-0 z-100 justify-center items-center">
     <div className="relative p-4 w-full max-w-md h-auto">
       <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
         <button
