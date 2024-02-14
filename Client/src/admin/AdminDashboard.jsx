@@ -1648,17 +1648,26 @@ useEffect(() => {
   {ticketLoading ? (
     // Render multiple skeleton rows to match the expected number of data rows
     [...Array(5)].map((_, index) => (
-      <tr key={`skeleton-${index}`}>
-        <td colSpan="5" className="text-center py-4">
-          <div role="status" className="animate-pulse">
-            <div className="h-3.5 bg-zinc-200 rounded-full  w-48 mb-4"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  max-w-[800px] mb-2.5"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  mb-2.5"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  max-w-[900px] mb-2.5"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  max-w-[950px] mb-2.5"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  max-w-[750px]"></div>
-            <span className="sr-only">Loading...</span>
+      <tr key={`skeleton-${index}`} className="animate-pulse">
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded"></div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded"></div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="flex items-center">
+            <div className="h-4 bg-zinc-200 rounded w-3/4"></div>
           </div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded w-1/2"></div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded w-1/4"></div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded w-1/4"></div>
         </td>
       </tr>
     ))
@@ -2806,17 +2815,23 @@ useEffect(() => {
   {loading ? (
     // Render multiple skeleton rows to match the expected number of data rows
     [...Array(5)].map((_, index) => (
-      <tr key={`skeleton-${index}`}>
-        <td colSpan="5" className="text-center py-4">
-          <div role="status" className="animate-pulse">
-            <div className="h-3.5 bg-zinc-200 rounded-full  w-48 mb-4"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  max-w-[800px] mb-2.5"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  mb-2.5"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  max-w-[900px] mb-2.5"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  max-w-[950px] mb-2.5"></div>
-            <div className="h-3 bg-zinc-200 rounded-full  max-w-[750px]"></div>
-            <span className="sr-only">Loading...</span>
+      <tr key={`skeleton-${index}`} className="animate-pulse">
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded"></div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded"></div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="flex items-center">
+            <div className="h-4 bg-zinc-200 rounded w-3/4"></div>
           </div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded w-1/2"></div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="h-4 bg-zinc-200 rounded w-1/4"></div>
         </td>
       </tr>
     ))
