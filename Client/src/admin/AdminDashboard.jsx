@@ -490,7 +490,7 @@ useEffect(() => {
 
 
 const fetchTickets = async () => {
-  if (!isTicketListVisible) return; // Exit if the ticket list is not visible
+  if (!isTicketListVisible) { // Exit if the ticket list is not visible
 
   setTicketLoading(true); // Start the loading animation
 
@@ -510,6 +510,9 @@ const fetchTickets = async () => {
 
     // Clear the timeout when the data is fetched before 5 seconds
     clearTimeout(timeoutId);
+    if (response.status !== 200) {
+      throw new Error('Error fetching tickets');
+    }
 
     if (isTicketMounted.current) {
       setTickets(response.data);
@@ -521,6 +524,7 @@ const fetchTickets = async () => {
       setTicketLoading(false); // Ensure loading is stopped even on error
     }
   }
+}
 };
 
 const [selectedTicket, setSelectedTicket] = useState(null);
@@ -1658,12 +1662,15 @@ useEffect(() => {
               <span className="text-orange-300">Draft</span>
             </span>
           )}</td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.productsCount}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">${ticket.price}</td>
               <td className="px-4 py-2 text-white whitespace-nowrap">
-                {ticket.lastEdited ? new Date(ticket.lastEdited).toLocaleString() : 'Not Edited'}
+                {ticket.productType}
               </td>
               <td className="px-4 py-2 text-white whitespace-nowrap">
                 {ticket.created ? new Date(ticket.created).toLocaleString() : 'Not Published'}
+              </td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">
+                {ticket.publishedOn ? new Date(ticket.publishedOn).toLocaleString() : 'Not Published'}
               </td>
             </>
           )}
