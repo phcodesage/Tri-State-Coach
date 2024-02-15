@@ -1703,7 +1703,8 @@ useEffect(() => {
           )}
               {!isTicketFormVisible && (
                 <>
-            <th className="px-4 py-2 font-medium text-left text-white">Name</th>
+                {isTicketSelecting && (
+            <th className="px-4 py-2 font-medium text-left text-white">Name</th> )}
             <th className="px-4 py-2 font-medium text-left text-white">Status</th>
             <th className="px-4 py-2 font-medium text-left text-white">Price</th>
             <th className="px-4 py-2 font-medium text-left text-white">Product Type</th>
@@ -1879,6 +1880,7 @@ useEffect(() => {
     {/* Button for Publish */}
     <div className="group">
       <button
+      type='submit'
         onClick={() => {
           
           handleTicketPublish();
