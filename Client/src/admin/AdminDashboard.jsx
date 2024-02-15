@@ -532,18 +532,12 @@ const handleImageChange = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
-      // Set the preview image
       setSelectedImage(reader.result);
-
-      // Append the new image file to the ticketData images array
-      setTicketData({
-        ...ticketData,
-        images: [...ticketData.images, newImageURL] // newImageURL should be a string
-      });
     };
     reader.readAsDataURL(file);
   }
 };
+
 
 const deleteImage = () => {
   // Implement the logic to delete the image
@@ -1082,9 +1076,8 @@ const handleTicketInputChange = (event) => {
 
 
   // Example submit function
-  const handleCreateTicketSubmission = handleSubmit(async (data)  => {
+  const handleCreateTicketSubmission = handleSubmit(async (data) => {
     // Prepare the data for submission
-    // Ensure numerical values are correctly parsed
     const preparedData = {
       ...data,
       price: parseFloat(data.price || 0), // Parse price to float
@@ -1092,33 +1085,26 @@ const handleTicketInputChange = (event) => {
       inventoryQuantity: parseInt(data.inventoryQuantity || 0, 10), // Parse inventoryQuantity to integer
       // Add any additional necessary data transformations here
     };
-  
+
     try {
       // Always create a new ticket
       const response = await axios({
         method: 'POST',
-        url: 'http://localhost:5000/api/tickets', // Directly point to the POST endpoint
+        url: 'http://localhost:5000/api/tickets', // Adjust the URL as needed
         data: preparedData, // Send the prepared form data
         headers: {
           'Content-Type': 'application/json', // Specify JSON content type
           'Authorization': `Bearer ${localStorage.getItem('token')}`, // Send authorization token
         },
       });
-  
-      // Handle success (you might want to do something with response.data)
+
+      // Handle success
       console.log('Ticket created successfully:', response.data);
       alert('Ticket submitted successfully!');
-  
-      // Reset the form or redirect the user as needed
-      // resetForm(); // Reset your form here if you have a function to do so
-      // or
-      // window.location.href = '/success-page'; // Redirect to a success page
+
+      reset(); // Reset form fields to initial state after successful submission
     } catch (error) {
       console.error('Error submitting ticket:', error);
-      // Check for response from server and log it
-      if (error.response) {
-        console.log('Server responded with:', error.response.data);
-      }
       alert('Failed to submit the ticket. Please check the console for more details.');
     }
   });
@@ -1583,7 +1569,40 @@ useEffect(() => {
   console.log(`Ticket form visibility: ${isTicketFormVisible}`);
 }, [isTicketFormVisible]);
 
+useEffect(() => {
+  const fetchLines = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/lines', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.status === 200) {
+        setLines(response.data);
+      } else {
+        throw new Error('Failed to fetch lines');
+      }
+    } catch (error) {
+      console.error('Error fetching lines:', error);
+    }
+  };
 
+  const fetchTickets = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/tickets', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.status === 200) {
+        setTickets(response.data);
+      } else {
+        throw new Error('Failed to fetch tickets');
+      }
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+    }
+  };
+
+  fetchLines();
+  fetchTickets();
+}, []);
   return (
     <>
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-900">
@@ -2009,45 +2028,48 @@ useEffect(() => {
       </div>
   
       {/* Categories Select - Updated for multiple selections */}
-  <div className="mb-4">
-    <label htmlFor="categories" className="block text-sm font-medium mb-2">
-      Categories
-    </label>
-    <p className="text-xs mb-4">
-      Add this product to one or more categories.
-    </p>
-    <select
-      id="categories"
-      name="categories"
-      multiple
-      {...register('categories', { required: 'Select at least one category' })} // Updated to use React Hook Form
-      className="w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-    >
-      {lines.map((line) => (
-        <option key={line._id} value={line.name}>
-          {line.name}
-        </option>
-      ))}
-    </select>
-    {/* Display selected categories */}
-    <div className="flex flex-wrap gap-2 mt-2">
-      {selectedCategories.map((category) => (
-        <span
-          key={category}
-          className="flex items-center px-3 py-1 text-sm bg-zinc-600 rounded-full"
-        >
-          {category}
-          <button
-            type="button"
-            onClick={() => handleRemoveCategory(category)}
-            className="flex items-center justify-center w-4 h-4 ml-2 rounded-full hover:text-white-300"
-          >
-            &times;
-          </button>
-        </span>
-      ))}
-    </div>
-  </div>
+      <div className="flex flex-col space-y-4" style={{ position: 'relative', zIndex: '0' }}>
+  <label htmlFor="lines" className="block mb-2 text-sm font-medium text-white">Lines</label>
+  <Multiselect
+    options={lines} // Use lines instead of tickets
+    selectedValues={selectedLines} // Manage selected lines state
+    onSelect={handleLineSelect} // Handler for selecting a line
+    onRemove={handleLineSelect} // Handler for deselecting a line
+    displayValue="name" // Assumes lines have a 'name' property to display
+    placeholder="Select lines"
+    className="" // Add necessary classes or leave empty if not needed
+    style={{
+      multiselectContainer: {
+        width: '100%',
+        backgroundColor: '#1F2937',
+      },
+      searchBox: {
+        minWidth: '100%',
+        border: '2px solid #4B5563',
+        borderRadius: '0px',
+        backgroundColor: '#1F2937',
+        color: 'white',
+        paddingLeft: '0.5rem',
+        paddingRight: '2.5rem',
+      },
+      optionContainer: {
+        width: '100%',
+        backgroundColor: '#1F2937',
+        borderColor: '#374151',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      },
+      option: {
+        backgroundColor: 'rgb(38 38 38)',
+        color: 'white',
+        '&:hover': {
+          backgroundColor: 'black',
+        },
+      },
+      // Add other style modifications as needed
+    }}
+  />
+</div>
+
   
   
   {/* Media Section */}
