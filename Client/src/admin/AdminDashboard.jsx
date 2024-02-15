@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";// Assuming 'jwt_decode' is the correct named export
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import Multiselect from 'multiselect-react-dropdown';
 import React from 'react';
@@ -25,6 +25,7 @@ const [departureDate, setDepartureDate] = useState('');
 const [returnDate, setReturnDate] = useState('');
 const [selectedImage, setSelectedImage] = useState(null);
 const [tickets, setTickets] = useState([]); // State to store tickets data
+const [selectedTicketId, setSelectedTicketId] = useState(null);
 const [secondPickUpTime, setSecondPickUpTime] = useState('');
 const [secondPickUpLocation, setSecondPickUpLocation] = useState('');
 const [thirdPickUpTime, setThirdPickUpTime] = useState('');
@@ -221,7 +222,7 @@ const resetTicketFormStates = () => {
   });
   setSelectedProducts([]);
   setCurrentTicketId(null);
-  setticketEditMode(false);
+  setTicketEditMode(false);
   setTicketName("");
   // Reset any additional state related to the line form here
 };
@@ -1082,7 +1083,7 @@ const handleTicketInputChange = (event) => {
 
 
   // Example submit function
-  const handleCreateTicketSubmission = async (data) => {
+  const handleCreateTicketSubmission = handleSubmit(async (data)  => {
     // Prepare the data for submission
     // Ensure numerical values are correctly parsed
     const preparedData = {
@@ -1121,7 +1122,7 @@ const handleTicketInputChange = (event) => {
       }
       alert('Failed to submit the ticket. Please check the console for more details.');
     }
-  };
+  });
   
 
 
@@ -1936,7 +1937,7 @@ useEffect(() => {
     </div>
   )}
   
-    <form onSubmit={handleSubmit(handleCreateTicketSubmission)} ref={TicketformRef} id="ticketForm" className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
+    <form onSubmit={handleSubmit(handleCreateTicketSubmission)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
       {/* Product Type Dropdown */}
       <div className="mb-4">
         <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
@@ -1966,6 +1967,7 @@ useEffect(() => {
       id="name"
       type="text"
       name="name"
+      {...register('name', { required: 'Name is required' })}
       value={ticketData.name || ''}
       onChange={handleTicketInputChange}
       placeholder="Ticket Name"
@@ -1980,14 +1982,15 @@ useEffect(() => {
     <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
     <input
       id="slug"
+      name="slug"
       {...register('slug', { required: 'Slug is required' })}
       className="w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
       placeholder='slug'
       value={ticketData.slug || ''} 
-      onChange={handleTicketSlugChange}
+      onChange={(e) => setNewTicket({...newTicket, slug: e.target.value})}
     />
     {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
-    <p className="text-white mt-2">www.tri-statecoach.com/category/{ticketData.slug || ''}</p>
+    <p className="text-white mt-2">www.tri-statecoach.com/category/{newTicket.slug || 'slug'}</p>
   </div>
   
   
