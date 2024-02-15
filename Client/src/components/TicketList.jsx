@@ -57,7 +57,7 @@ function TicketList() {
               <td className="p-2 text-left">
                 <button
                   type="button"
-                  onClick={(e:any) => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     pinTicket(ticket._id);
                   }}

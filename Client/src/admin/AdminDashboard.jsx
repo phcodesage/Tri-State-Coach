@@ -331,14 +331,17 @@ useEffect(() => {
 const handleEditLineClick = async (line) => {
   setCurrentLineId(line._id); // Save the editing line's ID
 
-  // Map the line's product IDs to the full product objects including names
   const productDetails = line.products.map(product => {
-    // Find the product in the full list of products (tickets) by its ID
-    const fullProduct = tickets.find(ticket => ticket._id === product.id);
+    // Adjusted to safely handle product ID retrieval
+    const productId = product.id?.$oid ? product.id.$oid : product.id?.toString() || '';
+
+    // Ensuring fullProduct search does not fail due to undefined ID
+    const fullProduct = tickets.find(ticket => ticket._id.toString() === productId);
+
     return {
-      id: product.id,
-      name: fullProduct ? fullProduct.name : 'Unknown Product', // Fallback to 'Unknown Product' if not found
-      count: product.count,
+      id: productId,
+      name: fullProduct ? fullProduct.name : 'Unknown Product', // Handle missing product gracefully
+      count: product.count?.$numberInt ? parseInt(product.count.$numberInt, 10) : product.count, // Safely handle count
     };
   });
 
@@ -358,11 +361,11 @@ const handleEditLineClick = async (line) => {
   setSelectedProducts(productDetails); // Set the selected products for the line with full details
   setIsLineFormVisible(true); // Show the line form for editing
   setLineEditMode(true); // Enable edit mode
-  // Automatically fill the lineName and lineSlug when editing a line
   setLineName(line.name); // Set line name to state
   setLineSlug(line.slug); // Set line slug to state
-
 };
+
+
 
 const handleEditTicketClick = async (ticket) => {
   setCurrentTicketId(ticket._id); // Save the editing ticket's ID
@@ -881,60 +884,56 @@ useEffect(() => {
 
 // Form submission handler for Line
 const handleCreateLineSubmission = handleSubmit(async (data) => {
-  // Determine the status based on the lastAction before form submission
-
+  // Prepare line data for submission
   const lineData = {
     ...data,
-     // Apply determined status here
     products: selectedProducts.map(product => ({
       id: product.id,
       name: product.name,
       count: product.count
     })),
     productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
-    ...(currentLineId ? {} : lineAutomatedValues),
-    status: lineStatus,
+    status: lineStatus, // Ensure lineStatus is appropriately set elsewhere in your code
   };
 
-  const apiUrl = `http://localhost:5000/api/lines${currentLineId ? `/${currentLineId}` : ''}`;
+  // Determine the correct API URL and HTTP method based on whether it's a create or update action
+  const apiUrl = currentLineId ? `http://localhost:5000/api/lines/${currentLineId}` : 'http://localhost:5000/api/lines';
   const method = currentLineId ? 'patch' : 'post';
-  const headers = {
-    'Authorization': `Bearer ${authToken}`,
-    'Content-Type': 'application/json',
-  };
 
   try {
-    const response = await axios({ url: apiUrl, method, data: lineData, headers });
+    // Use axios to submit the form data. Adjust this part according to your axios setup, e.g., using axios instance if configured
+    const response = await axios({
+      method: method,
+      url: apiUrl,
+      data: lineData,
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
     if (response.status === 200 || response.status === 201) {
-      // Successfully created or updated the line
-      setLines(currentLines => currentLineId ? currentLines.map(line => line._id === currentLineId ? response.data : line) : [...currentLines, response.data]);
-      setIsLineFormVisible(false);
-      reset();
-      setLineEditMode(false);
-      setCurrentLineId(null);
-      setLastAction(''); // Reset lastAction to prevent repeated submissions
+      // Handle successful response
+      // Update local state to reflect the new or updated line
+      setLines(currentLines =>
+        currentLineId
+          ? currentLines.map(line => line._id === currentLineId ? { ...line, ...response.data } : line)
+          : [...currentLines, response.data]
+      );
+
+      // Reset UI state and form
+      setIsLineFormVisible(false); // Close the line form modal or toggle visibility
+      reset(); // Reset form fields using react-hook-form's reset method
+      setLineEditMode(false); // Exit line edit mode
+      setCurrentLineId(null); // Clear the current line ID
+      setLastAction(''); // Reset lastAction state
     }
   } catch (error) {
     console.error('Error submitting line:', error);
+    // Optionally, handle the error in UI, for example, by showing an error message
   }
 });
 
-
-const handleLineSubmit = handleSubmit(async (data) => {
-  const lineData = {
-    ...data,
-    products: selectedProducts.map(product => ({
-      id: product.id,
-      name: product.name,
-      count: product.count
-    })),
-    productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
-    status: lineStatus, // Use the lineStatus state
-    ...(currentLineId ? {} : lineAutomatedValues),
-  };
-
-  // ... rest of the submission logic
-});
     
 
   const handleLogout = () => {
@@ -2009,47 +2008,46 @@ useEffect(() => {
         ></textarea>
       </div>
   
-      {/* Categories Select */}
-      <div className="mb-4">
-        <label htmlFor="categories" className="block text-sm font-medium mb-2">
-          Categories
-        </label>
-        <p className="text-xs mb-4">
-          Add this product to one or more categories.
-        </p>
-        <select
-          id="categories"
-          name="categories"
-          multiple
-          value={selectedCategories}
-          onChange={handleCategorySelect}
-          className="w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+      {/* Categories Select - Updated for multiple selections */}
+  <div className="mb-4">
+    <label htmlFor="categories" className="block text-sm font-medium mb-2">
+      Categories
+    </label>
+    <p className="text-xs mb-4">
+      Add this product to one or more categories.
+    </p>
+    <select
+      id="categories"
+      name="categories"
+      multiple
+      {...register('categories', { required: 'Select at least one category' })} // Updated to use React Hook Form
+      className="w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    >
+      {lines.map((line) => (
+        <option key={line._id} value={line.name}>
+          {line.name}
+        </option>
+      ))}
+    </select>
+    {/* Display selected categories */}
+    <div className="flex flex-wrap gap-2 mt-2">
+      {selectedCategories.map((category) => (
+        <span
+          key={category}
+          className="flex items-center px-3 py-1 text-sm bg-zinc-600 rounded-full"
         >
-          {lines.map((line) => (
-            <option key={line._id} value={line.name}>
-              {line.name}
-            </option>
-          ))}
-        </select>
-        {/* Display selected categories */}
-        <div className="flex flex-wrap gap-2 mt-2">
-          {selectedCategories.map((category) => (
-            <span
-              key={category}
-              className="flex items-center px-3 py-1 text-sm bg-zinc-600 rounded-full"
-            >
-              {category}
-              <button
-                type="button"
-                onClick={() => handleRemoveCategory(category)}
-                className="flex items-center justify-center w-4 h-4 ml-2 rounded-full hover:text-white-300"
-              >
-                &times;
-              </button>
-            </span>
-          ))}
-        </div>
-      </div>
+          {category}
+          <button
+            type="button"
+            onClick={() => handleRemoveCategory(category)}
+            className="flex items-center justify-center w-4 h-4 ml-2 rounded-full hover:text-white-300"
+          >
+            &times;
+          </button>
+        </span>
+      ))}
+    </div>
+  </div>
   
   
   {/* Media Section */}
@@ -3070,7 +3068,7 @@ useEffect(() => {
     aria-expanded="true"
     aria-haspopup="true"
   >
-    {lineEditMode ? 'Save' : 'Create'}
+    {lineEditMode ? 'Publish' : 'Create'}
     <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
     </svg>
@@ -3095,7 +3093,7 @@ useEffect(() => {
       tabIndex="-1"
       id="menu-item-0"
     >
-      {lineEditMode ? 'Save' : 'Publish'}
+      {lineEditMode ? 'Publish' : 'Publish'}
     </button>
     <div className="absolute hidden group-hover:block px-2 py-1 text-sm text-white bg-black rounded-md shadow-lg -bottom-10 w-56">
       Publish the item to your live site.
