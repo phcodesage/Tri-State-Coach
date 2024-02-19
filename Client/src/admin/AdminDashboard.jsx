@@ -1648,8 +1648,8 @@ useEffect(() => {
    </svg>
 </button>
 
-<aside id="default-sidebar" className={`fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto bg-zinc-800 shadow-lg block md:block border-r-2 border-zinc-200`}>
-<div className="fixed inset-y-0 left-0 z-50 flex flex-col w-64 overflow-y-auto shadow-xl bg-zinc-800">
+<aside id="default-sidebar" className={`fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto bg-zinc-800 shadow-lg block md:block`}>
+<div className="fixed inset-y-0 left-0 z-50 flex flex-col w-64 overflow-y-auto shadow-xl border-r-2 border-zinc-200">
       <ul className="space-y-2 font-medium">
          <li>
          <a href="/admin" className="flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white">
@@ -1657,23 +1657,23 @@ useEffect(() => {
             </a>
          </li>
          <li>
-         <a href="#" onClick={toggleTicketListVisibility} className="flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white">
+         <a href="#" onClick={toggleTicketListVisibility} className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white ${isTicketListVisible ? "bg-zinc-600" : "bg-zinc-800"}`}>
             <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#ffffff"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#ffffff"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#ffffff"> </path> </g></svg>
                <span className="flex-1">Tickets</span>
-               <span className="inline-flex items-center justify-center w-6 h-6 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">{tickets.length} items</span>
+               <span className="flex-1">{tickets.length} Items</span>
             </a>
          </li>
          <li>
-            <a href="#" onClick={toggleLineFormVisibility} className="flex items-center p-2 text-white-900 hover:bg-zinc-700 group text-white">
+            <a href="#" onClick={toggleLineFormVisibility} className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white ${isLineListVisible ? "active: bg-zinc-600" : "bg-zinc-800"}`} >
                <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" viewBox="0 0 20 20">
                   <path d="m17.418 3.623-.018-.008a6.713 6.713 0 0 0-2.4-.569V2h1a1 1 0 1 0 0-2h-2a1 1 0 0 0-1 1v2H9.89A6.977 6.977 0 0 1 12 8v5h-2V8A5 5 0 1 0 0 8v6a1 1 0 0 0 1 1h8v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4h6a1 1 0 0 0 1-1V8a5 5 0 0 0-2.582-4.377ZM6 12H4a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2Z"/>
                </svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Lines</span>
-               <span className="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full  0">{lines.length} items</span>
+               <span className="flex-1">{lines.length} Items</span>
             </a>
          </li>
          <li>
-            <a href="#" className="flex items-center p-2 text-white-900 hover:bg-zinc-700 text-white group">
+            <a href="#" className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white`}>
             <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 14H17M14 10H17M9 9.5V8.5M9 9.5H11.0001M9 9.5C7.20116 9.49996 7.00185 9.93222 7.0001 10.8325C6.99834 11.7328 7.00009 12 9.00009 12C11.0001 12 11.0001 12.2055 11.0001 13.1667C11.0001 13.889 11.0001 14.5 9.00009 14.5M9.00009 14.5L9 15.5M9.00009 14.5H7.0001M6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V8.2C21 7.0799 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19Z" fill="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Orders</span>
             </a>
