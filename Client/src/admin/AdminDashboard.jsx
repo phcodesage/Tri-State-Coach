@@ -166,12 +166,13 @@ const toggleLineSelection = (lineId) => {
   }
 };
 
-const toggleTicketSelection = (lineId) => {
-  const isTicketSelected = selectedTickets.includes(ticketId);
-  if (isTicketSelected) {
+const toggleTicketSelection = (ticketId) => {
+  // Logic to toggle selection
+  const isSelected = selectedTickets.includes(ticketId);
+  if (isSelected) {
     setSelectedTickets(selectedTickets.filter(id => id !== ticketId));
   } else {
-    setSelectedTickets([...selectedTickets, lineId]);
+    setSelectedTickets([...selectedTickets, ticketId]);
   }
 };
 
@@ -372,7 +373,7 @@ const handleEditLineClick = async (line) => {
 
 
 const handleEditTicketClick = async (ticket) => {
-  setCurrentTicketId(ticket._id); // Save the editing ticket's ID
+  setCurrentTicketId(ticket); // Save the editing ticket's ID
   
   // Ensure price and compareAtPrice are handled correctly
   const price = ticket.price?.$numberInt ? ticket.price.$numberInt.toString() : ticket.price?.toString() || '';
@@ -1354,6 +1355,31 @@ async function handleExportAllLines() {
   }
 }
 
+async function handleExportAllTickets() {
+  try {
+    const response = await fetch('http://localhost:5000/api/export-all', {
+      headers: {
+        'Accept': 'text/csv',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch data: ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = 'combined_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(downloadUrl); // Clean up
+  } catch (error) {
+    console.error('Error exporting data:', error);
+  }
+}
 
 
 
@@ -1615,31 +1641,31 @@ useEffect(() => {
   return (
     <>
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-900">
-<button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-white-500 rounded-lg sm:hidden hover:bg-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200   0">
+<button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-white-500 rounded-lg sm:hidden hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-200   0">
    <span className="sr-only">Open sidebar</span>
    <svg className="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
    <path clipRule="evenodd" fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
    </svg>
 </button>
 
-<aside id="default-sidebar" className={`fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto bg-zinc-200 shadow-lg block md:block`}>
-   <div className="fixed inset-y-0 left-0 z-50 flex flex-col w-64 overflow-y-auto bg-zinc-200 shadow-xl">
+<aside id="default-sidebar" className={`fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto bg-zinc-800 shadow-lg block md:block border-r-2 border-zinc-200`}>
+<div className="fixed inset-y-0 left-0 z-50 flex flex-col w-64 overflow-y-auto shadow-xl bg-zinc-800">
       <ul className="space-y-2 font-medium">
          <li>
-         <a href="/admin" className="flex items-center p-2 space-x-3 hover:bg-zinc-400 group">
-               <span className="ms-3 text-xl font-bold">Ecommerce</span>
+         <a href="/admin" className="flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white">
+               <span className="ms-3 text-xl font-bold text-white">Ecommerce</span>
             </a>
          </li>
          <li>
-         <a href="#" onClick={toggleTicketListVisibility} className="flex items-center p-2 space-x-3 hover:bg-zinc-400 group">
-            <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#000000"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#000000"> </path> </g></svg>
+         <a href="#" onClick={toggleTicketListVisibility} className="flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white">
+            <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#ffffff"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#ffffff"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#ffffff"> </path> </g></svg>
                <span className="flex-1">Tickets</span>
                <span className="inline-flex items-center justify-center w-6 h-6 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">{tickets.length} items</span>
             </a>
          </li>
          <li>
-            <a href="#" onClick={toggleLineFormVisibility} className="flex items-center p-2 text-white-900 hover:bg-zinc-400 group">
-               <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <a href="#" onClick={toggleLineFormVisibility} className="flex items-center p-2 text-white-900 hover:bg-zinc-700 group text-white">
+               <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" viewBox="0 0 20 20">
                   <path d="m17.418 3.623-.018-.008a6.713 6.713 0 0 0-2.4-.569V2h1a1 1 0 1 0 0-2h-2a1 1 0 0 0-1 1v2H9.89A6.977 6.977 0 0 1 12 8v5h-2V8A5 5 0 1 0 0 8v6a1 1 0 0 0 1 1h8v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4h6a1 1 0 0 0 1-1V8a5 5 0 0 0-2.582-4.377ZM6 12H4a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2Z"/>
                </svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Lines</span>
@@ -1647,15 +1673,15 @@ useEffect(() => {
             </a>
          </li>
          <li>
-            <a href="#" className="flex items-center p-2 text-white-900 hover:bg-zinc-400  group">
-            <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 14H17M14 10H17M9 9.5V8.5M9 9.5H11.0001M9 9.5C7.20116 9.49996 7.00185 9.93222 7.0001 10.8325C6.99834 11.7328 7.00009 12 9.00009 12C11.0001 12 11.0001 12.2055 11.0001 13.1667C11.0001 13.889 11.0001 14.5 9.00009 14.5M9.00009 14.5L9 15.5M9.00009 14.5H7.0001M6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V8.2C21 7.0799 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
+            <a href="#" className="flex items-center p-2 text-white-900 hover:bg-zinc-700 text-white group">
+            <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 14H17M14 10H17M9 9.5V8.5M9 9.5H11.0001M9 9.5C7.20116 9.49996 7.00185 9.93222 7.0001 10.8325C6.99834 11.7328 7.00009 12 9.00009 12C11.0001 12 11.0001 12.2055 11.0001 13.1667C11.0001 13.889 11.0001 14.5 9.00009 14.5M9.00009 14.5L9 15.5M9.00009 14.5H7.0001M6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V8.2C21 7.0799 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19Z" fill="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Orders</span>
             </a>
          </li>
 
          <li className="absolute bottom-0 w-full">
-            <button onClick={handleLogout} className="flex items-center p-2 text-white-900 rounded-lg  hover:bg-zinc-400  group w-full">
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path opacity="0.5" d="M9.00195 7C9.01406 4.82497 9.11051 3.64706 9.87889 2.87868C10.7576 2 12.1718 2 15.0002 2L16.0002 2C18.8286 2 20.2429 2 21.1215 2.87868C22.0002 3.75736 22.0002 5.17157 22.0002 8L22.0002 16C22.0002 18.8284 22.0002 20.2426 21.1215 21.1213C20.2429 22 18.8286 22 16.0002 22H15.0002C12.1718 22 10.7576 22 9.87889 21.1213C9.11051 20.3529 9.01406 19.175 9.00195 17" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round"></path> <path d="M15 12L2 12M2 12L5.5 9M2 12L5.5 15" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
+            <button onClick={handleLogout} className="flex items-center p-2 text-white rounded-lg  hover:bg-zinc-700  group w-full">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path opacity="0.5" d="M9.00195 7C9.01406 4.82497 9.11051 3.64706 9.87889 2.87868C10.7576 2 12.1718 2 15.0002 2L16.0002 2C18.8286 2 20.2429 2 21.1215 2.87868C22.0002 3.75736 22.0002 5.17157 22.0002 8L22.0002 16C22.0002 18.8284 22.0002 20.2426 21.1215 21.1213C20.2429 22 18.8286 22 16.0002 22H15.0002C12.1718 22 10.7576 22 9.87889 21.1213C9.11051 20.3529 9.01406 19.175 9.00195 17" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round"></path> <path d="M15 12L2 12M2 12L5.5 9M2 12L5.5 15" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Log out</span>
             </button>
          </li>
@@ -1671,19 +1697,20 @@ useEffect(() => {
      
      {/* Header with buttons */}
     {!isTicketFormVisible && (
-          <div className="flex justify-between items-center p-4 sticky top-0 z-10 bg-zinc-900 shadow">
+          <div className="flex justify-between items-center p-2 sticky top-0 z-10 bg-zinc-900 shadow">
           <h2 className="text-xl font-bold">
           {isTicketSelecting ? `${selectedTickets.length > 0 ? `${selectedTickets.length} Tickets(s) selected` : 'Select Tickets...'}` : 'Tickets'}
+          
           </h2>
         <div className="flex space-x-2">
         {isTicketSelecting ? (
                 <>
                 {selectedTickets.length > 0 && (
                   <>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={(handleExportAllTickets)}>Export</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Delete')}>Delete</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Draft')}>Draft</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Archive')}>Archive</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={(handleExportAllTickets)}>Export</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Delete')}>Delete</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Draft')}>Draft</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Archive')}>Archive</button>
                   </>
                 )}
                 <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleTicketCancelClick}>Cancel</button>
@@ -1692,13 +1719,13 @@ useEffect(() => {
             <>
               {/* Buttons to show when not in selecting mode */}
               <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-zinc-700" value={searchTicketTerm} onChange={handleTicketSearchChange} />
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterTicketClick}>Filter</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSelectClick}>Select</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => handleExportAllLines()}>Export</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleFilterTicketClick}>Filter</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleTicketSelectClick}>Select</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => handleExportAllLines()}>Export</button>
 
               <input type="file" className="hidden" id="import-input" onChange={handleTicketImportClick} />
-              <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Import</label>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleTicketSettingsClick}>Settings</button>
+              <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded cursor-pointer">Import</label>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleTicketSettingsClick}>Settings</button>
               <button data-modal-target="ticket-form-modal" data-modal-toggle="ticket-form-modal" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={toggleTicketFormVisibility}>+ New Ticket</button>
             </>
           )}
@@ -1882,7 +1909,7 @@ useEffect(() => {
       aria-expanded="true"
       aria-haspopup="true"
     >
-      {ticketEditMode ? 'Save' : 'Create'}
+      {ticketEditMode ? 'Save' : 'Publish'}
       <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fillRule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.294-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
       </svg>
@@ -2716,7 +2743,7 @@ useEffect(() => {
 )}
     {/* Header with buttons */}
     {!isLineFormVisible && (
-          <div className="flex justify-between items-center p-4 sticky top-0 z-10 bg-zinc-900 shadow">
+          <div className="flex justify-between items-center p-2 sticky top-0 z-10 bg-zinc-900 shadow">
           <h2 className="text-xl font-bold">
           {isSelecting ? `${selectedLines.length > 0 ? `${selectedLines.length} Line(s) selected` : 'Select Lines...'}` : 'Lines'}
           </h2>
@@ -2725,9 +2752,9 @@ useEffect(() => {
                 <>
                 {selectedLines.length > 0 && (
                   <>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={(handleExportAllLines)}>Export</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={(handleExportAllLines)}>Export</button>
                     <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={() => initiateDeleteLine(currentLineId)}>Delete</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => console.log('Draft')}>Draft</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Draft')}>Draft</button>
                     <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={() => handleLineArchive(currentLineId)}>Archive</button>
                   </>
                 )}
@@ -2737,13 +2764,13 @@ useEffect(() => {
             <>
               {/* Buttons to show when not in selecting mode */}
               <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-zinc-700" value={searchTerm} onChange={handleSearchChange} />
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleFilterLineClick}>Filter</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleLineSelectClick}>Select</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={() => handleExportAllLines()}>Export</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleFilterLineClick}>Filter</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleLineSelectClick}>Select</button>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => handleExportAllLines()}>Export</button>
 
               <input type="file" className="hidden" id="import-input" onChange={handleLineImportClick} />
-              <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Import</label>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded" onClick={handleLineSettingsClick}>Settings</button>
+              <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded cursor-pointer">Import</label>
+              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleLineSettingsClick}>Settings</button>
               <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={() => { setIsLineFormVisible(true); resetLineFormStates(); }}>+ New Line</button>
             </>
           )}
