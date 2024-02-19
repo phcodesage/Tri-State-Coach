@@ -231,7 +231,7 @@ const resetTicketFormStates = () => {
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
 const [isLineModalVisible, setIsLineModalVisible] = useState(false);
-const { register, handleSubmit, formState: { errors }, reset } = useForm();
+const { control, register, handleSubmit, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
 const [ticketLastAction, setTicketLastAction] = useState('');
 // At the top of your component, create a ref for the form
@@ -1030,7 +1030,7 @@ const handleTicketPublish = () => {
 
 const handleTicketDraft = () => {
   // Set the lastAction state to 'draft'
-  setLastAction('draft');
+  setTicketLastAction('draft');
   setTicketStatus('Draft');
 };
 
@@ -1107,6 +1107,7 @@ const handleTicketInputChange = (event) => {
       console.error('Error submitting ticket:', error);
       alert('Failed to submit the ticket. Please check the console for more details.');
     }
+
   });
   
 
@@ -1603,6 +1604,7 @@ useEffect(() => {
   fetchLines();
   fetchTickets();
 }, []);
+
   return (
     <>
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-900">
@@ -1994,24 +1996,34 @@ useEffect(() => {
       required
       className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
     />
+    {errors.name && <span className="text-red-500">{errors.slug.message}</span>}
   </div>
   
   
   {/* Slug Input */}
   <div>
-    <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
-    <input
-      id="slug"
-      name="slug"
-      {...register('slug', { required: 'Slug is required' })}
-      className="w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
-      placeholder='slug'
-      value={ticketData.slug || ''} 
-      onChange={(e) => setNewTicket({...newTicket, slug: e.target.value})}
-    />
-    {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
-    <p className="text-white mt-2">www.tri-statecoach.com/category/{newTicket.slug || 'slug'}</p>
-  </div>
+      <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
+      <Controller
+        name="slug"
+        control={control}
+        rules={{ required: 'Slug is required' }}
+        render={({ field }) => (
+          <input
+            id="slug"
+            {...field}
+            className="w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
+            placeholder='slug'
+            onChange={(e) => {
+              field.onChange(e); // Notify React Hook Form of the change
+              setNewTicket({...newTicket, slug: e.target.value}); // Your custom state management
+            }}
+            value={newTicket.slug || ''}
+          />
+        )}
+      />
+      {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
+      <p className="text-white mt-2">www.tri-statecoach.com/category/{newTicket.slug || 'slug'}</p>
+    </div>
   
   
       {/* Description TextArea */}
@@ -2122,15 +2134,16 @@ useEffect(() => {
         <div className="flex items-center bg-zinc-700 rounded">
           <span className="pl-2 text-white-300">$</span>
           <input
-            id="price"
-            type="number"
-            name="price"
-            value={ticketData.price}
-            onChange={handleTicketInputChange}
-            placeholder="0.00"
-            className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
-          />
+          id="price"
+          type="number"
+          name="price"
+          {...register('price', { required: 'Price is required' })} // Use register with the name 'price' and set a required validation rule with a custom message
+          placeholder="0.00"
+          className="flex-1 bg-transparent text-white p-2 rounded focus:ring-0"
+        />
+        
         </div>
+        {errors.slug && <span className="text-red-500">{errors.price.message}</span>}
       </div>
       <div className="flex-1">
         <label htmlFor="compareAtPrice" className="block text-sm font-medium mb-1">Compare-at price</label>
@@ -2239,6 +2252,7 @@ useEffect(() => {
         id="lineName"
         name="lineName"
         value={lineName}
+        {...register('lineName', { required: 'Line name is required' })}
         onChange={e => setLineName(e.target.value)}
         className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
       >
@@ -2249,6 +2263,7 @@ useEffect(() => {
           </option>
         ))}
       </select>
+      {errors.slug && <span className="text-red-500">{errors.lineName.message}</span>}
     </div>
   
   {/* Departure Date */}
@@ -3143,9 +3158,9 @@ useEffect(() => {
 </div>
 
 
-
-
       <form onSubmit={handleSubmit(handleCreateLineSubmission)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
+
+
         {/* Line Name Input */}
         <div>
           <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name <span className="text-red-700">*</span></label>
