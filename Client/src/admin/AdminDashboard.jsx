@@ -208,22 +208,26 @@ const resetLineFormStates = () => {
 };
 
 const resetTicketFormStates = () => {
-  setNewTicket({
-    name: "",
-    slug: "",
-    status: "",
-    products: []
+  // Resetting all the state variables to their initial states
+  setTicketData({
+    productType: '', // Assuming the initial state is an empty string or whatever default you prefer
+    name: '',
+    slug: '',
+    description: '',
+    categories: [],
+    images: [],
+    price: '',
+    compareAtPrice: '',
+    sku: '',
+    trackInventory: false,
+    inventoryQuantity: '',
+    // Add other fields as required
   });
-  setEditTicket({
-    name: "",
-    slug: "",
-    status: "",
-    products: []
-  });
-  setSelectedProducts([]);
-  setCurrentTicketId(null);
-  setTicketEditMode(false);
-  setTicketName("");
+
+  setTripType(''); // Reset trip type
+  setLineName(''); // Reset line name
+  setDepartureDate(''); // Reset departure date
+  setReturnDate(''); 
   // Reset any additional state related to the line form here
 };
 
@@ -643,7 +647,8 @@ const toggleTicketListVisibility = () => {
 
 const toggleTicketFormVisibility = () => {
   setIsTicketFormVisible(!isTicketFormVisible);
-
+  resetTicketFormStates();
+  
 }
 
 
@@ -1104,7 +1109,7 @@ const handleTicketInputChange = (event) => {
         },
       });
 
-      console.log('Ticket created successfully:', response.data);
+
     alert('Ticket submitted successfully!');
     reset(); // Reset form fields after successful submission
   } catch (error) {
@@ -1520,8 +1525,7 @@ const handleLineArchive = async (lineId) => {
 
 
 const handleLineDuplicate = async (lineId) => {
-  console.log("Attempting to duplicate line with ID:", lineId);
-  console.log("Available lines:", lines);
+
   const lineToDuplicate = lines.find(line => line._id === lineId);
   if (!lineToDuplicate) {
     console.error('Line to duplicate not found');
@@ -1571,9 +1575,6 @@ const cancelLineFormDelete = () => {
   setShowDeleteConfirmationModal(false);
 };
 
-useEffect(() => {
-  console.log(`Ticket form visibility: ${isTicketFormVisible}`);
-}, [isTicketFormVisible]);
 
 useEffect(() => {
   const fetchLines = async () => {
@@ -1651,14 +1652,7 @@ useEffect(() => {
                <span className="flex-1 ms-3 whitespace-nowrap">Orders</span>
             </a>
          </li>
-         <li>
-            <a href="#" className="flex items-center p-2 text-white-900 hover:bg-zinc-400  group">
-               <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
-                  <path d="M17 5.923A1 1 0 0 0 16 5h-3V4a4 4 0 1 0-8 0v1H2a1 1 0 0 0-1 .923L.086 17.846A2 2 0 0 0 2.08 20h13.84a2 2 0 0 0 1.994-2.153L17 5.923ZM7 9a1 1 0 0 1-2 0V7h2v2Zm0-5a2 2 0 1 1 4 0v1H7V4Zm6 5a1 1 0 1 1-2 0V7h2v2Z"/>
-               </svg>
-               <span className="flex-1 ms-3 whitespace-nowrap">Products</span>
-            </a>
-         </li>
+
          <li className="absolute bottom-0 w-full">
             <button onClick={handleLogout} className="flex items-center p-2 text-white-900 rounded-lg  hover:bg-zinc-400  group w-full">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path opacity="0.5" d="M9.00195 7C9.01406 4.82497 9.11051 3.64706 9.87889 2.87868C10.7576 2 12.1718 2 15.0002 2L16.0002 2C18.8286 2 20.2429 2 21.1215 2.87868C22.0002 3.75736 22.0002 5.17157 22.0002 8L22.0002 16C22.0002 18.8284 22.0002 20.2426 21.1215 21.1213C20.2429 22 18.8286 22 16.0002 22H15.0002C12.1718 22 10.7576 22 9.87889 21.1213C9.11051 20.3529 9.01406 19.175 9.00195 17" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round"></path> <path d="M15 12L2 12M2 12L5.5 9M2 12L5.5 15" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
@@ -1729,8 +1723,9 @@ useEffect(() => {
           )}
               {!isTicketFormVisible && (
                 <>
-                {isTicketSelecting && (
-            <th className="px-4 py-2 font-medium text-left text-white">Name</th> )}
+                {isTicketSelecting ? (
+            <th className="px-4 py-2 font-medium text-left text-white">Name</th> ) : ( 
+            <th className="px-4 py-2 font-medium text-left text-white">Name</th>)}
             <th className="px-4 py-2 font-medium text-left text-white">Status</th>
             <th className="px-4 py-2 font-medium text-left text-white">Price</th>
             <th className="px-4 py-2 font-medium text-left text-white">Product Type</th>
