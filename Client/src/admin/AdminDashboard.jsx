@@ -11,9 +11,11 @@ const AdminDashboard = () => {
 const authToken = localStorage.getItem('token');
 const navigate = useNavigate();
 const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 const [isTicketDropdownOpen, setIsTicketDropdownOpen] = useState(false);
 const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
+const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
 const [isTicketListVisible, setIsTicketListVisible] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isLineListVisible, setIsLineListVisible] = useState(false);
@@ -1638,9 +1640,32 @@ useEffect(() => {
 }, []);
 
 
+useEffect(() => {
+  function handleResize() {
+    setWindowWidth(window.innerWidth);
+    setIsWarningModalVisible(window.innerWidth < 900);
+  }
+
+  window.addEventListener('resize', handleResize);
+  handleResize(); // Call it to set the initial state based on current window size
+
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
   return (
     <>
-    <div className="flex flex-col md:flex-row min-h-screen bg-zinc-900">
+    {isWarningModalVisible && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-50"></div>
+          <div className="z-50 bg-white p-5 rounded-lg shadow-lg">
+            <p>Your browser is too small</p>
+            <p>Resize your browser to be at least 900px wide to get back into design mode.</p>
+          </div>
+        </div>
+      )}
+
+<div className={`min-h-screen bg-zinc-900 ${isWarningModalVisible ? 'blur-sm' : ''}`}>
+  
 <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-white-500 rounded-lg sm:hidden hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-200   0">
    <span className="sr-only">Open sidebar</span>
    <svg className="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
