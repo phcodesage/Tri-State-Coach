@@ -1077,38 +1077,43 @@ const handleTicketInputChange = (event) => {
 
   // Example submit function
   const handleCreateTicketSubmission = handleSubmit(async (data) => {
-    // Prepare the data for submission
+    // Adjust data based on action taken (Draft or Publish)
+    const status = ticketLastAction === 'draft' ? 'Draft' : 'Published';
+    
+    // Prepare the data for submission with updated status
     const preparedData = {
       ...data,
-      price: parseFloat(data.price || 0), // Parse price to float
-      compareAtPrice: parseFloat(data.compareAtPrice || 0), // Parse compareAtPrice to float
-      inventoryQuantity: parseInt(data.inventoryQuantity || 0, 10), // Parse inventoryQuantity to integer
-      // Add any additional necessary data transformations here
+      status, // Add the status dynamically based on the action
+      price: parseFloat(data.price || 0),
+      compareAtPrice: parseFloat(data.compareAtPrice || 0),
+      inventoryQuantity: parseInt(data.inventoryQuantity || 0, 10),
+      createdOn: new Date(),
+      images: ticketData.images,
+      categories: selectedLines.map(line => line.name), 
+      // Include any other transformation or data addition here
     };
 
     try {
-      // Always create a new ticket
       const response = await axios({
         method: 'POST',
-        url: 'http://localhost:5000/api/tickets', // Adjust the URL as needed
-        data: preparedData, // Send the prepared form data
+        url: 'http://localhost:5000/api/tickets',
+        data: preparedData,
         headers: {
-          'Content-Type': 'application/json', // Specify JSON content type
-          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Send authorization token
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
-      // Handle success
       console.log('Ticket created successfully:', response.data);
-      alert('Ticket submitted successfully!');
+    alert('Ticket submitted successfully!');
+    reset(); // Reset form fields after successful submission
+  } catch (error) {
+    // Safely log and alert the error
+    console.error('Error submitting ticket:', error?.response?.data?.message || 'An unexpected error occurred');
+    alert(`Failed to submit the ticket. ${error?.response?.data?.message || 'Please check the console for more details.'}`);
+  }
+});
 
-      reset(); // Reset form fields to initial state after successful submission
-    } catch (error) {
-      console.error('Error submitting ticket:', error);
-      alert('Failed to submit the ticket. Please check the console for more details.');
-    }
-
-  });
   
 
 
@@ -1605,6 +1610,7 @@ useEffect(() => {
   fetchTickets();
 }, []);
 
+
   return (
     <>
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-900">
@@ -1966,6 +1972,7 @@ useEffect(() => {
         <select
           id="productType"
           name="productType"
+          {...register('productType', { required: 'Product type is required' })}
           value={ticketData.productType}
           onChange={handleTicketInputChange}
           className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
@@ -1978,6 +1985,7 @@ useEffect(() => {
         <p className="text-xs mt-1">
           Service products do not require a shipping address during checkout (e.g., classes, consultations).
         </p>
+        {errors.productType && <span className="text-red-500">{errors.productType.message}</span>}
       </div>
   
   {/* Name Input */}
@@ -1996,7 +2004,7 @@ useEffect(() => {
       required
       className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
     />
-    {errors.name && <span className="text-red-500">{errors.slug.message}</span>}
+    {errors.name && <span className="text-red-500">{errors.name.message}</span>}
   </div>
   
   

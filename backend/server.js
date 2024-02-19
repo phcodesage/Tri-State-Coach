@@ -194,14 +194,17 @@ app.post("/create-payment-intent", async (req, res) => {
 
 // Endpoint to create a new ticket
 app.post('/api/tickets', async (req, res) => {
+  console.log(req.body); // Log the request body
   try {
     const newTicket = new Ticket(req.body);
     await newTicket.save();
     res.status(201).send(newTicket);
   } catch (error) {
+    console.error('Error creating new ticket:', error);
     res.status(400).send('Error creating new ticket');
   }
 });
+
 
 // Endpoint to get all tickets
 app.get('/api/tickets', async (req, res) => {
