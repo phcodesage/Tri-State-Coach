@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid'); // Ensure you have UUID available if you're generating SKUs or slugs
 
 const ticketSchema = new mongoose.Schema({
   productType: {
@@ -22,7 +23,7 @@ const ticketSchema = new mongoose.Schema({
     type: String,
   }],
   images: [{
-    type: String
+    type: String // URLs to the images
   }],
   price: {
     type: Number,
@@ -31,6 +32,7 @@ const ticketSchema = new mongoose.Schema({
   compareAtPrice: Number,
   sku: {
     type: String,
+    default: function() { return uuidv4(); }, // Default SKU generation
     unique: true
   },
   trackInventory: {
@@ -43,10 +45,7 @@ const ticketSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  createdOn: Date,
-  updatedOn: Date,
-  publishedOn: Date,
-});
+}, { timestamps: { createdAt: 'createdOn', updatedAt: 'updatedOn' } }); // Enable timestamps
 
 const Ticket = mongoose.model('Ticket', ticketSchema);
 

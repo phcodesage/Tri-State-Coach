@@ -66,6 +66,7 @@ const [value, setValue] = useState('');
 const [lineToDelete, setLineToDelete] = useState(null);
 const [lineEditMode, setLineEditMode] = useState(false);
 const [ticketEditMode, setTicketEditMode] = useState(false);
+const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -534,16 +535,40 @@ const checkTokenExpiration = (response) => {
   }
 };
 
-const handleImageChange = (e) => {
-  if (e.target.files && e.target.files[0]) {
-    const file = e.target.files[0];
+async function handleImageChange(event) {
+  const file = event.target.files[0];
+  if (file) {
+    // Set up the image preview
     const reader = new FileReader();
     reader.onloadend = () => {
-      setSelectedImage(reader.result);
+      setImagePreviewUrl(reader.result);
     };
     reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Image uploaded successfully:', response.data);
+      setTicketData(prevState => ({
+        ...prevState,
+        logo: response.data.filePath // Update this based on how your API response is structured
+      }));
+      // Handle the response, such as displaying a success message or updating state
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      // Handle the error, such as displaying an error message
+    }
   }
 };
+
+
+
 
 
 const deleteImage = () => {
@@ -1085,22 +1110,31 @@ const handleTicketInputChange = (event) => {
 
   // Example submit function
   const handleCreateTicketSubmission = handleSubmit(async (data) => {
-    // Adjust data based on action taken (Draft or Publish)
     const status = ticketLastAction === 'draft' ? 'Draft' : 'Published';
+    const sku = data.sku || uuidv4(); // Ensure you have a method to generate a UUID
+  
+    let slug = data.slug; // Original slug from the form
+    // Slug uniqueness check here...
     
-    // Prepare the data for submission with updated status
+    // Combining ticket images and logo into one array, while filtering out any null or undefined values
+    const images = [...(ticketData.images || []), ticketData.logo].filter(Boolean);
+
+  
     const preparedData = {
       ...data,
-      status, // Add the status dynamically based on the action
+      sku,
+      status,
+      slug, // Ensure the adjusted slug is used
       price: parseFloat(data.price || 0),
       compareAtPrice: parseFloat(data.compareAtPrice || 0),
       inventoryQuantity: parseInt(data.inventoryQuantity || 0, 10),
       createdOn: new Date(),
-      images: ticketData.images,
-      categories: selectedLines.map(line => line.name), 
-      // Include any other transformation or data addition here
+      images, // Updated to include both selected images and the logo
+      categories: selectedLines.map(line => line.name),
     };
-
+  
+    console.log("Submitting ticket with data:", preparedData);
+  
     try {
       const response = await axios({
         method: 'POST',
@@ -1111,19 +1145,16 @@ const handleTicketInputChange = (event) => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
-
-
-    alert('Ticket submitted successfully!');
-    reset(); // Reset form fields after successful submission
-  } catch (error) {
-    // Safely log and alert the error
-    console.error('Error submitting ticket:', error?.response?.data?.message || 'An unexpected error occurred');
-    alert(`Failed to submit the ticket. ${error?.response?.data?.message || 'Please check the console for more details.'}`);
-  }
-});
-
   
-
+      alert('Ticket submitted successfully!');
+      reset(); // Reset form fields after successful submission
+    } catch (error) {
+      console.error('Error submitting ticket:', error?.response?.data?.message || 'An unexpected error occurred');
+      alert(`Failed to submit the ticket. ${error?.response?.data?.message || 'Please check the console for more details.'}`);
+    }
+  });
+  
+  
 
   useEffect(() => {
     // Assume this data comes from somewhere, like an edit button click
@@ -2159,45 +2190,44 @@ useEffect(() => {
 
   
   
-  {/* Media Section */}
-  <div className="mb-4 bg-zinc-200 p-4 rounded">
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-zinc-700 mb-2">Main image</label>
-      {selectedImage ? (
-        <div className="flex items-center space-x-2 mb-2">
-          <img src={selectedImage} alt="Selected" className="h-20 w-20 object-cover rounded" />
-          <div className="flex flex-col">
-            <span className="text-xs font-medium text-zinc-700">Filename: {selectedImage.name}</span>
-            <span className="text-xs text-zinc-500">Size: {selectedImage.size} KB</span>
+{/* Media Section */}
+<div className="mb-4 bg-zinc-200 p-4 rounded">
+  <div className="mb-4">
+    <label className="block text-sm font-medium text-zinc-700 mb-2">Main image</label>
+    {imagePreviewUrl ? (
+      <div className="flex items-center space-x-2 mb-2">
+        <img src={imagePreviewUrl} alt="Preview" className="h-20 w-20 object-cover rounded" />
+        <div className="flex flex-col">
+          {/* Display additional information if needed */}
+        </div>
+        <button type="button" onClick={() => {
+          setImagePreviewUrl(null); // Also clear the file input if necessary
+        }} className="text-zinc-500 hover:text-white-700">
+          Replace
+        </button>
+      </div>
+    ) : (
+      <div className="flex justify-center items-center w-full">
+        <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-zinc-200 hover:border-zinc-400 rounded-lg group">
+          <div className="flex flex-col items-center justify-center pt-7">
+            <svg className="w-10 h-10 text-zinc-400 group-hover:text-white-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
+            <p className="pt-1 text-sm tracking-wider text-zinc-400 group-hover:text-white-600">
+              Click to browse for files
+            </p>
           </div>
-          <button type="button" onClick={() => setSelectedImage(null)} className="text-zinc-500 hover:text-white-700">
-            Replace
-          </button>
-          <button type="button" onClick={deleteImage} className="text-zinc-500 hover:text-zinc-700">
-            Delete
-          </button>
-        </div>
-      ) : (
-        <div className="flex justify-center items-center w-full">
-          <label className="flex flex-col w-full h-32 border-4 border-dashed hover:bg-zinc-200 hover:border-zinc-400 rounded-lg group">
-            <div className="flex flex-col items-center justify-center pt-7">
-              <svg className="w-10 h-10 text-zinc-400 group-hover:text-white-600" fill="none" stroke="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M28 8H12a4 4 0 0 0-4 4v20m32-12v8m0 0v8a4 4 0 0 1-4 4H12m28-12H8m20-28v12m0 0H20m8 0h8"></path></svg>
-              <p className="pt-1 text-sm tracking-wider text-zinc-400 group-hover:text-white-600">
-                Click to browse for files
-              </p>
-            </div>
-            <input
-              type="file"
-              id="mainImage"
-              name="mainImage"
-              onChange={handleImageChange}
-              className="opacity-0"
-            />
-          </label>
-        </div>
-      )}
-    </div>
+          <input
+            type="file"
+            id="logo"
+            name="logo"
+            onChange={handleImageChange}
+            className="opacity-0"
+          />
+        </label>
+      </div>
+    )}
   </div>
+</div>
+
   
   
   {/* Billing Section */}

@@ -8,6 +8,9 @@ const ContactForm = require('./models/ContactForm');
 require('dotenv').config();
 const result = require('dotenv').config()
 const { Parser } = require('json2csv');
+const multer = require('multer');
+const path = require('path');
+
 
 if (result.error) {
   throw result.error
@@ -205,6 +208,16 @@ app.post('/api/tickets', async (req, res) => {
   }
 });
 
+app.post('/api/tickets/check-slug', async (req, res) => {
+  const { slug } = req.body;
+  const ticket = await Ticket.findOne({ slug: slug });
+  if (ticket) {
+    res.json({ isUnique: false });
+  } else {
+    res.json({ isUnique: true });
+  }
+});
+
 
 // Endpoint to get all tickets
 app.get('/api/tickets', async (req, res) => {
@@ -381,6 +394,30 @@ app.get('/api/export-all', async (req, res) => {
     res.status(500).send('Error exporting data to CSV.');
   }
 });
+
+// Set up storage configuration for Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads'); // Ensure this directory exists
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Image upload route
+app.post('/api/upload-image', upload.single('image'), (req, res) => {
+  if (req.file) {
+    res.json({ message: 'Image uploaded successfully', filePath: req.file.path });
+  } else {
+    res.status(400).send('Error uploading image');
+  }
+});
+
+app.use('/uploads', express.static('uploads'));
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
