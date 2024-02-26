@@ -730,47 +730,29 @@ useEffect (() => {
 },[]);
 
 
-  const fetchLines = async () => {
-  if (isLineListVisible) {
-    setLoading(true); // Start the loading (skeleton animation)
+const fetchLines = async () => {
+  if (!isLineListVisible) return;
 
-    // Set a minimum display time for the loading animation
-    timeoutId = setTimeout(() => {
-      if (isLineMounted) {
-        setLoading(false);
-      }
-    }, 5000);
+  setLoading(true);
 
-    try {
-      const response = await axios.get('http://localhost:5000/api/lines', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
+  try {
+    const response = await axios.get('http://localhost:5000/api/lines', {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
 
-      clearTimeout(timeoutId); // Clear the timeout as data has been fetched
-
-      if (response.status !== 200) {
-        throw new Error('Error fetching lines');
-      }
-
-      if (Array.isArray(response.data)) {
-        if (isLineMounted) {
-          setLines(response.data);
-          setOriginalLines(response.data); // Keep a copy of the original, unfiltered lines
-          setLoading(false);// Stop the loading if data is fetched
-        }
-      } else {
-        console.error('Data is not an array:', response.data);
-      }
-    } catch (error) {
-      console.error('Error fetching lines:', error);
-      // Keep loading state as is to continue showing animation
+    if (response.status === 200 && Array.isArray(response.data) && isLineMounted) {
+      setLines(response.data);
+      setOriginalLines(response.data);
+    } else {
+      console.error('Unexpected response:', response);
     }
-    
+  } catch (error) {
+    console.error('Error fetching lines:', error);
+  } finally {
+    if (isLineMounted) setLoading(false);
   }
-  
 };
+
 
 
 
@@ -1635,6 +1617,7 @@ useEffect(() => {
         // Map the data to match your frontend state management expectations
         const formattedTickets = response.data.map(ticket => {
           return {
+            status: ticket.status,
             id: ticket._id.$oid,
             productsCollectionId: ticket["Products Collection ID"],
             productId: ticket["Product ID"],
@@ -1857,11 +1840,8 @@ useEffect(() => {
                   {ticket.ProductName}
                 </td>
                 )}
-                  <td className="px-4 py-2 text-white whitespace-nowrap">
-        {ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}
-        {ticket.ProductName}
-          </td>
-          <td className="px-4 py-2 text-white whitespace-nowrap">Service</td> {/* Assuming status is similar to type as there is no 'status' field */}
+                  <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}{ticket.ProductName}</td>
+                <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status}</td> {/* Assuming status is similar to type as there is no 'status' field */}
                 <td className="px-4 py-2 text-white whitespace-nowrap">${parseFloat(ticket.variantPrice ?? '0').toFixed(2)}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.productType}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(ticket.updatedOn ?? ticket.createdOn).toLocaleString()}</td>
@@ -2982,8 +2962,7 @@ useEffect(() => {
     ))
   ) : lines && lines.length > 0 ? (
     lines.map((line, index) => (
-      line && line.name ? (
-
+    
         <tr key={line._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
           if (isSelecting) {
             // Prevent the default action to allow checkbox toggling without entering edit mode
@@ -3005,7 +2984,7 @@ useEffect(() => {
         />
       </td>
     )}
-          <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
+          <td className="px-4 py-2 text-white whitespace-nowrap">{line["Product Name"]}</td>
           {!isLineFormVisible && (
             <>
               <td className="px-4 py-2 text-white whitespace-nowrap">{line.status === 'Published' ? (
@@ -3035,16 +3014,12 @@ useEffect(() => {
                 {line.lastEdited ? new Date(line.lastEdited).toLocaleString() : 'Not Edited'}
               </td>
               <td className="px-4 py-2 text-white whitespace-nowrap">
-                {line.created ? new Date(line.created).toLocaleString() : 'Not Published'}
+                {line.created ? new Date(line.UpdatedOn).toLocaleString() : 'Not Published'}
               </td>
             </>
           )}
         </tr>
-      )  : (
-        <tr key={`empty-${index}`}>
-          <td colSpan="5" className="text-center py-2 text-white">Line data is missing</td>
-        </tr>
-      )
+
     ))
   ) : (
     <tr>

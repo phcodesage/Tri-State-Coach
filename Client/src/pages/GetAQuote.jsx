@@ -3,9 +3,7 @@ import { useState, useEffect } from 'react';
 import busImage from '../assets/two-regency-busses-parked-with-each-other.jpg';
 import { useForm } from 'react-hook-form';
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
+
 
 export default function GetAQuote() {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -52,7 +50,7 @@ export default function GetAQuote() {
 
   const onSubmit = async (data) => {
     try {
-      const response = await fetch('https://tri-state-backend.onrender.com/quote-request', {
+      const response = await fetch('http://localhost:5000/quote-request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,12 +95,16 @@ export default function GetAQuote() {
 
 
   return (
-    <div className="h-screen bg-amber-50">
+    <div className="h-screen">
     <Navbar />
       <div className="flex flex-col lg:flex-row">
         
+        {/* Image Container - Hidden on mobile, shown on larger screens */}
+        <div className="hidden lg:block lg:w-1/2 h-screen">
+          <img src={busImage} alt="Bus" className="w-full h-full object-cover" />
+        </div>
 
-        <div className="px-6 py-10 sm:py-10 lg:px-8" style={{"height":"1589px","background":"#FFFFFF","boxShadow":"0px 5px 40px rgba(0, 0, 0, 0.25)","borderRadius":"40px"}}>
+        <div className="isolate lg:bg-transparent px-6 py-10 sm:py-10 lg:px-8 w--full lg:w-1/2">
   
     <div className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Get a Quote</h2>
@@ -152,7 +154,7 @@ export default function GetAQuote() {
             {/* Add Stop Section */}
             <div className="sm:col-span-2 mt-6">
               <div className="flex items-center justify-between">
-                <button type="button" onClick={addStop} className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">Add Point</button>
+                <button type="button" onClick={addStop} className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">Add Stop</button>
                 {stops.length > 0 && (
                   <button type="button" onClick={removeStops} className="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-m px-5 py-2.5 text-center">Remove All Stops</button>
                 )}

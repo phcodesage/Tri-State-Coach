@@ -8,6 +8,7 @@ const ticketSchema = new Schema({
   variantId: { type: String, required: true },
   productHandle: { type: String, required: false }, // Adjusted to not require a unique constraint here
   productName: { type: String, required: true },
+  status: { type: String, enum: ['Draft', 'Published'], required: true, default: 'Published' },
   productType: { type: String, enum: ['Physical', 'Digital', 'Service', 'Advanced'], required: true },
   productDescription: { type: String },
   productCategories: [{ type: String }],
