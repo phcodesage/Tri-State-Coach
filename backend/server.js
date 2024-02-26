@@ -195,18 +195,45 @@ app.post("/create-payment-intent", async (req, res) => {
   }
 });
 
-// Endpoint to create a new ticket
-app.post('/api/tickets', async (req, res) => {
-  console.log(req.body); // Log the request body
+// Endpoint to get a single ticket by ID
+app.get('/api/tickets/:id', async (req, res) => {
   try {
-    const newTicket = new Ticket(req.body);
-    await newTicket.save();
-    res.status(201).send(newTicket);
+    const ticketId = req.params.id;
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      // If no ticket is found with the given ID, return a 404 error
+      return res.status(404).send({ message: 'Ticket not found' });
+    }
+    // If a ticket is found, return it in the response
+    res.status(200).json(ticket);
   } catch (error) {
-    console.error('Error creating new ticket:', error);
-    res.status(400).send('Error creating new ticket');
+    console.error('Error fetching ticket by ID:', error);
+    res.status(500).send({ message: 'Error fetching ticket' });
   }
 });
+
+
+// Endpoint to create a new ticket
+app.post('/api/tickets', async (req, res) => {
+  try {
+    // Preprocess request data as necessary, e.g., converting price strings to numbers
+    const processedData = preprocessTicketData(req.body);
+
+    // Check for SKU uniqueness if necessary
+    const existingTicket = await Ticket.findOne({ variantSku: processedData.variantSku });
+    if (existingTicket) {
+      return res.status(400).json({ message: 'A ticket with this SKU already exists.' });
+    }
+
+    const newTicket = new Ticket(processedData);
+    await newTicket.save();
+    res.status(201).json(newTicket);
+  } catch (error) {
+    console.error('Error creating new ticket:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 
 app.post('/api/tickets/check-slug', async (req, res) => {
   const { slug } = req.body;
@@ -225,8 +252,8 @@ app.get('/api/tickets', async (req, res) => {
 
     // Modify each ticket to include only the first image as the logo
     const modifiedTickets = tickets.map(ticket => {
-      // Ensure the logoUrl is correctly constructed
-      const logoUrl = ticket.images.length > 0 ? `${req.protocol}://${req.get('host')}/uploads/${ticket.images[0].replace(/^uploads\//, '')}` : '';
+      const images = ticket.images || []; // Handle undefined images
+      const logoUrl = images.length > 0 ? `${req.protocol}://${req.get('host')}/uploads/${images[0].replace(/^uploads\//, '')}` : '';
       return {
         ...ticket.toObject(), // Convert document to a plain JavaScript object
         logoUrl // Add logoUrl property with corrected path
@@ -239,6 +266,7 @@ app.get('/api/tickets', async (req, res) => {
     res.status(500).send('Error fetching tickets');
   }
 });
+
 
 
 

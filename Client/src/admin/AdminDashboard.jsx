@@ -375,43 +375,39 @@ const handleEditLineClick = async (line) => {
 
 
 
-const handleEditTicketClick = async (ticket) => {
-  setCurrentTicketId(ticket); // Save the editing ticket's ID
-  
-  // Ensure price and compareAtPrice are handled correctly
-  const price = ticket.price?.$numberInt ? ticket.price.$numberInt.toString() : ticket.price?.toString() || '';
-  const compareAtPrice = ticket.compareAtPrice?.$numberInt ? ticket.compareAtPrice.$numberInt.toString() : ticket.compareAtPrice?.toString() || '';
+const handleEditTicketClick = async (ticketId) => {
+  try {
+    // Assuming `tickets` is an array of ticket objects and you want to find a specific ticket by its ID
+    const ticketToEdit = tickets.find(ticket => ticket._id === ticketId);
+    if (!ticketToEdit) {
+      console.error('Ticket not found');
+      return;
+    }
 
-  // Set the form states with the ticket's information, handling potentially missing parts
-  setEditTicket({
-    productType: ticket.productType,
-    name: ticket.name,
-    slug: ticket.slug,
-    description: ticket.description || '', // Provide a fallback if description is missing
-    categories: ticket.categories || [], // Provide an empty array as fallback
-    images: ticket.images || [], // Provide an empty array as fallback
-    price: price,
-    compareAtPrice: compareAtPrice,
-    sku: ticket.sku || '', // Provide an empty string as fallback
-    trackInventory: ticket.trackInventory || false,
-    inventoryQuantity: ticket.inventoryQuantity ? ticket.inventoryQuantity.toString() : '0', // Convert number to string or '0'
-    inventoryPolicy: ticket.inventoryPolicy || '', // Provide an empty string as fallback
-    requiresShipping: ticket.requiresShipping || false,
-  });
+    setCurrentTicketId(ticketId); // Save the editing ticket's ID for later use in update operations
+    
+    // Set the fetched ticket data for editing
+    setEditTicket({
+      ...ticketToEdit // Spread operator to copy the properties of the ticket to edit
+    });
 
-  // Set the selected categories and images if available
-  setSelectedCategories(ticket.categories || []);
+    // Update form fields with the ticket data for editing
+    setValue('name', ticketToEdit.name);
+    setValue('slug', ticketToEdit.slug);
+    setValue('status', ticketToEdit.status);
+    // Continue setting other fields as necessary
 
-  // For images, set the selected image if exists
-  if (ticket.images && ticket.images.length > 0) {
-    setSelectedImage(ticket.images[0]);
-  } else {
-    setSelectedImage(null); // No images present
+    // Assuming you have a way to select products or categories related to the ticket, you might need to handle them here
+    setSelectedProducts(ticketToEdit.products || []);
+
+    setIsTicketFormVisible(true); // Show the ticket form for editing
+    setTicketEditMode(true); // Enable edit mode
+  } catch (error) {
+    console.error('Error preparing ticket for editing:', error);
+    // Optionally handle error state here, e.g., showing a notification
   }
-  
-  setIsTicketFormVisible(true); // Show the ticket form for editing
-  setTicketEditMode(true); // Enable edit mode
 };
+
 
 
 useEffect(() => {
@@ -609,42 +605,7 @@ useEffect(() => {
 }, []);
 
 
-// Empty dependency array to run only once on mount
-
-
-useEffect(() => {
-  // Define the function to fetch tickets
-  const fetchTickets = async () => {
-    setTicketLoading(true); // Start the loading animation
-
-    try {
-      const response = await axios.get('http://localhost:5000/api/tickets', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
-
-      if (response.status === 200) {
-        setTickets(response.data);
-      } else {
-        throw new Error('Error fetching tickets');
-      }
-    } catch (error) {
-      console.error('Fetch error:', error);
-    } finally {
-      setTicketLoading(false); // Stop the loading animation whether or not there was an error
-    }
-  };
-
-  if (isTicketListVisible) {
-    fetchTickets();
-  }
-
-  // Clean up function to set isTicketMounted to false when component unmounts
-  return () => {
-    isTicketMounted.current = false;
-  };
-}, [isTicketListVisible, authToken]);
+// Empty dependency array to run only once on moun
 
 
 const [selectedTicket, setSelectedTicket] = useState(null);
@@ -1653,25 +1614,67 @@ useEffect(() => {
     }
   };
 
-  const fetchTickets = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/tickets', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (response.status === 200) {
-        setTickets(response.data);
-      } else {
-        throw new Error('Failed to fetch tickets');
-      }
-    } catch (error) {
-      console.error('Error fetching tickets:', error);
-    }
-  };
+  
+  
 
   fetchLines();
-  fetchTickets();
 }, []);
 
+useEffect(() => {
+  const fetchTickets = async () => {
+    setTicketLoading(true); // Start the loading animation
+  
+    try {
+      const response = await axios.get('http://localhost:5000/api/tickets', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+  
+      if (response.status === 200) {
+        // Map the data to match your frontend state management expectations
+        const formattedTickets = response.data.map(ticket => {
+          return {
+            id: ticket._id.$oid,
+            productsCollectionId: ticket["Products Collection ID"],
+            productId: ticket["Product ID"],
+            variantsCollectionId: ticket["Variants Collection ID"],
+            variantId: ticket["Variant ID"],
+            productHandle: ticket["Product Handle"],
+            ProductName: ticket["Product Name"],
+            productType: ticket["Product Type"],
+            productDescription: ticket["Product Description"],
+            productCategories: ticket["Product Categories"],
+            MainVariantImage: ticket["Main Variant Image"],
+            variantPrice: parseFloat(ticket["Variant Price"].replace(/[^0-9.-]+/g,"")),
+            productTaxClass: ticket["Product Tax Class"],
+            variantSku: ticket["Variant Sku"],
+            variantInventory: ticket["Variant Inventory"],
+            requiresShipping: ticket["Requires Shipping"],
+            createdOn: new Date(ticket["Created On"]),
+            updatedOn: new Date(ticket["Updated On"])
+            // Add more fields as necessary
+          };
+        });
+  
+        setTickets(formattedTickets);
+      } else {
+        throw new Error('Error fetching tickets');
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+    } finally {
+      setTicketLoading(false); // Stop the loading animation whether or not there was an error
+    }
+  };
+  if(isTicketListVisible) {
+    fetchTickets();
+  }
+  if(isTicketFormVisible) {
+    fetchTickets();
+  }
+
+}, [isTicketListVisible]);
 
 useEffect(() => {
   function handleResize() {
@@ -1770,22 +1773,21 @@ useEffect(() => {
 {/* List of tickets */}
 
 <div className={`${isLineListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
-  {isTicketListVisible && (
+{
+  isTicketListVisible && (
     <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
-     
-     {/* Header with buttons */}
-    {!isTicketFormVisible && (
-          <div className="flex justify-between items-center p-2 sticky top-0 z-10 bg-zinc-900 shadow">
+      {/* Header with buttons */}
+      {!isTicketFormVisible && (
+        <div className="flex justify-between items-center p-2 sticky top-0 z-10 bg-zinc-900 shadow">
           <h2 className="text-xl font-bold">
-          {isTicketSelecting ? `${selectedTickets.length > 0 ? `${selectedTickets.length} Tickets(s) selected` : 'Select Tickets...'}` : 'Tickets'}
-          
+            {isTicketSelecting ? `${selectedTickets.length > 0 ? `${selectedTickets.length} Ticket(s) selected` : 'Select Tickets...'}` : 'Tickets'}
           </h2>
-        <div className="flex space-x-2">
-        {isTicketSelecting ? (
-                <>
+          <div className="flex space-x-2">
+            {isTicketSelecting ? (
+              <>
                 {selectedTickets.length > 0 && (
                   <>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={(handleExportAllTickets)}>Export</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleExportAllTickets}>Export</button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Delete')}>Delete</button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Draft')}>Draft</button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Archive')}>Archive</button>
@@ -1793,168 +1795,91 @@ useEffect(() => {
                 )}
                 <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleTicketCancelClick}>Cancel</button>
               </>
-          ) : (
-            <>
-              {/* Buttons to show when not in selecting mode */}
-              <input type="text" placeholder="Search lines..." className="text-sm rounded p-2 bg-zinc-700" value={searchTicketTerm} onChange={handleTicketSearchChange} />
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleFilterTicketClick}>Filter</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleTicketSelectClick}>Select</button>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => handleExportAllLines()}>Export</button>
-
-              <input type="file" className="hidden" id="import-input" onChange={handleTicketImportClick} />
-              <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded cursor-pointer">Import</label>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleTicketSettingsClick}>Settings</button>
-              <button data-modal-target="ticket-form-modal" data-modal-toggle="ticket-form-modal" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={toggleTicketFormVisibility}>+ New Ticket</button>
-            </>
-          )}
+            ) : (
+              <>
+                <input type="text" placeholder="Search tickets..." className="text-sm rounded p-2 bg-zinc-700" value={searchTicketTerm} onChange={handleTicketSearchChange} />
+                <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleFilterTicketClick}>Filter</button>
+                <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleTicketSelectClick}>Select</button>
+                <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleExportAllTickets}>Export</button>
+                <input type="file" className="hidden" id="import-input" onChange={handleTicketImportClick} />
+                <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded cursor-pointer">Import</label>
+                <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleTicketSettingsClick}>Settings</button>
+                <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={toggleTicketFormVisibility}>+ New Ticket</button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    
-    )} 
+      )}
       <div className="overflow-x-auto">
-        
-      <table className="min-w-full text-sm divide-zinc-200">
+        <table className="min-w-full text-sm divide-zinc-200">
           <thead>
             <tr>
-            {isTicketSelecting && (
-          <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">
-        <input
-          type="checkbox"
-          checked={selectedTickets.length === tickets.length && tickets.length > 0}
-          onChange={handleSelectAllTickets}
-          disabled={tickets.length === 0} // Optional: Disable if no lines are available
-        />
-      </th>
-          )}
-              {!isTicketFormVisible && (
-                <>
-                {isTicketSelecting ? (
-            <th className="px-4 py-2 font-medium text-left text-white">Name</th> ) : ( 
-            <th className="px-4 py-2 font-medium text-left text-white">Name</th>)}
-            <th className="px-4 py-2 font-medium text-left text-white">Status</th>
-            <th className="px-4 py-2 font-medium text-left text-white">Price</th>
-            <th className="px-4 py-2 font-medium text-left text-white">Product Type</th>
-            <th className="px-4 py-2 font-medium text-left text-white">Modified</th>
-            <th className="px-4 py-2 font-medium text-left text-white">Published</th>
-              </>
+              {isTicketSelecting && (
+                <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={selectedTickets.length === tickets.length && tickets.length > 0}
+                    onChange={handleSelectAllTickets}
+                    disabled={tickets.length === 0}
+                  />
+                </th>
               )}
+              <th className="px-4 py-2 font-medium text-left text-white">Name</th>
+              <th className="px-4 py-2 font-medium text-left text-white">Status</th>
+              <th className="px-4 py-2 font-medium text-left text-white">Price</th>
+              <th className="px-4 py-2 font-medium text-left text-white">Product Type</th>
+              <th className="px-4 py-2 font-medium text-left text-white">Modified</th>
+              <th className="px-4 py-2 font-medium text-left text-white">Published</th>
             </tr>
           </thead>
-          <tbody className=" divide-zinc-200">
-  {ticketLoading ? (
-    // Render multiple skeleton rows to match the expected number of data rows
-    [...Array(5)].map((_, index) => (
-      <tr key={`skeleton-${index}`} className="animate-pulse">
-        <td className="px-6 py-4">
-          <div className="h-4 bg-zinc-200 rounded"></div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="h-4 bg-zinc-200 rounded"></div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="flex items-center">
-            <div className="h-4 bg-zinc-200 rounded w-3/4"></div>
-          </div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="h-4 bg-zinc-200 rounded w-1/2"></div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="h-4 bg-zinc-200 rounded w-1/4"></div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="h-4 bg-zinc-200 rounded w-1/4"></div>
-        </td>
-      </tr>
-    ))
-  ) : tickets && tickets.length > 0 ? (
-    tickets.map((ticket, index) => (
-      ticket && ticket.name ? (
-
-        <tr key={ticket._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
-          if (isTicketSelecting) {
-            // Prevent the default action to allow checkbox toggling without entering edit mode
-            e.preventDefault();
-            // Toggle selection state of the line
-            toggleTicketSelection(ticket._id);
-          } else {
-            // Not in selecting mode, handle entering edit mode
-            handleEditTicketClick(ticket);
-          }
-        }}
-      >
-    {
-  isTicketSelecting && (
-    <td className="px-4 py-2 whitespace-nowrap">
-      <input
-        type="checkbox"
-        checked={selectedTickets.includes(ticket._id)} // Changed from selectedTicket to selectedTickets
-        onChange={() => toggleTicketSelection(ticket._id)}
-      />
-    </td>
-  )
-} 
-      <td className="px-4 py-2 text-white whitespace-nowrap">
-            {ticket.logoUrl && (
-              <img src={ticket.logoUrl} alt="Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />
-            )}
-            {ticket.name}
+          <tbody className="divide-zinc-200">
+            {ticketLoading ? (
+              [...Array(5)].map((_, index) => (
+                <tr key={`skeleton-${index}`} className="animate-pulse">
+                  <td className="px-6 py-4"><div className="h-4 bg-zinc-200 rounded"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-zinc-200 rounded"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-zinc-200 rounded w-3/4"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-zinc-200 rounded w-1/2"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-zinc-200 rounded w-1/4"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-zinc-200 rounded w-1/4"></div></td>
+                </tr>
+              ))
+              ) : tickets && tickets.length > 0 ? (
+                tickets.map((ticket, index) => (
+                  <tr key={ticket._id?.toString() || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
+                    if (!isTicketSelecting) {
+                      handleEditTicketClick(ticket._id?.toString());
+                    }
+                  }}>
+                  {isTicketSelecting && (
+                  <td className="px-4 py-2 text-white whitespace-nowrap">
+                  {ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}
+                  {ticket.ProductName}
+                </td>
+                )}
+                  <td className="px-4 py-2 text-white whitespace-nowrap">
+        {ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}
+        {ticket.ProductName}
           </td>
-          {!isTicketFormVisible && (
-            <>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status === 'Published' ? (
-            <span className="flex items-center">
-              <svg className='w-4 h-4 mr-2'
-                viewBox="0 0 16 16"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-              >
-                <g id="SVGRepo_bgCarrier" strokeWidth={0} />
-                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
-                <g id="SVGRepo_iconCarrier">
-                  <path fill="#02973b" d="M8 3a5 5 0 100 10A5 5 0 008 3z" />
-                </g>
-              </svg>
-
-              <span className="text-green-400">Published</span>
-            </span>
-          ) : (
-            <span className="flex items-center">
-              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
-              <span className="text-orange-300">Draft</span>
-            </span>
-          )}</td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">${ticket.price}</td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">
-                {ticket.productType}
-              </td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">
-                {ticket.created ? new Date(ticket.created).toLocaleString() : 'Not Published'}
-              </td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">
-                {ticket.publishedOn ? new Date(ticket.publishedOn).toLocaleString() : 'Not Published'}
-              </td>
-            </>
-          )}
-        </tr>
-      )  : (
-        <tr key={`empty-${index}`}>
-          <td colSpan="5" className="text-center py-2 text-white">Ticket data is missing</td>
-        </tr>
-      )
-    ))
-  ) : (
-    <tr>
-      <td colSpan="5" className="text-center py-2 text-white">
-        No Ticket available.
-      </td>
-    </tr>
-  )}
-</tbody>
+          <td className="px-4 py-2 text-white whitespace-nowrap">Service</td> {/* Assuming status is similar to type as there is no 'status' field */}
+                <td className="px-4 py-2 text-white whitespace-nowrap">${parseFloat(ticket.variantPrice ?? '0').toFixed(2)}</td>
+                <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.productType}</td>
+                <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(ticket.updatedOn ?? ticket.createdOn).toLocaleString()}</td>
+                <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(ticket.createdOn).toLocaleString()}</td>
+              </tr>
+  ))
+            ) : (
+              <tr>
+                <td colSpan="7" className="text-center py-2 text-white">No Tickets available.</td>
+              </tr>
+            )}
+          </tbody>
         </table>
       </div>
     </div>
-  )}
+  )
+}
+
   
   {isTicketFormVisible && (
     <main tabIndex="-1" className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto relati0ve w-full">
