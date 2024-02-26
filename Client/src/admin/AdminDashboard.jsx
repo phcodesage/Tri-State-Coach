@@ -554,6 +554,8 @@ async function handleImageChange(event) {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      setImagePreviewUrl(`http://localhost:5000/uploads/${response.data.filePath}`);
       console.log('Image uploaded successfully:', response.data);
       setTicketData(prevState => ({
         ...prevState,
@@ -1891,8 +1893,13 @@ useEffect(() => {
       />
     </td>
   )
-}
-          <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.name}</td>
+} 
+      <td className="px-4 py-2 text-white whitespace-nowrap">
+            {ticket.logoUrl && (
+              <img src={ticket.logoUrl} alt="Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />
+            )}
+            {ticket.name}
+          </td>
           {!isTicketFormVisible && (
             <>
               <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status === 'Published' ? (

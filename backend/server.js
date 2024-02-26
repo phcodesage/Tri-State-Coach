@@ -218,16 +218,29 @@ app.post('/api/tickets/check-slug', async (req, res) => {
   }
 });
 
-
-// Endpoint to get all tickets
 app.get('/api/tickets', async (req, res) => {
   try {
+    // Find all tickets in the database
     const tickets = await Ticket.find({});
-    res.status(200).send(tickets);
+
+    // Modify each ticket to include only the first image as the logo
+    const modifiedTickets = tickets.map(ticket => {
+      // Ensure the logoUrl is correctly constructed
+      const logoUrl = ticket.images.length > 0 ? `${req.protocol}://${req.get('host')}/uploads/${ticket.images[0].replace(/^uploads\//, '')}` : '';
+      return {
+        ...ticket.toObject(), // Convert document to a plain JavaScript object
+        logoUrl // Add logoUrl property with corrected path
+      };
+    });
+
+    res.status(200).send(modifiedTickets);
   } catch (error) {
+    console.error('Error fetching tickets:', error);
     res.status(500).send('Error fetching tickets');
   }
 });
+
+
 
 // Endpoint to update a ticket
 app.put('/api/tickets/:id', async (req, res) => {
@@ -410,11 +423,13 @@ const upload = multer({ storage: storage });
 // Image upload route
 app.post('/api/upload-image', upload.single('image'), (req, res) => {
   if (req.file) {
-    res.json({ message: 'Image uploaded successfully', filePath: req.file.path });
+    // Ensure the filePath is relative to the static directory base URL
+    res.json({ message: 'Image uploaded successfully', filePath: req.file.filename });
   } else {
     res.status(400).send('Error uploading image');
   }
 });
+
 
 app.use('/uploads', express.static('uploads'));
 
