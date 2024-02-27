@@ -10,6 +10,8 @@ const result = require('dotenv').config()
 const { Parser } = require('json2csv');
 const multer = require('multer');
 const path = require('path');
+const Order = require('./models/Order'); // Update the path according to your structure
+
 
 
 if (result.error) {
@@ -48,9 +50,7 @@ app.use(express.json()); // for parsing application/json
 
 const PORT = process.env.PORT || 5000;
 
-const users = [
-  { id: 1, username: 'admin', password: '$2a$10$...' } // hashed password
-];
+
 // SMTP Transporter
 const transporter = nodemailer.createTransport({
   host: 'shamuscoachbus.com',
@@ -460,6 +460,61 @@ app.post('/api/upload-image', upload.single('image'), (req, res) => {
 
 
 app.use('/uploads', express.static('uploads'));
+
+// Create a new order
+app.post('/api/orders', async (req, res) => {
+  try {
+      const order = new Order(req.body);
+      await order.save();
+      res.status(201).json(order);
+  } catch (error) {
+      res.status(400).json({ message: 'Error creating new order', error: error.message });
+  }
+});
+
+// Get all orders
+app.get('/api/orders', async (req, res) => {
+  try {
+      const orders = await Order.find({});
+      res.json(orders);
+  } catch (error) {
+      res.status(500).json({ message: 'Error fetching orders', error: error.message });
+  }
+});
+
+// Get a single order by ID
+app.get('/api/orders/:id', async (req, res) => {
+  try {
+      const order = await Order.findById(req.params.id);
+      if (!order) return res.status(404).json({ message: 'Order not found' });
+      res.json(order);
+  } catch (error) {
+      res.status(500).json({ message: 'Error fetching order', error: error.message });
+  }
+});
+
+// Update an existing order
+app.put('/api/orders/:id', async (req, res) => {
+  try {
+      const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+      if (!order) return res.status(404).json({ message: 'Order not found' });
+      res.json(order);
+  } catch (error) {
+      res.status(400).json({ message: 'Error updating order', error: error.message });
+  }
+});
+
+// Delete an order
+app.delete('/api/orders/:id', async (req, res) => {
+  try {
+      const result = await Order.findByIdAndDelete(req.params.id);
+      if (!result) return res.status(404).json({ message: 'Order not found' });
+      res.status(204).send(); // No content to send back
+  } catch (error) {
+      res.status(500).json({ message: 'Error deleting order', error: error.message });
+  }
+});
+
 
 
 app.listen(PORT, () => {

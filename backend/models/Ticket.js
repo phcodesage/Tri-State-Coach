@@ -34,7 +34,8 @@ const ticketSchema = new Schema({
   option3Value: { type: String },
   createdOn: { type: Date, required: true },
   updatedOn: { type: Date, required: true },
-  publishedOn: { type: Date }
+  publishedOn: { type: Date },
+  _id: { type: mongoose.Schema.Types.ObjectId, required: true, auto: true }
 }, { timestamps: true });
 
 // Convert price fields from string to number

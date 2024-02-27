@@ -17,7 +17,11 @@ const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
 const [isTicketListVisible, setIsTicketListVisible] = useState(false);
+const [isOrderListVisible, setIsOrderListVisible] = useState(false);
+const [activeSection, setActiveSection] = useState('Tickets'); // Default to 'Tickets'
+const [isLoading, setIsLoading] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
+const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
 const [isLineListVisible, setIsLineListVisible] = useState(false);
 const [tripType, setTripType] = useState('');
 const [lineName, setLineName] = useState('');
@@ -67,6 +71,9 @@ const [lineToDelete, setLineToDelete] = useState(null);
 const [lineEditMode, setLineEditMode] = useState(false);
 const [ticketEditMode, setTicketEditMode] = useState(false);
 const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+const [orders, setOrders] = useState([]);
+const [orderCount, setOrderCount] = useState(0);
+const [editTicket, setEditTicket] = useState(null);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -81,8 +88,7 @@ const initialTicketFilterCriteria = {
   created: 'All',
   modified: 'All'
 };
-const [isSelectActive, setIsSelectActive] = useState(false);
-const [isTicketSelectActive, setIsTicketSelectActive] = useState(false);
+
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 const [isTicketFilterModalVisible, setIsTicketFilterModalVisible] = useState(false);
@@ -169,16 +175,6 @@ const toggleLineSelection = (lineId) => {
   }
 };
 
-const toggleTicketSelection = (ticketId) => {
-  // Logic to toggle selection
-  const isSelected = selectedTickets.includes(ticketId);
-  if (isSelected) {
-    setSelectedTickets(selectedTickets.filter(id => id !== ticketId));
-  } else {
-    setSelectedTickets([...selectedTickets, ticketId]);
-  }
-};
-
 const handleLineCancelClick = () => {
   setIsSelecting(false);
   setSelectedLines([]);
@@ -254,12 +250,9 @@ const [editline, setEditLine] = useState({
   status: "",
   products: []
 })
-const [editTicket, setEditTicket] = useState({
-  name: "",
-  slug: "",
-  status: "",
-  products: []
-})
+
+
+
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
 const lineDropDownRef = useRef(null);
@@ -374,75 +367,67 @@ const handleEditLineClick = async (line) => {
 };
 
 
+const [ticketFormData, setTicketFormData] = useState({
+  _id: "",
+  productsCollectionId: "",
+  productId: "",
+  variantsCollectionId: "",
+  variantId: "",
+  productHandle: "",
+  productName: "",
+  productType: "",
+  productDescription: "",
+  productCategories: "",
+  mainVariantImage: "",
+  moreVariantImages: [], // Assuming this could be an array
+  variantPrice: "",
+  productTaxClass: "",
+  variantSku: "",
+  requiresShipping: false,
+  createdOn: "",
+  updatedOn: ""
+});
+
+
 
 const handleEditTicketClick = async (ticketId) => {
   try {
-    // Assuming `tickets` is an array of ticket objects and you want to find a specific ticket by its ID
-    const ticketToEdit = tickets.find(ticket => ticket._id === ticketId);
+    const ticketToEdit = tickets.find(ticket => ticket._id === ticketId); // Your existing logic
     if (!ticketToEdit) {
-      console.error('Ticket not found');
+      console.error('Ticket not found:', ticketId);
       return;
     }
 
-    setCurrentTicketId(ticketId); // Save the editing ticket's ID for later use in update operations
-    
-    // Set the fetched ticket data for editing
-    setEditTicket({
-      ...ticketToEdit // Spread operator to copy the properties of the ticket to edit
+    // Set the ticket data state
+    setTicketFormData({
+      _id: ticketToEdit._id,
+      productsCollectionId: ticketToEdit["Products Collection ID"] || '',
+      productId: ticketToEdit["Product ID"] || '',
+      variantsCollectionId: ticketToEdit["Variants Collection ID"] || '',
+      variantId: ticketToEdit["Variant ID"] || '',
+      productHandle: ticketToEdit["Product Handle"] || '',
+      productName: ticketToEdit["Product Name"] || '',
+      productType: ticketToEdit["Product Type"] || '',
+      productDescription: ticketToEdit["Product Description"] || '',
+      productCategories: ticketToEdit["Product Categories"] ? ticketToEdit["Product Categories"].join('; ') : '',
+      mainVariantImage: ticketToEdit["Main Variant Image"] || '',
+      moreVariantImages: ticketToEdit["More Variant Images"] || [], // Handle as array or string based on your data structure
+      variantPrice: ticketToEdit["Variant Price"] ? ticketToEdit["Variant Price"].toString() : '',
+      productTaxClass: ticketToEdit["Product Tax Class"] || '',
+      variantSku: ticketToEdit["Variant Sku"] || '',
+      requiresShipping: ticketToEdit["Requires Shipping"] ? 'Yes' : 'No',
+      createdOn: ticketToEdit["Created On"] ? new Date(ticketToEdit["Created On"]).toLocaleDateString() : '',
+      updatedOn: ticketToEdit["Updated On"] ? new Date(ticketToEdit["Updated On"]).toLocaleDateString() : ''
     });
 
-    // Update form fields with the ticket data for editing
-    setValue('name', ticketToEdit.name);
-    setValue('slug', ticketToEdit.slug);
-    setValue('status', ticketToEdit.status);
-    // Continue setting other fields as necessary
-
-    // Assuming you have a way to select products or categories related to the ticket, you might need to handle them here
-    setSelectedProducts(ticketToEdit.products || []);
-
-    setIsTicketFormVisible(true); // Show the ticket form for editing
-    setTicketEditMode(true); // Enable edit mode
+     // If you have a separate state to toggle edit mode
+    
   } catch (error) {
     console.error('Error preparing ticket for editing:', error);
-    // Optionally handle error state here, e.g., showing a notification
   }
 };
 
 
-
-useEffect(() => {
-  if (ticketEditMode && editTicket) {
-    // Use setValue for each form field
-    setValue("productType", editTicket.productType);
-    setValue("name", editTicket.name);
-    setValue("slug", editTicket.slug);
-    setValue("description", editTicket.description);
-    setValue("price", editTicket.price.toString());
-    setValue("compareAtPrice", editTicket.compareAtPrice?.toString());
-    setValue("sku", editTicket.sku);
-    setValue("trackInventory", editTicket.trackInventory);
-    setValue("inventoryQuantity", editTicket.inventoryQuantity.toString());
-    setValue("inventoryPolicy", editTicket.inventoryPolicy);
-    setValue("requiresShipping", editTicket.requiresShipping);
-    // For categories, since it's a select-multiple, directly update the state
-    setSelectedCategories(editTicket.categories || []);
-    // For images, set the selected image if exists
-    if (editTicket.images && editTicket.images.length > 0) {
-      setSelectedImage(editTicket.images[0]);
-    } else {
-      setSelectedImage(null);
-    }
-  }
-
-  // Cleanup: Reset the form when exiting edit mode
-  return () => {
-    if (!ticketEditMode) {
-      reset(); // Reset form fields to initial values
-      setSelectedCategories([]); // Clear selected categories
-      setSelectedImage(null); // Clear selected image
-    }
-  };
-}, [editTicket, ticketEditMode, setValue, reset]);
 
 
 const handleRemoveProduct = (selectedList, removedItem) => {
@@ -628,12 +613,24 @@ const handleCategorySelect = (event) => {
   setIsLineListVisible(true)
   setIsTicketListVisible(false);
   setIsTicketFormVisible(false) // Hide the ticket form when toggling the line form
+  setIsOrderListVisible(false);
+};
+
+const toggleOrderFormVisibility = () => {
+  setIsLineFormVisible(false);
+  setIsLineListVisible(false)
+  setIsOrderListVisible(true);
+  setIsTicketListVisible(false);
+  setIsTicketFormVisible(false) // Hide the ticket form when toggling the line form
+  
 };
 
 const toggleTicketListVisibility = () => {
   setIsTicketListVisible(true);
   setIsLineFormVisible(false); // Hide the line form when toggling the ticket form\
   setIsLineListVisible(false);
+  setIsOrderListVisible(false);
+
 };
 
 const toggleTicketFormVisibility = () => {
@@ -1618,7 +1615,7 @@ useEffect(() => {
         const formattedTickets = response.data.map(ticket => {
           return {
             status: ticket.status,
-            id: ticket._id.$oid,
+            id: ticket._id,
             productsCollectionId: ticket["Products Collection ID"],
             productId: ticket["Product ID"],
             variantsCollectionId: ticket["Variants Collection ID"],
@@ -1641,6 +1638,7 @@ useEffect(() => {
         });
   
         setTickets(formattedTickets);
+
       } else {
         throw new Error('Error fetching tickets');
       }
@@ -1658,6 +1656,25 @@ useEffect(() => {
   }
 
 }, [isTicketListVisible]);
+
+
+useEffect(() => {
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get('http://localhost:5000/api/orders'); // Replace with your actual API endpoint
+      setOrders(response.data);
+      setOrderCount(response.data.length); // Set the order count based on the number of items in the response
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchOrders();
+}, []);
+
 
 useEffect(() => {
   function handleResize() {
@@ -1737,9 +1754,10 @@ useEffect(() => {
             </a>
          </li>
          <li>
-            <a href="#" className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white`}>
+            <a href="#" onClick={toggleOrderFormVisibility} className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white`}>
             <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 14H17M14 10H17M9 9.5V8.5M9 9.5H11.0001M9 9.5C7.20116 9.49996 7.00185 9.93222 7.0001 10.8325C6.99834 11.7328 7.00009 12 9.00009 12C11.0001 12 11.0001 12.2055 11.0001 13.1667C11.0001 13.889 11.0001 14.5 9.00009 14.5M9.00009 14.5L9 15.5M9.00009 14.5H7.0001M6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V8.2C21 7.0799 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19Z" fill="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Orders</span>
+               <span className="flex-1">{orderCount} Items</span>
             </a>
          </li>
 
@@ -1755,7 +1773,7 @@ useEffect(() => {
 <div className="ml-64 flex flex-col flex-grow">
 {/* List of tickets */}
 
-<div className={`${isLineListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
+<div className={`${isLineListVisible && isOrderListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
 {
   isTicketListVisible && (
     <div className={`flex flex-col ${isTicketFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
@@ -1829,9 +1847,10 @@ useEffect(() => {
               ))
               ) : tickets && tickets.length > 0 ? (
                 tickets.map((ticket, index) => (
-                  <tr key={ticket._id?.toString() || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
+                  <tr key={ticket._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
                     if (!isTicketSelecting) {
-                      handleEditTicketClick(ticket._id?.toString());
+                      handleEditTicketClick(ticket._id);
+
                     }
                   }}>
                   {isTicketSelecting && (
@@ -1984,7 +2003,7 @@ useEffect(() => {
           name="productType"
           {...register('productType', { required: 'Product type is required' })}
           value={ticketData.productType}
-          onChange={handleTicketInputChange}
+          onChange={(e) => setTicketFormData({ ...ticketFormData, productType: e.target.value })}
           className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
         >
           <option value="Physical">Physical</option>
@@ -2009,7 +2028,7 @@ useEffect(() => {
       name="name"
       {...register('name', { required: 'Name is required' })}
       value={ticketData.name || ''}
-      onChange={handleTicketInputChange}
+      onChange={(e) => setTicketFormData({ ...ticketFormData, name: e.target.value })}
       placeholder="Ticket Name"
       required
       className="block w-full p-2 text-sm bg-zinc-700 text-white rounded focus:outline-none"
@@ -2031,10 +2050,7 @@ useEffect(() => {
             {...field}
             className="w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
             placeholder='slug'
-            onChange={(e) => {
-              field.onChange(e); // Notify React Hook Form of the change
-              setNewTicket({...newTicket, slug: e.target.value}); // Your custom state management
-            }}
+            onChange={(e) => setTicketFormData({ ...ticketFormData, slug: e.target.value })}
             value={newTicket.slug || ''}
           />
         )}
@@ -2051,7 +2067,7 @@ useEffect(() => {
           id="description"
           name="description"
           value={ticketData.description || ''}
-          onChange={handleTicketInputChange}
+          onChange={(e) => setTicketFormData({ ...ticketFormData, description: e.target.value })}
           placeholder="Description"
           className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
         ></textarea>
@@ -2690,7 +2706,7 @@ useEffect(() => {
 
 
 
-  <div className={`${isTicketListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
+  <div className={`${isTicketListVisible && isOrderListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
 {isLineListVisible && (
   <div className={`flex flex-col ${isLineFormVisible ? 'w-1/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
     {showDeleteConfirmationModal && (
@@ -3328,6 +3344,48 @@ useEffect(() => {
    
 
   </main>
+)}
+</div>
+
+
+<div className={`${isTicketListVisible && isLineListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
+  
+{isOrderListVisible && (
+  <div className="flex flex-col w-full transition-width duration-300 ease-in-out">
+    {/* Header */}
+    <div className="flex justify-between items-center p-2 sticky top-0 z-10 bg-zinc-900 shadow">
+      <h2 className="text-xl font-bold">Orders</h2>
+    </div>
+
+    {/* Orders table */}
+    <div className="overflow-x-auto">
+      <table className="min-w-full text-sm divide-zinc-200">
+        <thead>
+          <tr>
+            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Order Number</th>
+            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
+            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Customer</th>
+            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Date</th>
+            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Items</th>
+            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Total</th>
+          </tr>
+        </thead>
+        <tbody className="divide-zinc-200">
+          {/* Iterate over orders to display each order */}
+          {orders.map((order, index) => (
+            <tr key={order._id} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`}>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_id}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{order.status}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{order.customer_full_name}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(order.created_on).toLocaleDateString()}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{order.items_count}</td>
+              <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_total}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
 )}
 </div>
 

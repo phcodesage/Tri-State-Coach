@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import CollegeShuttles from "./CollegeShuttles/CollegeShuttles";
 import TriStateCoachLogo from '../assets/Tri-state Coach.png'
 const HamburgerMenu = () => (
 <svg width="87" height="104" viewBox="0 0 87 104" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,7 +71,6 @@ function Hero() {
         </div>
       </section>
     </header>
-    <CollegeShuttles />
     </div>
   );
 }
