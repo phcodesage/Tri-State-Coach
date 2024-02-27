@@ -722,9 +722,6 @@ const handleNameChange = (e) => {
   // Optionally trigger validation for the slug field
   trigger('slug');
 };
-useEffect (() => {
-  fetchLines();
-},[]);
 
 
 const fetchLines = async () => {
@@ -1648,14 +1645,12 @@ useEffect(() => {
       setTicketLoading(false); // Stop the loading animation whether or not there was an error
     }
   };
-  if(isTicketListVisible) {
-    fetchTickets();
-  }
-  if(isTicketFormVisible) {
-    fetchTickets();
-  }
 
-}, [isTicketListVisible]);
+
+    fetchTickets();
+
+
+}, []);
 
 
 useEffect(() => {
@@ -1687,6 +1682,11 @@ useEffect(() => {
 
   return () => window.removeEventListener('resize', handleResize);
 }, []);
+
+useEffect (() => {
+  fetchLines();
+
+},[]);
 
   return (
     <>
@@ -1883,7 +1883,6 @@ useEffect(() => {
   {isTicketFormVisible && (
     <main tabIndex="-1" className="w-2/3 bg-zinc-800 text-white p-4 overflow-y-auto relati0ve w-full">
     {/* Header starts here */}
-  
     <div className="flex items-center justify-between mb-8">
     {/* Back arrow and title */}
     <div className="flex items-center">
