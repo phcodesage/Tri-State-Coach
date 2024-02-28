@@ -8,7 +8,7 @@ coverage
 
 # production
 build
-
+backend
 # misc
 .env
 .DS_Store

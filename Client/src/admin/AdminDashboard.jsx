@@ -468,14 +468,14 @@ const [loading, setLoading] = useState(false);
 const [ticketLoading, setTicketLoading] = useState(false);
 // Create an Axios instance
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://tri-state-backend-yt67.onrender.com/api',
 });
 
 // Function to refresh token
 const refreshToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   try {
-    const response = await axios.post('http://localhost:5000/refresh-token', { refreshToken });
+    const response = await axios.post('https://tri-state-backend-yt67.onrender.com/refresh-token', { refreshToken });
     const { accessToken } = response.data;
     localStorage.setItem('token', accessToken);
     return accessToken;
@@ -558,13 +558,13 @@ async function handleImageChange(event) {
     formData.append('image', file);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/upload-image', formData, {
+      const response = await axios.post('https://tri-state-backend-yt67.onrender.com/api/upload-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      setImagePreviewUrl(`http://localhost:5000/uploads/${response.data.filePath}`);
+      setImagePreviewUrl(`https://tri-state-backend-yt67.onrender.com/uploads/${response.data.filePath}`);
       console.log('Image uploaded successfully:', response.data);
       setTicketData(prevState => ({
         ...prevState,
@@ -602,7 +602,7 @@ const refreshTokenIfNeeded = async () => {
   try {
     const decodedToken = jwtDecode(authToken);
     if (decodedToken.exp * 1000 < Date.now()) {
-      const response = await axios.post('http://localhost:5000/refresh-token', { refreshToken });
+      const response = await axios.post('https://tri-state-backend-yt67.onrender.com/refresh-token', { refreshToken });
       localStorage.setItem('token', response.data.accessToken);
     }
   } catch (error) {
@@ -758,7 +758,7 @@ const fetchLines = async () => {
   setLoading(true);
 
   try {
-    const response = await axios.get('http://localhost:5000/api/lines', {
+    const response = await axios.get('https://tri-state-backend-yt67.onrender.com/api/lines', {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
 
@@ -824,7 +824,7 @@ useEffect(() => {
 
 
   const submitLineData = async (lineData, isEdit) => {
-    const apiUrl = isEdit ? `http://localhost:5000/api/lines/${currentLineId}` : 'http://localhost:5000/api/lines';
+    const apiUrl = isEdit ? `https://tri-state-backend-yt67.onrender.com/api/lines/${currentLineId}` : 'https://tri-state-backend-yt67.onrender.com/api/lines';
     const method = isEdit ? 'patch' : 'post';
   
     try {
@@ -891,7 +891,7 @@ const handleCreateLineSubmission = handleSubmit(async (data) => {
   };
 
   // Determine the correct API URL and HTTP method based on whether it's a create or update action
-  const apiUrl = currentLineId ? `http://localhost:5000/api/lines/${currentLineId}` : 'http://localhost:5000/api/lines';
+  const apiUrl = currentLineId ? `https://tri-state-backend-yt67.onrender.com/api/lines/${currentLineId}` : 'https://tri-state-backend-yt67.onrender.com/api/lines';
   const method = currentLineId ? 'patch' : 'post';
 
   try {
@@ -1104,7 +1104,7 @@ const handleTicketInputChange = (event) => {
     try {
       const response = await axios({
         method: 'POST',
-        url: 'http://localhost:5000/api/tickets',
+        url: 'https://tri-state-backend-yt67.onrender.com/api/tickets',
         data: preparedData,
         headers: {
           'Content-Type': 'application/json',
@@ -1309,7 +1309,7 @@ const handleTicketSelectClick = () => {
 
 async function handleExportAllLines() {
   try {
-    const response = await fetch('http://localhost:5000/api/export-all', {
+    const response = await fetch('https://tri-state-backend-yt67.onrender.com/api/export-all', {
       headers: {
         'Accept': 'text/csv',
       },
@@ -1335,7 +1335,7 @@ async function handleExportAllLines() {
 
 async function handleExportAllTickets() {
   try {
-    const response = await fetch('http://localhost:5000/api/export-all', {
+    const response = await fetch('https://tri-state-backend-yt67.onrender.com/api/export-all', {
       headers: {
         'Accept': 'text/csv',
       },
@@ -1361,7 +1361,7 @@ async function handleExportAllTickets() {
 
 async function handleExportAllOrders() {
   try {
-    const response = await fetch('http://localhost:5000/api/export-orders', {
+    const response = await fetch('https://tri-state-backend-yt67.onrender.com/api/export-orders', {
       headers: {
         'Accept': 'text/csv',
       },
@@ -1552,7 +1552,7 @@ const handleLineDuplicate = async (lineId) => {
   }
   const newLineData = { ...lineToDuplicate, name: `${lineToDuplicate.name} (Copy)`, _id: undefined };
   try {
-    const response = await axios.post('http://localhost:5000/api/lines', newLineData, {
+    const response = await axios.post('https://tri-state-backend-yt67.onrender.com/api/lines', newLineData, {
       headers: { 'Authorization': `Bearer ${authToken}` },
     });
     if (response.status === 200 || response.status === 201) {
@@ -1575,7 +1575,7 @@ const initiateDeleteLine = (lineId) => {
 const confirmDeleteLine = async () => {
   if (lineToDelete) {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/lines/${lineToDelete}`);
+      const response = await axios.delete(`https://tri-state-backend-yt67.onrender.com/api/lines/${lineToDelete}`);
       if (response.status === 204) {
         // Remove the line from the state
         setLines(lines.filter((line) => line._id !== lineToDelete));
@@ -1598,7 +1598,7 @@ const cancelLineFormDelete = () => {
 useEffect(() => {
   const fetchLines = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/lines', {
+      const response = await axios.get('https://tri-state-backend-yt67.onrender.com/api/lines', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.status === 200) {
@@ -1622,7 +1622,7 @@ useEffect(() => {
     setTicketLoading(true); // Start the loading animation
   
     try {
-      const response = await axios.get('http://localhost:5000/api/tickets', {
+      const response = await axios.get('https://tri-state-backend-yt67.onrender.com/api/tickets', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
@@ -1676,7 +1676,7 @@ useEffect(() => {
 const fetchOrders = async (status = '') => {
   setIsLoading(true);
   try {
-    const response = await axios.get(`http://localhost:5000/api/orders`);
+    const response = await axios.get(`https://tri-state-backend-yt67.onrender.com/api/orders`);
     if (response.status === 200) {
       const filteredOrders = status ? response.data.filter(order => order.status.toLowerCase() === status.toLowerCase()) : response.data;
       setOrders(filteredOrders);
@@ -1795,7 +1795,7 @@ const handleSetStatusForSelectedOrders = async (newStatus) => {
 
     // Send the PUT request to your backend API to update the order
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(`https://tri-state-backend-yt67.onrender.com/api/orders/${orderId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1841,7 +1841,7 @@ useEffect(() => {
   const fetchLines = async () => {
     setIsLineLoading(true); // Update to use setIsLineLoading
     try {
-      const response = await axios.get('http://localhost:5000/api/lines');
+      const response = await axios.get('https://tri-state-backend-yt67.onrender.com/api/lines');
       setLines(response.data);
     } catch (error) {
       console.error('Error fetching lines:', error);
@@ -1854,7 +1854,7 @@ useEffect(() => {
   const fetchTickets = async () => {
     setIsTicketLoading(true); // Update to use setIsTicketLoading
     try {
-      const response = await axios.get('http://localhost:5000/api/tickets');
+      const response = await axios.get('https://tri-state-backend-yt67.onrender.com/api/tickets');
       setTickets(response.data);
     } catch (error) {
       console.error('Error fetching tickets:', error);
@@ -1867,7 +1867,7 @@ useEffect(() => {
   const fetchOrders = async () => {
     setIsOrderLoading(true); // Update to use setIsOrderLoading
     try {
-      const response = await axios.get('http://localhost:5000/api/orders');
+      const response = await axios.get('https://tri-state-backend-yt67.onrender.com/api/orders');
       setOrders(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
