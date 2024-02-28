@@ -16,16 +16,29 @@ const [isTicketDropdownOpen, setIsTicketDropdownOpen] = useState(false);
 const [lines, setLines] = useState([]);
 const [isTicketFormVisible, setIsTicketFormVisible] = useState(false);
 const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
+const [isModalOrderOpen, setIsModalOrderOpen] = useState(false);
 const [isTicketListVisible, setIsTicketListVisible] = useState(false);
 const [isOrderListVisible, setIsOrderListVisible] = useState(false);
-const [activeSection, setActiveSection] = useState('Tickets'); // Default to 'Tickets'
+const [isOrderSelecting, setIsOrderSelecting] = useState(false);
+const [isSearching, setIsSearching] = useState(false);
+const [currentFilter, setCurrentFilter] = useState('All Orders');
+// Before returning your component's JSX
+
+
+
+
+const [searchOrderTerm, setSearchOrderTerm] = useState('');
+const toggleOrderSelecting = () => {
+  setIsOrderSelecting(!isOrderSelecting);
+};
+
 const [isLoading, setIsLoading] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
 const [isLineListVisible, setIsLineListVisible] = useState(false);
 const [tripType, setTripType] = useState('');
 const [lineName, setLineName] = useState('');
-const [ticketName, setTicketName] = useState('');
+const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 const [productsCount, setProductsCount] = useState(0);
 const [departureDate, setDepartureDate] = useState('');
 const [returnDate, setReturnDate] = useState('');
@@ -60,6 +73,7 @@ const [searchTerm, setSearchTerm] = useState('');
 const [searchTicketTerm, setTicketSearchTerm] = useState('');
 const [selectedLines, setSelectedLines] = useState([]);
 const [selectedTickets, setSelectedTickets] = useState([]);
+const [selectedOrders, setSelectedOrders] = useState([]);
 const [lineStatus, setLineStatus] = useState('Draft');
 const [ticketStatus, setTicketStatus] = useState('Draft');
 const [isSelecting, setIsSelecting] = useState(false);
@@ -183,6 +197,11 @@ const handleLineCancelClick = () => {
 const handleTicketCancelClick = () => {
   setIsTicketSelecting(false);
   setSelectedTickets([]);
+};
+
+const handleOrderCancelClick = () => {
+  setIsOrderSelecting(false);
+  setSelectedOrders([]);
 };
 
 
@@ -1047,7 +1066,6 @@ const handleTicketInputChange = (event) => {
 
 
 
-  // Example submit function
   const handleCreateTicketSubmission = handleSubmit(async (data) => {
     const status = ticketLastAction === 'draft' ? 'Draft' : 'Published';
     const sku = data.sku || uuidv4(); // Ensure you have a method to generate a UUID
@@ -1126,38 +1144,7 @@ const handleLineCancel = () => {
   setIsLineFormVisible(false)
 };
 
-const handleEditLineSubmission = async () => {
-  // Construct the line data from the state
-  const lineDataToUpdate = {
-    name: lineName, // Assuming you're storing the edited line name in `lineName`
-    slug: lineSlug, // Assuming you're storing the edited line slug in `lineSlug`
-    status: editline.status, // Status from the existing line data
-    products: selectedProducts.map(p => ({ id: p.id, count: p.count })),
-    // ... include other line details that are being edited
-  };
 
-  // Call the API to update the line
-  try {
-    const response = await axios.patch(`http://localhost:5000/api/lines/${currentLineId}`, lineDataToUpdate, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-      },
-    });
-
-    if (response.status === 200) {
-      // Update the lines state with the new line data
-      setLines(currentLines =>
-        currentLines.map(line => line._id === currentLineId ? { ...line, ...lineDataToUpdate } : line)
-      );
-      setIsLineFormVisible(false); // Hide the form after successful edit
-      setLineEditMode(false); // Exit edit mode
-      // Reset other states if necessary
-    }
-  } catch (error) {
-    console.error('Failed to update the line:', error);
-    // Handle error
-  }
-};
 
 
 useEffect(() => {
@@ -1198,6 +1185,12 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [searchTicketTerm]);
 
+
+useEffect(() => {
+  // Debounce the search for better performance
+ 
+}, [searchOrderTerm]);
+
 const handleFilterTicketClick = () => {
   setIsLineFilterModalVisible(true);
 
@@ -1215,29 +1208,19 @@ const handleLineFilterCloseModal = () => {
   setIsLineFilterModalVisible(false);
 };
 
-const handleTicketFilterCloseModal = () => {
-  setIsTicketFilterModalVisible(false);
-};
 
 const handleLineResetFilters = () => {
   setLineFilterCriteria(initialLineFilterCriteria);
   fetchLines();
 };
 
-const handleTicketResetFilters = () => {
-  setTicketFilterCriteria(initialLineFilterCriteria);
-  fetchLines();
-};
+
 
 const handleLineApplyFilters = () => {
   setIsLineFilterModalVisible(false); // Close the modal after applying filters
   applyLineFiltersBasedOnCriteria(); // Apply the filters based on current criteria
 };
 
-const handleTicketApplyFilters = () => {
-  setIsTicketFilterModalVisible(false); // Close the modal after applying filters
-  applyTicketFiltersBasedOnCriteria(); // Apply the filters based on current criteria
-};
 
 const applyLineFiltersBasedOnCriteria = () => {
   setLoading(true); // Indicate the start of a filtering operation
@@ -1292,6 +1275,15 @@ const handleLineSelectClick = () => {
     setSelectedLines([]);
   }
 };
+const handleOrderSelectClick = () => {
+  setIsOrderSelecting(!isOrderSelecting);
+  // Clear selections only when entering the selection mode
+  if (!isOrderSelecting) {
+    setSelectedOrders([]);
+  }
+};
+
+
 
 const handleTicketSelectClick = () => {
   setIsTicketSelecting(!isTicketSelecting);
@@ -1353,29 +1345,32 @@ async function handleExportAllTickets() {
   }
 }
 
+async function handleExportAllOrders() {
+  try {
+    const response = await fetch('http://localhost:5000/api/export-orders', {
+      headers: {
+        'Accept': 'text/csv',
+      },
+    });
 
+    if (!response.ok) {
+      throw new Error(`Failed to fetch data: ${response.statusText}`);
+    }
 
-const handleLineImportClick = async (event) => {
-  const file = event.target.files[0];
-  // Implement the logic to read the file and import the data
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = 'orders.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(downloadUrl); // Clean up
+  } catch (error) {
+    console.error('Error exporting data:', error);
+  }
+}
 
-};
-
-const handleTicketImportClick = async (event) => {
-  const file = event.target.files[0];
-  // Implement the logic to read the file and import the data
-
-};
-
-const handleLineSettingsClick = () => {
-  // Navigate to settings page or open settings modal
-
-};
-
-const handleTicketSettingsClick = () => {
-  // Navigate to settings page or open settings modal
-
-};
 
 const lineApplyFilters = () => {
   if (LineFilterCriteria.status === 'All' && 
@@ -1483,6 +1478,18 @@ const handleLineSelect = (lineId) => {
   });
 };
 
+const handleOrderSelect = (orderId) => {
+  // Toggle selection
+  setSelectedOrderIds(prevSelected => {
+    if (prevSelected.includes(orderId)) {
+      // Remove orderId from selection
+      return prevSelected.filter(id => id !== orderId);
+    } else {
+      // Add orderId to selection
+      return [...prevSelected, orderId];
+    }
+  });
+};
 
 const handleSelectAllLines = () => {
   // If not all lines are currently selected, select them all
@@ -1504,24 +1511,24 @@ const handleSelectAllTickets = () => {
   }
 };
 
-const isSelected = (lineId) => {
-  return selectedLines.includes(lineId);
-};
-
-const handleLineArchive = async (lineId) => {
-  try {
-    const response = await axios.patch(`http://localhost:5000/api/lines/${lineId}`, {
-      status: 'Archived',
-    }, {
-      headers: { 'Authorization': `Bearer ${authToken}` },
-    });
-    // Update state based on response...
-  } catch (error) {
-    console.error('Error archiving line:', error);
+const handleSelectAllOrders = (e) => {
+  if (e.target.checked) {
+    // Select only displayed (filtered) orders that are 'Fulfilled'
+    const fulfilledDisplayedOrders = orders.filter(order => order.status === 'Fulfilled').map(order => order._id);
+    setSelectedOrders(fulfilledDisplayedOrders);
+  } else {
+    // Clear selection
+    setSelectedOrders([]);
   }
 };
 
 
+
+const toggleOrderSelection = (orderId, e) => {
+  e.stopPropagation(); // Prevent triggering row onClick
+  const isSelected = selectedOrders.includes(orderId);
+  setSelectedOrders(isSelected ? selectedOrders.filter(id => id !== orderId) : [...selectedOrders, orderId]);
+};
 const handleLineDuplicate = async (lineId) => {
 
   const lineToDuplicate = lines.find(line => line._id === lineId);
@@ -1652,23 +1659,53 @@ useEffect(() => {
 
 }, []);
 
+const fetchOrders = async (status = '') => {
+  setIsLoading(true);
+  try {
+    const response = await axios.get(`http://localhost:5000/api/orders`);
+    if (response.status === 200) {
+      const filteredOrders = status ? response.data.filter(order => order.status.toLowerCase() === status.toLowerCase()) : response.data;
+      setOrders(filteredOrders);
+    } else {
+      console.error('Failed to fetch orders: ', response);
+    }
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
 
 useEffect(() => {
-  const fetchOrders = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get('http://localhost:5000/api/orders'); // Replace with your actual API endpoint
-      setOrders(response.data);
-      setOrderCount(response.data.length); // Set the order count based on the number of items in the response
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-    } finally {
-      setIsLoading(false);
+  const timeoutId = setTimeout(() => {
+    if (searchOrderTerm.trim() === '') {
+      fetchOrders(); // Assuming this will also handle setting isLoading to false
+      setIsSearching(false); // Not searching if the term is empty
+    } else if (isSearching) {
+      setIsLoading(true); // Start loading only if the user is actively searching
+      const filteredOrders = orders.filter(order =>
+        order.order_id.toLowerCase().includes(searchOrderTerm.toLowerCase())
+      );
+      setOrders(filteredOrders);
+      setIsLoading(false); // Stop loading when search is complete
     }
-  };
+  }, 500); // Debounce time
 
-  fetchOrders();
-}, []);
+  // Cleanup function
+  return () => {
+    clearTimeout(timeoutId);
+    if (searchOrderTerm.trim() === '') {
+      setIsSearching(false); // Reset on cleanup if search term is empty
+    }
+    setIsLoading(false); // Always stop loading when the component unmounts or the effect cleans up
+  };
+}, [searchOrderTerm, isSearching]);
+
+
+
+
 
 
 useEffect(() => {
@@ -1687,6 +1724,65 @@ useEffect (() => {
   fetchLines();
 
 },[]);
+
+
+
+const handleOrderSearchChange = (event) => {
+  setSearchOrderTerm(event.target.value);
+};
+
+
+const toggleOrderModal = () => {
+  setIsOrderModalOpen(!isOrderModalOpen);
+};
+
+const handleStatusFilter = (status) => {
+  fetchOrders(status);
+  setIsOrderModalOpen(false); // Close the dropdown after selection
+};
+
+const allOrdersSelected = selectedOrders.length === orders.length;
+
+const handleSetStatusForSelectedOrders = async (newStatus) => {
+  // Iterate through all selected orders
+  for (let orderId of selectedOrders) {
+    // Find the order object from your orders state array
+    const order = orders.find(o => o._id === orderId);
+    if (!order) continue; // Skip if order is not found
+
+    // Prepare the updated order data
+    const updatedOrderData = {
+      ...order,
+      status: newStatus,
+      // Add any additional fields that need to be updated
+    };
+
+    // Send the PUT request to your backend API to update the order
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedOrderData),
+      });
+
+      const updatedOrder = await response.json();
+      if (response.ok) {
+        // Update your local orders state with the updated order
+        setOrders(prevOrders => prevOrders.map(o => o._id === orderId ? updatedOrder : o));
+      } else {
+        console.error('Failed to update order:', updatedOrder.message);
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+    }
+  }
+
+  // Clear selected orders and exit selection mode after updates
+  setSelectedOrders([]);
+  setIsOrderSelecting(false);
+};
 
   return (
     <>
@@ -1757,7 +1853,7 @@ useEffect (() => {
             <a href="#" onClick={toggleOrderFormVisibility} className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white`}>
             <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 14H17M14 10H17M9 9.5V8.5M9 9.5H11.0001M9 9.5C7.20116 9.49996 7.00185 9.93222 7.0001 10.8325C6.99834 11.7328 7.00009 12 9.00009 12C11.0001 12 11.0001 12.2055 11.0001 13.1667C11.0001 13.889 11.0001 14.5 9.00009 14.5M9.00009 14.5L9 15.5M9.00009 14.5H7.0001M6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V8.2C21 7.0799 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19Z" fill="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
                <span className="flex-1 ms-3 whitespace-nowrap">Orders</span>
-               <span className="flex-1">{orderCount} Items</span>
+               <span className="flex-1">{orders.length} Items</span>
             </a>
          </li>
 
@@ -1802,9 +1898,8 @@ useEffect (() => {
                 <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleFilterTicketClick}>Filter</button>
                 <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleTicketSelectClick}>Select</button>
                 <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleExportAllTickets}>Export</button>
-                <input type="file" className="hidden" id="import-input" onChange={handleTicketImportClick} />
+
                 <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded cursor-pointer">Import</label>
-                <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleTicketSettingsClick}>Settings</button>
                 <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={toggleTicketFormVisibility}>+ New Ticket</button>
               </>
             )}
@@ -2770,9 +2865,9 @@ useEffect (() => {
               <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleLineSelectClick}>Select</button>
               <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => handleExportAllLines()}>Export</button>
 
-              <input type="file" className="hidden" id="import-input" onChange={handleLineImportClick} />
+
               <label htmlFor="import-input" className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded cursor-pointer">Import</label>
-              <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleLineSettingsClick}>Settings</button>
+              
               <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onClick={() => { setIsLineFormVisible(true); resetLineFormStates(); }}>+ New Line</button>
             </>
           )}
@@ -3352,16 +3447,141 @@ useEffect (() => {
 {isOrderListVisible && (
   <div className="flex flex-col w-full transition-width duration-300 ease-in-out">
     {/* Header */}
-    <div className="flex justify-between items-center p-2 sticky top-0 z-10 bg-zinc-900 shadow">
-      <h2 className="text-xl font-bold">Orders</h2>
+    {!isOrderFormVisible && (
+  <div className="flex justify-between items-center p-2 sticky top-0 z-10 bg-zinc-900 shadow">
+    <h2 className="text-xl font-bold">
+      {isOrderSelecting ? `${selectedOrders.length > 0 ? `${selectedOrders.length} Order(s) selected` : 'Select Orders...'}` : 'Orders'}
+    </h2>
+    <div className="flex space-x-2">
+      {isOrderSelecting ? (
+        <>
+          {selectedOrders.length > 0 && (
+            <>
+              {orders.filter(order => selectedOrders.includes(order._id) && order.status === 'fulfilled').length > 0 && (
+                <>
+                  <button
+                    className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded"
+                    onClick={() => handleSetStatusForSelectedOrders('unfulfilled')}
+                  >
+                    Set as Unfulfilled
+                  </button>
+                  <button
+                    className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded"
+                    onClick={() => handleSetStatusForSelectedOrders('refunded')}
+                  >
+                    Set as Refunded
+                  </button>
+                </>
+              )}
+            </>
+          )}
+          <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleOrderCancelClick}>Cancel</button>
+        </>
+        
+      ) : (
+        <>
+          <input
+            type="text"
+            placeholder="Search orders..."
+            className="text-sm rounded p-2 bg-zinc-700"
+            value={searchOrderTerm}
+            onChange={(e) => {
+              setIsSearching(true);
+              handleOrderSearchChange(e);
+            }}
+            onMouseEnter={() => setIsLoading(false)} 
+            onMouseLeave={() => setIsSearching(false)}
+          />
+
+          <div className="relative">
+            <button
+              onClick={toggleOrderModal}
+              className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between"
+              type="button"
+            >
+              All Orders
+              <svg
+                className="w-4 h-4 ml-2"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+              </button>
+            {isOrderModalOpen && (
+            <div className="absolute left-0 mt-2 w-48 bg-zinc-700 text-white shadow-lg rounded-lg overflow-hidden z-10">
+              <ul className="list-none pl-4 pb-4">
+                <li className="py-2 hover:bg-zinc-700 rounded-md pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('')}>
+                  {/* No specific icon for All Orders, just text */}
+                  All Orders
+                </li>
+                <li className="py-2 hover:bg-gray-700 rounded-md pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('unfulfilled')}>
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" fill="#FBBF24" /> {/* Assuming orange for Unfulfilled */}
+                  </svg>
+                  Unfulfilled
+                </li>
+                <li className="py-2 hover:bg-gray-700 rounded-md text-green-500 pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('fulfilled')}>
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" fill="#10B981" /> {/* Assuming green for Fulfilled */}
+                  </svg>
+                  Fulfilled
+                </li>
+                <li className="py-2 hover:bg-gray-700 rounded-md text-red-500 pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('disputed')}>
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" fill="#EF4444" /> {/* Assuming red for Disputed */}
+                  </svg>
+                  Disputed
+                </li>
+                <li className="py-2 hover:bg-gray-700 rounded-md pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('refunded')}>
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" fill="#9CA3AF" /> {/* Assuming gray for Refunded */}
+                  </svg>
+                  Refunded
+                </li>
+              </ul>
+            </div>
+          )}
+          </div>
+
+          <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleOrderSelectClick}>Select</button>
+          <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleExportAllOrders}>Export</button>
+        </>
+      )}
     </div>
+  </div>
+)}
+
+
 
     {/* Orders table */}
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm divide-zinc-200">
         <thead>
           <tr>
-            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Order Number</th>
+          {isOrderSelecting ? (
+      <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">
+        <input
+          type="checkbox"
+          checked={selectedOrders.length === orders.filter(order => order.status === 'Fulfilled').length && orders.every(order => order.status === 'Fulfilled')}
+          onChange={handleSelectAllOrders}
+          className="accent-white mr-4" // For checkbox color in dark mode
+        />
+        Order Number
+      </th>
+    ) : (
+      <th className="mr-2 px-4 py-2 font-medium text-left text-white whitespace-nowrap">Order Number</th>
+    )
+    
+    }
             <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
             <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Customer</th>
             <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Date</th>
@@ -3371,16 +3591,62 @@ useEffect (() => {
         </thead>
         <tbody className="divide-zinc-200">
           {/* Iterate over orders to display each order */}
-          {orders.map((order, index) => (
-            <tr key={order._id} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`}>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_id}</td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{order.status}</td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{order.customer_full_name}</td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(order.created_on).toLocaleDateString()}</td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{order.items_count}</td>
-              <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_total}</td>
+          {isLoading ? (
+            // Render loading skeletons
+            [...Array(5)].map((_, index) => (
+              <tr key={`skeleton-${index}`} className="animate-pulse">
+                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded"></div></td>
+                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded"></div></td>
+                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-3/4"></div></td>
+                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/2"></div></td>
+                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/4"></div></td>
+                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/4"></div></td>
+              </tr>
+            ))
+          ) :
+          orders.length > 0 ? (
+          orders.map((order, index) => (
+            <tr
+    key={order._id}
+    className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer ${isOrderSelecting && selectedOrders.includes(order._id) ? 'bg-zinc-600' : ''}`}
+    onClick={() => {
+      if (!isOrderSelecting) return; // Only toggle selection when in selecting mode
+      const isSelected = selectedOrders.includes(order._id);
+      setSelectedOrders(isSelected ? selectedOrders.filter(id => id !== order._id) : [...selectedOrders, order._id]);
+    }}
+  >
+    {isOrderSelecting ? (
+      <td className="px-4 py-2 whitespace-nowrap">
+        <input
+          type="checkbox"
+          checked={selectedOrders.includes(order._id)}
+          onChange={(e) => {
+            e.stopPropagation(); // Prevent the row's onClick from being called
+            const isSelected = selectedOrders.includes(order._id);
+            setSelectedOrders(isSelected ? selectedOrders.filter(id => id !== order._id) : [...selectedOrders, order._id]);
+            
+          }}
+          className="mr-4"
+        />
+        {order.order_id}
+      </td>
+    ) : (
+      <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_id}</td>
+    )}
+    <td className="px-4 py-2 text-white whitespace-nowrap">{order.status}</td>
+    <td className="px-4 py-2 text-white whitespace-nowrap">{order.customer_full_name}</td>
+    <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(order.created_on).toLocaleDateString()}</td>
+    <td className="px-4 py-2 text-white whitespace-nowrap">{order.items_count}</td>
+    <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_total}</td>
+  </tr>
+          ))
+          ) : (
+            // Display this row if no orders match the search
+            <tr>
+              <td colSpan="6" className="text-center text-white py-4">No orders found</td>
             </tr>
-          ))}
+          )
+        }
         </tbody>
       </table>
     </div>
