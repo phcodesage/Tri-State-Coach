@@ -22,6 +22,10 @@ const [isTicketListVisible, setIsTicketListVisible] = useState(false);
 const [isOrderListVisible, setIsOrderListVisible] = useState(false);
 const [isOrderSelecting, setIsOrderSelecting] = useState(false);
 const [isSearching, setIsSearching] = useState(false);
+const [isOrderLoading, setIsOrderLoading] = useState(false);
+const [isTicketLoading, setIsTicketLoading] = useState(false);
+const [isLineLoading, setIsLineLoading] = useState(false);
+
 const [selectedFilter, setSelectedFilter] = useState('All Orders');
 
 const [currentFilter, setCurrentFilter] = useState('All Orders');
@@ -38,6 +42,7 @@ const toggleOrderSelecting = () => {
 const [isLoading, setIsLoading] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
+const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
 const [isLineListVisible, setIsLineListVisible] = useState(false);
 const [tripType, setTripType] = useState('');
 const [lineName, setLineName] = useState('');
@@ -256,6 +261,7 @@ const resetTicketFormStates = () => {
 
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
+const [isOrderModalVisible, setIsOrderModalVisible] = useState(false);
 const [isLineModalVisible, setIsLineModalVisible] = useState(false);
 const { control, register, handleSubmit, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
@@ -1147,7 +1153,12 @@ const handleLineCancel = () => {
   setIsLineFormVisible(false)
 };
 
-
+const handleOrderCancel = () => {
+  reset(); // This will reset react-hook-form fields
+  resetLineFormStates(); // This will reset custom state management
+  setIsOrderModalVisible(false)
+  setIsOrderFormVisible(false)
+};
 
 
 useEffect(() => {
@@ -1823,6 +1834,60 @@ useEffect(() => {
     document.removeEventListener('mousedown', handleClickOutside);
   };
 }, []);
+
+
+useEffect(() => {
+  // Async function to fetch lines
+  const fetchLines = async () => {
+    setIsLineLoading(true); // Update to use setIsLineLoading
+    try {
+      const response = await axios.get('http://localhost:5000/api/lines');
+      setLines(response.data);
+    } catch (error) {
+      console.error('Error fetching lines:', error);
+    } finally {
+      setIsLineLoading(false); // Update to use setIsLineLoading
+    }
+  };
+
+  // Async function to fetch tickets
+  const fetchTickets = async () => {
+    setIsTicketLoading(true); // Update to use setIsTicketLoading
+    try {
+      const response = await axios.get('http://localhost:5000/api/tickets');
+      setTickets(response.data);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+    } finally {
+      setIsTicketLoading(false); // Update to use setIsTicketLoading
+    }
+  };
+
+  // Async function to fetch orders
+  const fetchOrders = async () => {
+    setIsOrderLoading(true); // Update to use setIsOrderLoading
+    try {
+      const response = await axios.get('http://localhost:5000/api/orders');
+      setOrders(response.data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setIsOrderLoading(false); // Update to use setIsOrderLoading
+    }
+  };
+
+  // Call the fetch functions
+  fetchLines();
+  fetchTickets();
+  fetchOrders();
+}, []); // Empty dependency array means this effect runs once on mount
+
+const handleOrderClick = (order) => {
+  setSelectedOrderDetails(order); // Set the clicked order details
+  setIsOrderFormVisible(true); // Show the order form
+};
+
+
   return (
     <>
     {isWarningModalVisible && (
@@ -1872,6 +1937,14 @@ useEffect(() => {
                <span className="ms-3 text-xl font-bold text-white">Ecommerce</span>
             </a>
          </li>
+         {isTicketLoading ? (
+          <li className="animate-pulse">
+          <div className="flex items-center p-2 space-x-3 bg-zinc-800">
+            <div className="h-6 bg-zinc-200 rounded w-10"></div> {/* Placeholder for icon */}
+            <div className="h-4 bg-zinc-200 rounded flex-1"></div> {/* Placeholder for text */}
+          </div>
+        </li>
+         ) : (
          <li>
          <a href="#" onClick={toggleTicketListVisibility} className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white ${isTicketListVisible ? "bg-zinc-600" : "bg-zinc-800"}`}>
             <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#ffffff"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="icomoon-ignore"> </g> <path d="M24.782 1.606h-7.025l-16.151 16.108 12.653 12.681 16.135-16.093v-7.096l-5.613-5.6zM29.328 13.859l-15.067 15.027-11.147-11.171 15.083-15.044h6.143l4.988 4.976v6.211z" fill="#ffffff"> </path> <path d="M21.867 7.999c0 1.173 0.956 2.128 2.133 2.128s2.133-0.954 2.133-2.128c0-1.174-0.956-2.129-2.133-2.129s-2.133 0.955-2.133 2.129zM25.066 7.999c0 0.585-0.479 1.062-1.066 1.062s-1.066-0.476-1.066-1.062c0-0.586 0.478-1.063 1.066-1.063s1.066 0.477 1.066 1.063z" fill="#ffffff"> </path> </g></svg>
@@ -1879,6 +1952,15 @@ useEffect(() => {
                <span className="flex-1">{tickets.length} Items</span>
             </a>
          </li>
+         )}
+         {isLineLoading ? ( 
+          <li className="animate-pulse">
+          <div className="flex items-center p-2 space-x-3 bg-zinc-800">
+            <div className="h-6 bg-zinc-200 rounded w-10"></div>
+            <div className="h-4 bg-zinc-200 rounded flex-1"></div>
+          </div>
+        </li>
+      ) : (
          <li>
             <a href="#" onClick={toggleLineFormVisibility} className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white ${isLineListVisible ? "active: bg-zinc-600" : "bg-zinc-800"}`} >
                <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" viewBox="0 0 20 20">
@@ -1888,6 +1970,15 @@ useEffect(() => {
                <span className="flex-1">{lines.length} Items</span>
             </a>
          </li>
+         )}
+         {isOrderLoading ? (  // Assuming 'orderLoading' state
+      <li className="animate-pulse">
+        <div className="flex items-center p-2 space-x-3 bg-zinc-800">
+          <div className="h-6 bg-zinc-200 rounded w-10"></div>
+          <div className="h-4 bg-zinc-200 rounded flex-1"></div>
+        </div>
+      </li>
+    ) : (
          <li>
             <a href="#" onClick={toggleOrderFormVisibility} className={`flex items-center p-2 space-x-3 hover:bg-zinc-700 group text-white`}>
             <svg className="flex-shrink-0 w-5 h-5 text-white-500 transition duration-75  group-hover:text-white-900 e" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 14H17M14 10H17M9 9.5V8.5M9 9.5H11.0001M9 9.5C7.20116 9.49996 7.00185 9.93222 7.0001 10.8325C6.99834 11.7328 7.00009 12 9.00009 12C11.0001 12 11.0001 12.2055 11.0001 13.1667C11.0001 13.889 11.0001 14.5 9.00009 14.5M9.00009 14.5L9 15.5M9.00009 14.5H7.0001M6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V8.2C21 7.0799 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19Z" fill="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
@@ -1895,7 +1986,7 @@ useEffect(() => {
                <span className="flex-1">{orders.length} Items</span>
             </a>
          </li>
-
+         )}
          <li className="absolute bottom-0 w-full">
             <button onClick={handleLogout} className="flex items-center p-2 text-white rounded-lg  hover:bg-zinc-700  group w-full">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path opacity="0.5" d="M9.00195 7C9.01406 4.82497 9.11051 3.64706 9.87889 2.87868C10.7576 2 12.1718 2 15.0002 2L16.0002 2C18.8286 2 20.2429 2 21.1215 2.87868C22.0002 3.75736 22.0002 5.17157 22.0002 8L22.0002 16C22.0002 18.8284 22.0002 20.2426 21.1215 21.1213C20.2429 22 18.8286 22 16.0002 22H15.0002C12.1718 22 10.7576 22 9.87889 21.1213C9.11051 20.3529 9.01406 19.175 9.00195 17" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round"></path> <path d="M15 12L2 12M2 12L5.5 9M2 12L5.5 15" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
@@ -1903,7 +1994,7 @@ useEffect(() => {
             </button>
          </li>
       </ul>
-   </div>
+</div>
 </aside>
 <div className="ml-64 flex flex-col flex-grow">
 {/* List of tickets */}
@@ -1999,8 +2090,7 @@ useEffect(() => {
                 <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.productType}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(ticket.updatedOn ?? ticket.createdOn).toLocaleString()}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(ticket.createdOn).toLocaleString()}</td>
-              </tr>
-  ))
+              </tr> ))
             ) : (
               <tr>
                 <td colSpan="7" className="text-center py-2 text-white">No Tickets available.</td>
@@ -3484,7 +3574,7 @@ useEffect(() => {
 <div className={`${isTicketListVisible && isLineListVisible ? 'hidden' : 'flex-grow flex flex-row bg-zinc-800 text-white'}`}>
   
 {isOrderListVisible && (
-  <div className="flex flex-col w-full transition-width duration-300 ease-in-out">
+   <div className={`overflow-auto ${isOrderFormVisible ? 'w-2/5' : 'w-full'} transition-width duration-300 ease-in-out`}>
     {/* Header */}
     {!isOrderFormVisible && (
   <div className="flex justify-between items-center p-2 sticky top-0 z-10 bg-zinc-900 shadow">
@@ -3519,18 +3609,24 @@ useEffect(() => {
         
       ) : (
         <>
-          <input
-            type="text"
-            placeholder="Search orders..."
-            className="text-sm rounded p-2 bg-zinc-700"
-            value={searchOrderTerm}
-            onChange={(e) => {
-              setIsSearching(true);
-              handleOrderSearchChange(e);
-            }}
-            onMouseEnter={() => setIsLoading(false)} 
-            onMouseLeave={() => setIsSearching(false)}
-          />
+          <div className="relative bg-zinc-700 rounded text-white">
+  <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+  <input
+    type="text"
+    placeholder="Search orders..."
+    className="text-sm rounded pl-10 p-2 bg-zinc-700 text-white w-full"
+    value={searchOrderTerm}
+    onChange={(e) => {
+      setIsSearching(true);
+      handleOrderSearchChange(e);
+    }}
+    onMouseEnter={() => setIsLoading(false)} 
+    onMouseLeave={() => setIsSearching(false)}
+  />
+</div>
+
 
           <div className="relative">
           <button onClick={toggleOrderModal} className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between" type="button">
@@ -3608,75 +3704,252 @@ useEffect(() => {
 ) : (
   <th className="mr-2 px-4 py-2 font-medium text-left text-white whitespace-nowrap">Order Number</th>
 )}
-            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
-            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Customer</th>
-            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Date</th>
-            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Items</th>
-            <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Total</th>
-          </tr>
-        </thead>
-        <tbody className="divide-zinc-200">
-          {/* Iterate over orders to display each order */}
-          {isLoading ? (
-            // Render loading skeletons
-            [...Array(5)].map((_, index) => (
-              <tr key={`skeleton-${index}`} className="animate-pulse">
-                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded"></div></td>
-                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded"></div></td>
-                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-3/4"></div></td>
-                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/2"></div></td>
-                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/4"></div></td>
-                <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/4"></div></td>
-              </tr>
-            ))
-          ) :
-          orders.length > 0 ? (
-          orders.map((order, index) => (
-            <tr
-    key={order._id}
-    className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer ${isOrderSelecting && selectedOrders.includes(order._id) ? 'bg-zinc-600' : ''}`}
-    onClick={() => {
-      if (!isOrderSelecting) return; // Only toggle selection when in selecting mode
-      const isSelected = selectedOrders.includes(order._id);
-      setSelectedOrders(isSelected ? selectedOrders.filter(id => id !== order._id) : [...selectedOrders, order._id]);
-    }}
-  >
-    {isOrderSelecting ? (
-      <td className="px-4 py-2 whitespace-nowrap">
-        <input
-          type="checkbox"
-          checked={selectedOrders.includes(order._id)}
-          onChange={(e) => {
-            e.stopPropagation(); // Prevent the row's onClick from being called
+    {!isOrderFormVisible && (
+      <>
+        <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
+        <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Customer</th>
+        <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Date</th>
+        <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Items</th>
+        <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Total</th>
+      </>
+    )}
+  </tr>
+</thead>
+
+<tbody className="divide-zinc-200">
+  {/* Check if it's loading */}
+  {isLoading ? (
+    [...Array(5)].map((_, index) => (
+      <tr key={`skeleton-${index}`} className="animate-pulse">
+        <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded"></div></td>
+        {!isOrderFormVisible && (
+          <>
+            <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded"></div></td>
+            <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-3/4"></div></td>
+            <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/2"></div></td>
+            <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/4"></div></td>
+            <td className="px-4 py-2"><div className="h-4 bg-zinc-200 rounded w-1/4"></div></td>
+          </>
+        )}
+      </tr>
+    ))
+  ) : orders.length > 0 ? (
+    orders.map((order, index) => (
+      <tr
+        key={order._id}
+        className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer ${isOrderSelecting && selectedOrders.includes(order._id) ? 'bg-zinc-600' : ''}`}
+        onClick={() => {
+          if (!isOrderSelecting) {
+            setSelectedOrderDetails(order); // Set the selected order details
+            setIsOrderFormVisible(true); // Show the order form
+          } else {
+            // Handle order selection logic here if needed
             const isSelected = selectedOrders.includes(order._id);
             setSelectedOrders(isSelected ? selectedOrders.filter(id => id !== order._id) : [...selectedOrders, order._id]);
-            
-          }}
-          className="mr-4"
-        />
-        {order.order_id}
-      </td>
-    ) : (
-      <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_id}</td>
-    )}
-    <td className="px-4 py-2 text-white whitespace-nowrap">{order.status}</td>
-    <td className="px-4 py-2 text-white whitespace-nowrap">{order.customer_full_name}</td>
-    <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(order.created_on).toLocaleDateString()}</td>
-    <td className="px-4 py-2 text-white whitespace-nowrap">{order.items_count}</td>
-    <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_total}</td>
-  </tr>
-          ))
-          ) : (
-            // Display this row if no orders match the search
-            <tr>
-              <td colSpan="6" className="text-center text-white py-4">No orders found</td>
-            </tr>
-          )
-        }
-        </tbody>
+          }
+        }}
+      >
+        {/* Always display the order number */}
+        <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_id}</td>
+
+        {/* Conditionally display other details if the order form is not visible */}
+        {!isOrderFormVisible && (
+          <>
+            <td className="px-4 py-2 text-white whitespace-nowrap">{order.status}</td>
+            <td className="px-4 py-2 text-white whitespace-nowrap">{order.customer_full_name}</td>
+            <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(order.created_on).toLocaleDateString()}</td>
+            <td className="px-4 py-2 text-white whitespace-nowrap">{order.items_count}</td>
+            <td className="px-4 py-2 text-white whitespace-nowrap">{order.order_total}</td>
+          </>
+        )}
+      </tr>
+    ))
+  ) : (
+    // Display this row if no orders match the search
+    <tr>
+      <td colSpan="1" className="text-center text-white py-4">No orders found</td>
+    </tr>
+  )}
+</tbody>
+
       </table>
     </div>
   </div>
+)}
+{isOrderFormVisible && (
+
+<main className="w-full p-4 bg-zinc-800 overflow-y-auto">
+    {isOrderModalVisible && (
+  <div className="fixed inset-0 bg-zinc-700 bg-opacity-75 overflow-y-auto h-full w-full flex justify-center items-center" style={{zIndex: 999}}>
+    <div className="bg-zinc-900 rounded-lg max-w-sm mx-auto p-4 shadow-lg">
+      <h2 className="text-lg font-bold mb-4">Exit Without Saving?</h2>
+      <p>This item can't be saved because it has errors. Would you like to exit without saving?</p>
+      <div className="flex justify-end mt-4">
+        <button onClick={() => setIsLineModalVisible(false)} className="bg-zinc-800 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded-l">
+          Keep editing
+        </button>
+        <button onClick={handleOrderCancel} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-r">
+          Exit Without Saving
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+   <div className="h-full bg-zinc-800 p-6">
+    
+<div className="flex items-center justify-between mb-8 bg-zinc-800 text-white p-4">
+  {/* Back arrow and title */}
+  <div className="flex items-center space-x-4">
+  <button
+  className="text-white p-2 bg-zinc-800 rounded-full hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-600 flex items-center justify-center"
+  onClick={() => setIsOrderFormVisible(false)}
+  style={{ width: '50px', height: '50px' }} // Set the button size explicitly if you need a square button
+>
+  {/* Back arrow icon */}
+  <SVGArrow />
+</button>
+<div>
+      <h2 className="text-xl font-semibold">4ed-Oad</h2> {/* Dynamically replace '4ed-Oad' with order ID */}
+      <p>Status: Fulfilled</p> {/* Dynamically replace 'Fulfilled' with order status */}
+    </div>
+  </div>
+
+  {/* Right section with action buttons */}
+  <div className="flex items-center">
+    {/* Dropdown for more actions */}
+    <div className="relative inline-block text-left">
+      <button
+        className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-black text-sm font-medium text-white hover:bg-zinc-700 focus:outline-none focus:ring-offset-gray-100 focus:ring-zinc-500"
+        id="menu-button" aria-expanded="true" aria-haspopup="true"
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)} // Toggle dropdown visibility
+      >
+        More actions
+        {/* Icon for dropdown */}
+        <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+        </svg>
+      </button>
+      {/* Dropdown menu, conditional rendering based on state */}
+      {isDropdownOpen && (
+        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-zinc-800 ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabIndex="-1">
+          {/* Actual dropdown items */}
+        </div>
+      )}
+    </div>
+
+    {/* Unfulfill order button */}
+    <button
+      className="ml-3 inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+      onClick={() => {}} // Add your unfulfill order logic here
+    >
+      Unfulfill order
+    </button>
+
+    {/* Refund button */}
+    <button
+      className="ml-3 inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+      onClick={() => {}} // Add your refund logic here
+    >
+      Refund
+    </button>
+  </div>
+</div>
+
+
+<div className="bg-zinc-800 p-4 rounded-lg">
+  <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+    <table className="w-full text-sm text-left text-gray-400">
+      <thead className="text-xs text-gray-400 uppercase bg-zinc-700">
+        <tr>
+          <th scope="col" className="py-3 px-6">Item</th>
+          <th scope="col" className="py-3 px-6">SKU</th>
+          <th scope="col" className="py-3 px-6">Quantity</th>
+          <th scope="col" className="py-3 px-6">Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {/* Assuming you might have multiple items in an order, iterate through them. If it's always one, adjust accordingly. */}
+        <tr className="bg-zinc-700 border-b border-zinc-600">
+          <td className="py-4 px-6">
+            <div className="flex items-center">
+              {/* If you have item images, replace the path accordingly */}
+              <img className="w-8 h-8 mr-3" src="/path/to/item/image" alt="Item Image" />
+              {/* Dynamically insert item name here */}
+              Cortland Spring Break
+            </div>
+          </td>
+          <td className="py-4 px-6">
+            {/* Dynamically insert SKU here */}
+            CU-SB-CM-HV-FM-24-RT
+          </td>
+          <td className="py-4 px-6">
+            {/* Dynamically insert quantity here */}
+            1
+          </td>
+          <td className="py-4 px-6">
+            {/* Dynamically insert price here */}
+            $140.00 USD
+          </td>
+        </tr>
+        {/* Totals Row */}
+        <tr className="bg-zinc-800 text-white">
+          <td colSpan="3" className="py-4 px-6 text-right">Subtotal</td>
+          <td className="py-4 px-6">
+            {/* Dynamically insert subtotal here */}
+            $140.00 USD
+          </td>
+        </tr>
+        <tr className="bg-zinc-800 text-white">
+          <td colSpan="3" className="py-4 px-6 text-right">Total</td>
+          <td className="py-4 px-6">
+            {/* Dynamically insert total here */}
+            $140.00 USD
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div className="mt-4 text-sm text-gray-400">
+      Stripe Payment Charge ID: 
+      {/* Dynamically insert Stripe Payment Charge ID here */}
+      ch_3QfEuXFfEGtjCaG1WTdpTql
+      <a href="https://dashboard.stripe.com" className="text-blue-500 hover:underline ml-1">Go to Stripe dashboard</a>
+    </div>
+  </div>
+</div>
+
+<div className="bg-zinc-800 p-4 rounded-lg text-white max-w-md mx-auto">
+    {/* Order History Section */}
+    <div className="mb-6">
+        <h4 className="text-lg font-semibold mb-3">Order history</h4>
+        <div className="bg-zinc-700 p-4 rounded-md">
+            <p>Order Fulfilled <span className="float-right">08:03 AM, Feb 2, 2024</span></p>
+            <p>Order Received <span className="float-right">12:04 AM, Feb 2, 2024</span></p>
+        </div>
+    </div>
+
+    {/* Billing Details Section */}
+    <div className="mb-6">
+        <h4 className="text-lg font-semibold mb-3">Billing details</h4>
+        <div className="bg-zinc-700 p-4 rounded-md">
+            <p>Name: Jillian Maiorano</p>
+            <p>Address: 1832 East 31 Street Brooklyn NY 11233 US</p>
+            <p>Email: Jillianrose325@gmail.com</p>
+            <p>Payment: <span className="font-bold">VISA</span> ending in 2414</p>
+        </div>
+    </div>
+
+    {/* Additional Info Section */}
+    <div className="mb-6">
+        <h4 className="text-lg font-semibold mb-3">Additional info</h4>
+        <div className="bg-zinc-700 p-4 rounded-md">
+            <p>Notes: Student Name:Jillian Maiorano Student Email:Jillianrose325@gmail.com Student Phone:6465100065 Parent Name: Parent Phone: Parent Email: Invoice Number: Stop:Hicksville Student 2 Name: Student 2 Email: Student 2 Phone:</p>
+        </div>
+    </div>
+</div>
+
+
+    </div>
+  </main>
 )}
 </div>
 
