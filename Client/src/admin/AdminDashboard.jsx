@@ -9,6 +9,7 @@ import React from 'react';
 
 const AdminDashboard = () => {
 const authToken = localStorage.getItem('token');
+const modalRef = useRef();
 const navigate = useNavigate();
 const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -21,6 +22,8 @@ const [isTicketListVisible, setIsTicketListVisible] = useState(false);
 const [isOrderListVisible, setIsOrderListVisible] = useState(false);
 const [isOrderSelecting, setIsOrderSelecting] = useState(false);
 const [isSearching, setIsSearching] = useState(false);
+const [selectedFilter, setSelectedFilter] = useState('All Orders');
+
 const [currentFilter, setCurrentFilter] = useState('All Orders');
 // Before returning your component's JSX
 
@@ -1737,9 +1740,31 @@ const toggleOrderModal = () => {
 };
 
 const handleStatusFilter = (status) => {
+  let filterLabel = '';
+  switch (status) {
+    case '':
+      filterLabel = 'All Orders';
+      break;
+    case 'unfulfilled':
+      filterLabel = 'Unfulfilled';
+      break;
+    case 'fulfilled':
+      filterLabel = 'Fulfilled';
+      break;
+    case 'disputed':
+      filterLabel = 'Disputed';
+      break;
+    case 'refunded':
+      filterLabel = 'Refunded';
+      break;
+    default:
+      filterLabel = 'All Orders';
+  }
+  setSelectedFilter(filterLabel); // Update the filter label based on the selection
   fetchOrders(status);
-  setIsOrderModalOpen(false); // Close the dropdown after selection
+  setIsOrderModalOpen(false);
 };
+
 
 const allOrdersSelected = selectedOrders.length === orders.length;
 
@@ -1784,6 +1809,20 @@ const handleSetStatusForSelectedOrders = async (newStatus) => {
   setIsOrderSelecting(false);
 };
 
+const allOrdersFulfilled = orders.length > 0 && orders.every(order => order.status === 'fulfilled');
+
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      setIsOrderModalOpen(false);
+    }
+  };
+
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
   return (
     <>
     {isWarningModalVisible && (
@@ -3494,62 +3533,50 @@ const handleSetStatusForSelectedOrders = async (newStatus) => {
           />
 
           <div className="relative">
-            <button
-              onClick={toggleOrderModal}
-              className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between"
-              type="button"
-            >
-              All Orders
-              <svg
-                className="w-4 h-4 ml-2"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-              </button>
-            {isOrderModalOpen && (
-            <div className="absolute left-0 mt-2 w-48 bg-zinc-700 text-white shadow-lg rounded-lg overflow-hidden z-10">
-              <ul className="list-none pl-4 pb-4">
-                <li className="py-2 hover:bg-zinc-700 rounded-md pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('')}>
-                  {/* No specific icon for All Orders, just text */}
-                  All Orders
-                </li>
-                <li className="py-2 hover:bg-gray-700 rounded-md pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('unfulfilled')}>
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" fill="#FBBF24" /> {/* Assuming orange for Unfulfilled */}
-                  </svg>
-                  Unfulfilled
-                </li>
-                <li className="py-2 hover:bg-gray-700 rounded-md text-green-500 pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('fulfilled')}>
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" fill="#10B981" /> {/* Assuming green for Fulfilled */}
-                  </svg>
-                  Fulfilled
-                </li>
-                <li className="py-2 hover:bg-gray-700 rounded-md text-red-500 pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('disputed')}>
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" fill="#EF4444" /> {/* Assuming red for Disputed */}
-                  </svg>
-                  Disputed
-                </li>
-                <li className="py-2 hover:bg-gray-700 rounded-md pl-2 cursor-pointer flex items-center" onClick={() => handleStatusFilter('refunded')}>
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" fill="#9CA3AF" /> {/* Assuming gray for Refunded */}
-                  </svg>
-                  Refunded
-                </li>
-              </ul>
-            </div>
-          )}
+          <button onClick={toggleOrderModal} className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between" type="button">
+    {selectedFilter} {/* Display the selected filter */}
+    <svg className="w-4 h-4 ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+  {isOrderModalOpen && (
+  <div ref={modalRef} className="absolute left-0 mt-2 w-48 bg-zinc-700 text-white shadow-lg rounded-lg overflow-hidden z-10">
+    <ul className="list-none pl-4 pb-4">
+      <li className={`py-2 hover:bg-zinc-700 rounded-md pl-2 cursor-pointer flex items-center ${selectedFilter === 'All Orders' ? 'text-green-500' : ''}`} onClick={() => handleStatusFilter('')}>
+        {selectedFilter === 'All Orders' && <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>}
+        All Orders
+      </li>
+      { /* Unfulfilled */ }
+      <li className={`py-2 hover:bg-zinc-700 rounded-md pl-2 cursor-pointer flex items-center ${selectedFilter === 'unfulfilled' ? 'text-green-500' : ''}`} onClick={() => handleStatusFilter('unfulfilled')}>
+        {selectedFilter === 'unfulfilled' && (
+        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+        )}
+        <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#FBBF24" /></svg>
+        Unfulfilled
+      </li>
+      { /* Fulfilled */ }
+      <li className={`py-2 hover:bg-zinc-700 rounded-md pl-2 cursor-pointer flex items-center ${selectedFilter === 'fulfilled' ? 'text-green-500' : ''}`} onClick={() => handleStatusFilter('fulfilled')}>
+        {selectedFilter === 'fulfilled' && <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>}
+        <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#10B981" /></svg>
+        Fulfilled
+      </li>
+      { /* Disputed */ }
+      <li className={`py-2 hover:bg-zinc-700 rounded-md pl-2 cursor-pointer flex items-center ${selectedFilter === 'disputed' ? 'text-green-500' : ''}`} onClick={() => handleStatusFilter('disputed')}>
+        {selectedFilter === 'disputed' && <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>}
+        <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#EF4444" /></svg>
+        Disputed
+      </li>
+      { /* Refunded */ }
+      <li className={`py-2 text-zinc-400 hover:bg-zinc-700 rounded-md pl-2 cursor-pointer flex items-center ${selectedFilter === 'refunded' ? 'text-green-500' : ''}`} onClick={() => handleStatusFilter('refunded')}>
+        {selectedFilter === 'refunded' && <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>}
+        <svg className="w-4 h-4 mr-2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#9CA3AF" /></svg>
+        Refunded
+      </li>
+    </ul>
+  </div>
+)}
+
+
           </div>
 
           <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleOrderSelectClick}>Select</button>
@@ -3568,20 +3595,19 @@ const handleSetStatusForSelectedOrders = async (newStatus) => {
         <thead>
           <tr>
           {isOrderSelecting ? (
-      <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">
-        <input
-          type="checkbox"
-          checked={selectedOrders.length === orders.filter(order => order.status === 'Fulfilled').length && orders.every(order => order.status === 'Fulfilled')}
-          onChange={handleSelectAllOrders}
-          className="accent-white mr-4" // For checkbox color in dark mode
-        />
-        Order Number
-      </th>
-    ) : (
-      <th className="mr-2 px-4 py-2 font-medium text-left text-white whitespace-nowrap">Order Number</th>
-    )
-    
-    }
+  <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">
+    <input
+      type="checkbox"
+      checked={selectedOrders.length === orders.length && allOrdersFulfilled}
+      onChange={handleSelectAllOrders}
+      disabled={!allOrdersFulfilled} // Ensure checkbox is only enabled if all orders are 'fulfilled'
+      className={`accent-white mr-4 ${!allOrdersFulfilled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+    />
+    Order Number
+  </th>
+) : (
+  <th className="mr-2 px-4 py-2 font-medium text-left text-white whitespace-nowrap">Order Number</th>
+)}
             <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Status</th>
             <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Customer</th>
             <th className="px-4 py-2 font-medium text-left text-white whitespace-nowrap">Date</th>

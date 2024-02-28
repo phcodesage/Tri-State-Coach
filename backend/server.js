@@ -515,6 +515,130 @@ app.delete('/api/orders/:id', async (req, res) => {
   }
 });
 
+app.get('/api/export-lines', async (req, res) => {
+  try {
+    const lines = await Line.find({}); // Fetch all lines from the database
+
+    // Convert to CSV
+    const lineFields = [
+      'Products Collection ID', 
+      'Product ID', 
+      'Variants Collection ID', 
+      'Variant ID', 
+      'Product Handle', 
+      'Product Name', 
+      'Product Type', 
+      'Product Description', 
+      'Product Categories', 
+      'Main Variant Image', 
+      'Variant Price', 
+      'Product Tax Class', 
+      'Variant Sku', 
+      'Variant Inventory', 
+      'Requires Shipping', 
+      'Created On', 
+      'Updated On'
+    ];
+    const lineParser = new Parser({ fields: lineFields });
+    const csvLines = lineParser.parse(lines);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('lines.csv');
+    res.send(csvLines);
+  } catch (error) {
+    console.error('Failed to export lines:', error);
+    res.status(500).json({ message: 'Failed to export lines' });
+  }
+});
+
+app.get('/api/export-tickets', async (req, res) => {
+  try {
+    const tickets = await Ticket.aggregate([
+      {
+        $project: {
+          _id: 0,
+          "Products Collection ID": 1,
+          "Product ID": 1,
+          "Variants Collection ID": 1,
+          "Variant ID": 1,
+          "Product Handle": 1,
+          "Product Name": 1,
+          "Product Type": 1,
+          "Product Description": 1,
+          "Product Categories": 1,
+          "Main Variant Image": 1,
+          "Variant Price": 1,
+          "Product Tax Class": 1,
+          "Variant Sku": 1,
+          "Variant Inventory": 1,
+          "Requires Shipping": 1,
+          "Created On": 1,
+          "Updated On": 1
+        }
+      }
+    ]);
+
+    const parser = new Parser();
+    const csv = parser.parse(tickets);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('tickets.csv');
+    res.send(csv);
+  } catch (error) {
+    console.error('Failed to export tickets:', error);
+    res.status(500).json({ message: 'Failed to export tickets' });
+  }
+});
+
+app.get('/api/export-orders', async (req, res) => {
+  try {
+    // Use MongoDB aggregation framework to prepare your data
+    const orders = await Order.aggregate([
+      // Add your aggregation stages here, e.g., $match, $project, etc.
+      // This is just an example; modify according to your needs
+      {
+        $project: {
+          _id: 0, // Exclude this field from the output
+          order_id: 1,
+          status: 1,
+          created_on: 1,
+          refunded_on: 1,
+          customer_full_name: 1,
+          customer_email: 1,
+          billing_address_addressee: 1,
+          billing_address_line1: 1,
+          billing_city: 1,
+          billing_state: 1,
+          billing_country: 1,
+          billing_postal_code: 1,
+          items_count: 1,
+          subtotal: 1,
+          discounts_total: 1,
+          taxes_total: 1,
+          order_total: 1,
+          currency: 1,
+          stripe_customer_id: 1,
+          stripe_charge_id: 1,
+          stripe_refund_id: 1,
+          requires_shipping: 1,
+          webflow_transaction_fee: 1,
+          buy_now: 1
+        }
+      },
+    ]);
+
+    // Convert to CSV
+    const csv = new Parser().parse(orders);
+
+    // Set headers for CSV download
+    res.header('Content-Type', 'text/csv');
+    res.attachment('orders.csv');
+    res.send(csv);
+  } catch (error) {
+    console.error('Failed to export orders:', error);
+    res.status(500).json({ message: 'Failed to export orders' });
+  }
+});
 
 
 app.listen(PORT, () => {
