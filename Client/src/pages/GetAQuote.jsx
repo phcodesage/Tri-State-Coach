@@ -50,7 +50,7 @@ export default function GetAQuote() {
 
   const onSubmit = async (data) => {
     try {
-      const response = await fetch('https://tri-state-backend-yt67.onrender.com/quote-request', {
+      const response = await fetch('/quote-request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

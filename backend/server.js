@@ -47,6 +47,7 @@ function jsonToCsv(jsonArray) {
 const app = express();
 app.use(cors());
 app.use(express.json()); // for parsing application/json
+app.use(express.static('dist'));
 
 const PORT = process.env.PORT || 5000;
 
@@ -640,6 +641,9 @@ app.get('/api/export-orders', async (req, res) => {
   }
 });
 
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'dist', 'index.html')); // Adjust if using 'build' or another directory
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

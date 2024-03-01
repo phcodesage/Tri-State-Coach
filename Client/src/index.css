@@ -46,5 +46,5 @@
 
 body {
     overflow-y:scroll;
-    @apply leading-[normal] m-0;
+    
 }

@@ -68,7 +68,7 @@ function Invoice() {
 
     useEffect(() => {
         // Fetch the client secret from your backend
-        fetch('https://tri-state-backend-yt67.onrender.com/create-payment-intent', {
+        fetch('/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount }) // send amount in cents
