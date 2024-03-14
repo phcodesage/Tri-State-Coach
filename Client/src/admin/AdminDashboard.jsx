@@ -27,10 +27,16 @@ const [isTicketLoading, setIsTicketLoading] = useState(false);
 const [isLineLoading, setIsLineLoading] = useState(false);
 const [selectedFilter, setSelectedFilter] = useState('All Orders');
 const [currentFilter, setCurrentFilter] = useState('All Orders');
+// Before returning your component's JSX
+
+
+
+
 const [searchOrderTerm, setSearchOrderTerm] = useState('');
 const toggleOrderSelecting = () => {
   setIsOrderSelecting(!isOrderSelecting);
 };
+
 const [isLoading, setIsLoading] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
@@ -88,22 +94,26 @@ const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 const [orders, setOrders] = useState([]);
 const [orderCount, setOrderCount] = useState(0);
 const [editTicket, setEditTicket] = useState(null);
+// Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
   published: 'All',
   created: 'All',
   modified: 'All'
 };
+
 const initialTicketFilterCriteria = {
   status: 'All',
   published: 'All',
   created: 'All',
   modified: 'All'
 };
+
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 const [isTicketFilterModalVisible, setIsTicketFilterModalVisible] = useState(false);
 const [TicketFilterCriteria, setTicketFilterCriteria] = useState(initialTicketFilterCriteria);
+
 const SVGArrow = (props) => (
   <svg
     className='w-6 h-6'
@@ -444,6 +454,8 @@ const handleEditTicketClick = async (ticketId) => {
 };
 
 
+
+
 const handleRemoveProduct = (selectedList, removedItem) => {
   const newList = selectedList.filter(product => product.id !== removedItem.id);
   setSelectedProducts(newList); // Set the filtered list
@@ -550,7 +562,7 @@ async function handleImageChange(event) {
         },
       });
 
-      setImagePreviewUrl(`https://backend.phcodesage.tech/uploads/${response.data.filePath}`);
+      setImagePreviewUrl(`/uploads/${response.data.filePath}`);
       console.log('Image uploaded successfully:', response.data);
       setTicketData(prevState => ({
         ...prevState,
@@ -588,7 +600,7 @@ const refreshTokenIfNeeded = async () => {
   try {
     const decodedToken = jwtDecode(authToken);
     if (decodedToken.exp * 1000 < Date.now()) {
-      const response = await axios.post('https://backend.phcodesage.tech/refresh-token', { refreshToken });
+      const response = await axios.post('/refresh-token', { refreshToken });
       localStorage.setItem('token', response.data.accessToken);
     }
   } catch (error) {
@@ -807,7 +819,80 @@ useEffect(() => {
     setIsLineFormVisible(true); // Show the line form for editing
     
   };
+  useEffect(() => {
+    const fetchLines = async () => {
+      try {
+        const response = await axios.get('https://backend.phcodesage.tech/api/lines', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (response.status === 200) {
+          setLines(response.data);
+        } else {
+          throw new Error('Failed to fetch lines');
+        }
+      } catch (error) {
+        console.error('Error fetching lines:', error);
+      }
+    };
+  
+    
+    
+  
+    fetchLines();
+  }, []);
+  
+  const fetchTickets = async () => {
+    setTicketLoading(true); // Start the loading animation
+  
+    try {
+      const response = await axios.get('https://backend.phcodesage.tech/api/tickets', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+  
+      if (response.status === 200) {
+        // Map the data to match your frontend state management expectations
+        const formattedTickets = response.data.map(ticket => {
+          return {
+            status: ticket.status,
+            id: ticket._id,
+            productsCollectionId: ticket["Products Collection ID"],
+            productId: ticket["Product ID"],
+            variantsCollectionId: ticket["Variants Collection ID"],
+            variantId: ticket["Variant ID"],
+            productHandle: ticket["Product Handle"],
+            ProductName: ticket["Product Name"],
+            productType: ticket["Product Type"],
+            productDescription: ticket["Product Description"],
+            productCategories: ticket["Product Categories"],
+            MainVariantImage: ticket["Main Variant Image"],
+            variantPrice: parseFloat(ticket["Variant Price"].replace(/[^0-9.-]+/g,"")),
+            productTaxClass: ticket["Product Tax Class"],
+            variantSku: ticket["Variant Sku"],
+            variantInventory: ticket["Variant Inventory"],
+            requiresShipping: ticket["Requires Shipping"],
+            createdOn: new Date(ticket["Created On"]),
+            updatedOn: new Date(ticket["Updated On"])
+            // Add more fields as necessary
+          };
+        });
+  
+        setTickets(formattedTickets);
 
+      } else {
+        throw new Error('Error fetching tickets');
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+    } finally {
+      setTicketLoading(false); // Stop the loading animation whether or not there was an error
+    }
+  };
+  useEffect(() => {
+      fetchTickets(); 
+  }, []);
+  
 
   const submitLineData = async (lineData, isEdit) => {
     const apiUrl = isEdit ? `https://backend.phcodesage.tech/api/lines/${currentLineId}` : 'https://backend.phcodesage.tech/api/lines';
@@ -1170,20 +1255,23 @@ useEffect(() => {
   // Debounce the search for better performance
   const timeoutId = setTimeout(() => {
     if (searchTicketTerm.trim() === '') {
-      // If the search term is empty, reset the lines to the default
-      fetchLines();
+      // If the search term is empty, reset the tickets to the default
+      fetchTickets();
     } else {
-      // Filter lines based on the search term
-      const filteredLines = lines.filter((line) =>
-        line.name.toLowerCase().includes(searchTicketTerm.toLowerCase())
+      // Filter tickets based on the search term
+      const filteredTickets = tickets.filter((ticket) =>
+        (ticket.ProductName?.toLowerCase() || '').includes(searchTicketTerm.toLowerCase())
       );
-      setLines(filteredLines);
+
+      setTickets(filteredTickets);
     }
   }, 500); // Wait 500ms after the user stops typing before applying the search
 
   // Cleanup the timeout on component unmount
   return () => clearTimeout(timeoutId);
-}, [searchTicketTerm]);
+}, [searchTicketTerm]); // Added fetchTickets to the dependency array since it's being used here
+
+
 
 
 useEffect(() => {
@@ -1192,7 +1280,7 @@ useEffect(() => {
 }, [searchOrderTerm]);
 
 const handleFilterTicketClick = () => {
-  setIsLineFilterModalVisible(true);
+  setIsTicketFilterModalVisible(true);
 
   // Here you would typically set some state to show a filter modal or dropdown
 };
@@ -1581,83 +1669,6 @@ const cancelLineFormDelete = () => {
 };
 
 
-useEffect(() => {
-  const fetchLines = async () => {
-    try {
-      const response = await axios.get('https://backend.phcodesage.tech/api/lines', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (response.status === 200) {
-        setLines(response.data);
-      } else {
-        throw new Error('Failed to fetch lines');
-      }
-    } catch (error) {
-      console.error('Error fetching lines:', error);
-    }
-  };
-
-  
-  
-
-  fetchLines();
-}, []);
-
-useEffect(() => {
-  const fetchTickets = async () => {
-    setTicketLoading(true); // Start the loading animation
-  
-    try {
-      const response = await axios.get('https://backend.phcodesage.tech/api/tickets', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
-  
-      if (response.status === 200) {
-        // Map the data to match your frontend state management expectations
-        const formattedTickets = response.data.map(ticket => {
-          return {
-            status: ticket.status,
-            id: ticket._id,
-            productsCollectionId: ticket["Products Collection ID"],
-            productId: ticket["Product ID"],
-            variantsCollectionId: ticket["Variants Collection ID"],
-            variantId: ticket["Variant ID"],
-            productHandle: ticket["Product Handle"],
-            ProductName: ticket["Product Name"],
-            productType: ticket["Product Type"],
-            productDescription: ticket["Product Description"],
-            productCategories: ticket["Product Categories"],
-            MainVariantImage: ticket["Main Variant Image"],
-            variantPrice: parseFloat(ticket["Variant Price"].replace(/[^0-9.-]+/g,"")),
-            productTaxClass: ticket["Product Tax Class"],
-            variantSku: ticket["Variant Sku"],
-            variantInventory: ticket["Variant Inventory"],
-            requiresShipping: ticket["Requires Shipping"],
-            createdOn: new Date(ticket["Created On"]),
-            updatedOn: new Date(ticket["Updated On"])
-            // Add more fields as necessary
-          };
-        });
-  
-        setTickets(formattedTickets);
-
-      } else {
-        throw new Error('Error fetching tickets');
-      }
-    } catch (error) {
-      console.error('Fetch error:', error);
-    } finally {
-      setTicketLoading(false); // Stop the loading animation whether or not there was an error
-    }
-  };
-
-
-    fetchTickets();
-
-
-}, []);
 
 const fetchOrders = async (status = '') => {
   setIsLoading(true);
@@ -3620,7 +3631,7 @@ const handleOrderClick = (order) => {
     <svg className="w-4 h-4 ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
-         </button>
+  </button>
   {isOrderModalOpen && (
   <div ref={modalRef} className="absolute left-0 mt-2 w-48 bg-zinc-700 text-white shadow-lg rounded-lg overflow-hidden z-10">
     <ul className="list-none pl-4 pb-4">
@@ -3811,7 +3822,7 @@ const handleOrderClick = (order) => {
       >
         More actions
         {/* Icon for dropdown */}
-        <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
         </svg>
       </button>

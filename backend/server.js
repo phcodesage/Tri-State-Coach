@@ -11,12 +11,14 @@ const { Parser } = require('json2csv');
 const multer = require('multer');
 const path = require('path');
 const Order = require('./models/Order'); // Update the path according to your structure
+const app = express();
+app.use(cors());
+app.use(express.json()); // for parsing application/json
+
+const PORT = process.env.PORT || 5000;
 
 
 
-if (result.error) {
-  throw result.error
-}
 
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -44,11 +46,7 @@ function jsonToCsv(jsonArray) {
 }
 
 
-const app = express();
-app.use(cors());
-app.use(express.json()); // for parsing application/json
 
-const PORT = process.env.PORT || 5000;
 
 
 // SMTP Transporter
@@ -57,15 +55,12 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true, // use SSL
   auth: {
-    user: 'contact@shamuscoachbus.com',
-    pass: 'sq9A#5{*!)IT'
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
-app.use((error, req, res, next) => {
-  console.error(error); // Log the error for debugging
-  res.status(500).json({ error: 'Internal Server Error' }); // Respond with JSON
-});
+
 
 app.get('/', (req, res) => {
   res.send('Welcome to the tristate-coach-backend!')
@@ -131,7 +126,7 @@ app.post('/quote-request', async (req, res) => {
     // Sending email
     const mailOptions = {
       from: 'contact@shamuscoachbus.com',
-      to: 'test@memelope.com',
+      to: 'rechceltoledo@gmail.com',
       subject: 'New Quote Request',
       text: `You have a new quote request: \nName: ${req.body.name}\nEmail: ${req.body.email}\nMessage: ${req.body.message}`
       // You can format the email body as per your requirements
@@ -640,10 +635,21 @@ app.get('/api/export-orders', async (req, res) => {
   }
 });
 
+app.use((req, res, next) => {
+  console.log('Raw request body:', req.rawBody);
+  next();
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+app.use((req, res, next) => {
+  console.log(req.path, req.body);
+  next();
+});
+
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI, {
@@ -651,3 +657,15 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
   .then(() => console.log("MongoDB successfully connected"))
   .catch(err => console.log(err));
+
+  if (result.error) {
+    throw result.error
+  }
+
+  app.use((error, req, res, next) => {
+    console.error(error.stack); // More detailed error logging
+    const statusCode = error.statusCode || 500;
+    const message = error.message || 'Internal Server Error';
+    res.status(statusCode).json({ error: message });
+  });
+  
