@@ -42,12 +42,13 @@ const FilterModal = ({ isOpen, onClose, filterCriteria, setFilterCriteria, reset
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div className="inline-block overflow-hidden text-left align-bottom transition-all transform bg-zinc-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
           <div className="flex items-center justify-between px-4 py-2 bg-zinc-700">
-            <h3 className="text-lg font-medium leading-6 text-white px-2 py-1">Filter</h3>
+            <h3 className="text-lg font-medium leading-6 text-white">Filter</h3>
             <button className="text-sm text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded" onClick={resetFilters}>Reset</button>
-            <button type="button" className="text-zinc-400 bg-transparent hover:text-white" onClick={onClose}>
+            <button type="button" className="p-2 text-zinc-400 bg-transparent hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white" onClick={onClose}>
               <span className="sr-only">Close</span>
-              {/* SVG for 'x' icon */}
-              {/* Inline SVG omitted for brevity */}
+              <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
             </button>
           </div>
           <div className="px-4 py-6 space-y-4">

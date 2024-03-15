@@ -6,6 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import Multiselect from 'multiselect-react-dropdown';
 import React from 'react';
+import FilterModal from '../components/FilterModal';
 
 const AdminDashboard = () => {
 const authToken = localStorage.getItem('token');
@@ -112,7 +113,9 @@ const initialTicketFilterCriteria = {
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 const [isTicketFilterModalVisible, setIsTicketFilterModalVisible] = useState(false);
-const [TicketFilterCriteria, setTicketFilterCriteria] = useState(initialTicketFilterCriteria);
+const [TicketFilterCriteria, setTicketFilterCriteria] = useState(initialTicketFilterCriteria); // Assuming 'tickets' holds your full ticket list
+const [originalTickets, setOriginalTickets] = useState([]); 
+
 
 const SVGArrow = (props) => (
   <svg
@@ -144,6 +147,7 @@ const SVGArrow = (props) => (
     </g>
   </svg>
 );
+
 const handleSearchChange = (event) => {
   const { value } = event.target;
   setSearchTerm(value);
@@ -154,8 +158,6 @@ const handleTicketSearchChange = (event) => {
   setTicketSearchTerm(value);
 };
 
-// Helper function to convert filter option to the actual start date
-// Helper function to convert filter option to the actual start date
 const getLineStartDateForFilter = (filterValue) => {
   const now = new Date();
   switch (filterValue) {
@@ -175,16 +177,17 @@ const getTicketStartDateForFilter = (filterValue) => {
   const now = new Date();
   switch (filterValue) {
     case 'Last 24 hours':
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      return new Date(now.setHours(now.getHours() - 24));
     case 'Last 7 days':
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return new Date(now.setDate(now.getDate() - 7));
     case 'Last 30 days':
-      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      return new Date(now.setDate(now.getDate() - 30));
+    case 'All':
     default:
-      // This effectively removes the filter
-      return new Date(0); // Earliest date to ensure all records are included
+      return null;  // No start date, meaning no filtering is applied
   }
 };
+
 
 const toggleLineSelection = (lineId) => {
   const isSelected = selectedLines.includes(lineId);
@@ -819,27 +822,6 @@ useEffect(() => {
     setIsLineFormVisible(true); // Show the line form for editing
     
   };
-  useEffect(() => {
-    const fetchLines = async () => {
-      try {
-        const response = await axios.get('https://backend.phcodesage.tech/api/lines', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (response.status === 200) {
-          setLines(response.data);
-        } else {
-          throw new Error('Failed to fetch lines');
-        }
-      } catch (error) {
-        console.error('Error fetching lines:', error);
-      }
-    };
-  
-    
-    
-  
-    fetchLines();
-  }, []);
   
   const fetchTickets = async () => {
     setTicketLoading(true); // Start the loading animation
@@ -855,8 +837,10 @@ useEffect(() => {
         // Map the data to match your frontend state management expectations
         const formattedTickets = response.data.map(ticket => {
           return {
+            // Map your ticket data as before
             status: ticket.status,
-            id: ticket._id,
+            id: ticket._id.$oid, // Adjust according to your data structure
+            // Add more fields as necessary
             productsCollectionId: ticket["Products Collection ID"],
             productId: ticket["Product ID"],
             variantsCollectionId: ticket["Variants Collection ID"],
@@ -867,19 +851,19 @@ useEffect(() => {
             productDescription: ticket["Product Description"],
             productCategories: ticket["Product Categories"],
             MainVariantImage: ticket["Main Variant Image"],
-            variantPrice: parseFloat(ticket["Variant Price"].replace(/[^0-9.-]+/g,"")),
+            variantPrice: parseFloat(ticket["Variant Price"].replace(/[^0-9.-]+/g, "")),
             productTaxClass: ticket["Product Tax Class"],
             variantSku: ticket["Variant Sku"],
             variantInventory: ticket["Variant Inventory"],
             requiresShipping: ticket["Requires Shipping"],
             createdOn: new Date(ticket["Created On"]),
             updatedOn: new Date(ticket["Updated On"])
-            // Add more fields as necessary
           };
         });
+        console.log(formattedTickets)
+        setOriginalTickets(formattedTickets); // Save the original, unfiltered tickets
+        setTickets(formattedTickets); // Initially, display all tickets
   
-        setTickets(formattedTickets);
-
       } else {
         throw new Error('Error fetching tickets');
       }
@@ -889,6 +873,7 @@ useEffect(() => {
       setTicketLoading(false); // Stop the loading animation whether or not there was an error
     }
   };
+  
   useEffect(() => {
       fetchTickets(); 
   }, []);
@@ -1281,14 +1266,23 @@ useEffect(() => {
 
 const handleFilterTicketClick = () => {
   setIsTicketFilterModalVisible(true);
-
-  // Here you would typically set some state to show a filter modal or dropdown
 };
 
 const handleFilterLineClick = () => {
   setIsLineFilterModalVisible(true);
 
   // Here you would typically set some state to show a filter modal or dropdown
+};
+
+const applyFilters = () => {
+  console.log('Applying Filters:', ticketFilterCriteria);
+  // Implement the logic to filter your tickets based on `ticketFilterCriteria`
+  setIsTicketFilterModalVisible(false); // Close the modal after applying filters
+};
+
+// Function to reset filters to their default values
+const resetFilters = () => {
+  setTicketFilterCriteria(initialTicketFilterCriteria);
 };
 
 
@@ -1307,6 +1301,11 @@ const handleLineResetFilters = () => {
 const handleLineApplyFilters = () => {
   setIsLineFilterModalVisible(false); // Close the modal after applying filters
   applyLineFiltersBasedOnCriteria(); // Apply the filters based on current criteria
+};
+
+const handleTicketApplyFilters = () => {
+  setIsTicketFilterModalVisible(false); // Close the modal after applying filters
+  applyTicketFiltersBasedOnCriteria(); // Apply the filters based on current criteria
 };
 
 
@@ -1334,27 +1333,23 @@ const applyLineFiltersBasedOnCriteria = () => {
 };
 
 const applyTicketFiltersBasedOnCriteria = () => {
-  setTicketLoading(true); // Indicate the start of a filtering operation
-  const filteredTickets = originalTickets.filter((ticket) => {
+  setTicketLoading(true); // Begin filtering operation
+  const filteredTickets = originalTickets.filter(ticket => {
     const matchesTicketStatus = TicketFilterCriteria.status === 'All' || ticket.status === TicketFilterCriteria.status;
-    // Convert line dates from strings to Date objects if necessary
-    const ticketPublishedDate = new Date(ticket.lastPublished);
-    const ticketCreatedDate = new Date(ticket.created);
-    const ticketLastEditedDate = new Date(ticket.lastEdited);
-    // Calculate start dates for each filter option
-    const publishedTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.published);
-    const createdTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.created);
-    const modifiedTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.modified);
-    // Check if the line matches the date filters
-    const matchesTicketPublished = TicketFilterCriteria.published === 'All' || ticketPublishedDate >= ticketPublishedStart;
-    const matchesTicketCreated = TicketFilterCriteria.created === 'All' || ticketCreatedDate >= createdStart;
-    const matchesTicketModified = TicketFilterCriteria.modified === 'All' || ticketLastEditedDate >= modifiedStart;
+    const ticketCreatedDate = new Date(ticket.createdOn);
+    const ticketLastEditedDate = new Date(ticket.updatedOn); 
+    const publishedStart = getTicketStartDateForFilter(TicketFilterCriteria.published);
+    const createdStart = getTicketStartDateForFilter(TicketFilterCriteria.created);
+    const modifiedStart = getTicketStartDateForFilter(TicketFilterCriteria.modified);
+    const matchesTicketPublished = TicketFilterCriteria.published === 'All' || publishedStart === null || ticketCreatedDate >= publishedStart;
+    const matchesTicketCreated = TicketFilterCriteria.created === 'All' || createdStart === null || ticketCreatedDate >= createdStart;
+    const matchesTicketModified = TicketFilterCriteria.modified === 'All' || modifiedStart === null || ticketLastEditedDate >= modifiedStart;
     return matchesTicketStatus && matchesTicketPublished && matchesTicketCreated && matchesTicketModified;
   });
-
-  setTickets(filteredLines); // Update the state with the filtered lines
-  setTicketLoading(false); // Indicate the end of the filtering operation
+  setTickets(filteredTickets); // Update with filtered tickets
+  setTicketLoading(false); // End filtering operation
 };
+
 
 const handleLineSelectClick = () => {
   setIsSelecting(!isSelecting);
@@ -1722,14 +1717,27 @@ useEffect(() => {
 useEffect(() => {
   function handleResize() {
     setWindowWidth(window.innerWidth);
-    setIsWarningModalVisible(window.innerWidth < 900);
+    const isModalVisible = window.innerWidth < 900;
+    setIsWarningModalVisible(isModalVisible);
+
+    // Disable scrolling when the modal is visible
+    if (isModalVisible) {
+      document.body.style.overflow = 'hidden'; // Disables scrolling
+    } else {
+      document.body.style.overflow = 'auto'; // Re-enables scrolling
+    }
   }
 
   window.addEventListener('resize', handleResize);
   handleResize(); // Call it to set the initial state based on current window size
 
-  return () => window.removeEventListener('resize', handleResize);
+  return () => {
+    window.removeEventListener('resize', handleResize);
+    // Make sure to re-enable scrolling when the component unmounts
+    document.body.style.overflow = 'auto';
+  };
 }, []);
+
 
 useEffect (() => {
   fetchLines();
@@ -1833,51 +1841,6 @@ useEffect(() => {
 }, []);
 
 
-useEffect(() => {
-  // Async function to fetch lines
-  const fetchLines = async () => {
-    setIsLineLoading(true); // Update to use setIsLineLoading
-    try {
-      const response = await axios.get('https://backend.phcodesage.tech/api/lines');
-      setLines(response.data);
-    } catch (error) {
-      console.error('Error fetching lines:', error);
-    } finally {
-      setIsLineLoading(false); // Update to use setIsLineLoading
-    }
-  };
-
-  // Async function to fetch tickets
-  const fetchTickets = async () => {
-    setIsTicketLoading(true); // Update to use setIsTicketLoading
-    try {
-      const response = await axios.get('https://backend.phcodesage.tech/api/tickets');
-      setTickets(response.data);
-    } catch (error) {
-      console.error('Error fetching tickets:', error);
-    } finally {
-      setIsTicketLoading(false); // Update to use setIsTicketLoading
-    }
-  };
-
-  // Async function to fetch orders
-  const fetchOrders = async () => {
-    setIsOrderLoading(true); // Update to use setIsOrderLoading
-    try {
-      const response = await axios.get('https://backend.phcodesage.tech/api/orders');
-      setOrders(response.data);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-    } finally {
-      setIsOrderLoading(false); // Update to use setIsOrderLoading
-    }
-  };
-
-  // Call the fetch functions
-  fetchLines();
-  fetchTickets();
-  fetchOrders();
-}, []); // Empty dependency array means this effect runs once on mount
 
 const handleOrderClick = (order) => {
   setSelectedOrderDetails(order); // Set the clicked order details
@@ -2035,6 +1998,15 @@ const handleOrderClick = (order) => {
       )}
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm divide-zinc-200">
+        <FilterModal
+        isOpen={isTicketFilterModalVisible}
+        onClose={() => setIsTicketFilterModalVisible(false)}
+        filterCriteria={TicketFilterCriteria}
+        setFilterCriteria={setTicketFilterCriteria}
+        resetFilters={() => setTicketFilterCriteria(initialTicketFilterCriteria)}
+        applyFilters={handleTicketApplyFilters}
+      />
+
           <thead>
             <tr>
               {isTicketSelecting && (
