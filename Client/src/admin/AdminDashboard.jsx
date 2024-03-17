@@ -958,40 +958,17 @@ const handleCreateLineSubmission = handleSubmit(async (data) => {
    localStorage.removeItem('token'); // Remove the token
    navigate('/'); // Redirect to home page
  };
-
- const handleTicketSelect = (ticket) => {
-   setSelectedTicket(ticket);
-   setIsTicketFormVisible(true);
-   // Update form fields with the selected ticket data
-   setTicketData({
-     productType: ticket.productType || '',
-     name: ticket.name || '',
-     slug: ticket.slug || '',
-     description: ticket.description || '',
-     categories: ticket.categories || [],
-     images: ticket.images || [],
-     price: ticket.price || '',
-     compareAtPrice: ticket.compareAtPrice || '',
-     sku: ticket.sku || '',
-     trackInventory: ticket.trackInventory || false,
-     inventoryQuantity: ticket.inventoryQuantity || 0,
-     inventoryPolicy: ticket.inventoryPolicy || '',
-     requiresShipping: ticket.requiresShipping || false,
-     createdOn: ticket.createdOn || new Date().toISOString(),
-     updatedOn: ticket.updatedOn || new Date().toISOString(),
-     publishedOn: ticket.publishedOn || new Date().toISOString(),
-   });
-  
-   // If the ticket has categories, set the selected categories state
-  if (ticket.categories) {
-    setSelectedCategories(ticket.categories);
-  }
-
-  // If the ticket has an image, set the selected image for preview
-  if (ticket.images && ticket.images.length > 0) {
-    setSelectedImage(ticket.images[0]);
-  }
-};
+const handleTicketSelect = () => {
+  setSelectedTicketIds(prevSelected => {
+    if (prevSelected.includes(ticketId)) {
+      // Remove lineId from selection
+      return prevSelected.filter(id => id !== ticketId);
+    } else {
+      // Add lineId to selection
+      return [...prevSelected, ticketId];
+    }
+  });
+}
 
 useEffect(() => {
   let logoutTimer = setTimeout(() => {
@@ -1337,16 +1314,11 @@ const handleOrderSelectClick = () => {
 
 
 const handleTicketSelectClick = () => {
-  setIsTicketSelecting(prevState => {
-    if (!prevState) { // We are entering selection mode
-      // Do not clear the selections here if entering selection mode
-      // Only clear if necessary based on your application's logic
-    } else {
-      // Exiting selection mode, clear selections
-      setSelectedTickets([]);
-    }
-    return !prevState; // Toggle the selection mode
-  });
+  setIsTicketSelecting(!isTicketSelecting);
+  // Clear selections only when entering the selection mode
+  if (!isTicketSelecting) {
+    setSelectedTickets([]);
+  }
 };
 
 
