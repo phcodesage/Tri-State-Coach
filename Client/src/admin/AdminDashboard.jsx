@@ -333,7 +333,7 @@ const handleEditLineClick = async (line) => {
     const productId = product.id?.$oid ? product.id.$oid : product.id?.toString() || '';
 
     // Ensuring fullProduct search does not fail due to undefined ID
-    const fullProduct = tickets.find(ticket => ticket._id.toString() === productId);
+    const fullProduct = tickets.find(ticket => ticket.id.toString() === productId);
 
     return {
       id: productId,
@@ -386,44 +386,42 @@ const [ticketFormData, setTicketFormData] = useState({
 
 
 
-const handleEditTicketClick = async (ticketId) => {
+const handleEditTicketClick = async (ticketIdParam) => {
+  const ticketId = ticketIdParam.id || ticketIdParam; // Adjust based on actual structure if it's an object
   try {
-    const ticketToEdit = tickets.find(ticket => ticket._id === ticketId); // Your existing logic
+    console.log('Received ticketId:', ticketId, typeof ticketId);
+
+    const ticketToEdit = tickets.find(ticket => ticket.id === ticketId);
     if (!ticketToEdit) {
       console.error('Ticket not found:', ticketId);
       return;
     }
-
-    // Set the ticket data state
+    // Convert your ticket data to the expected format for the form state, aligning field names and formats
     setTicketFormData({
-      _id: ticketToEdit._id,
-      productsCollectionId: ticketToEdit["Products Collection ID"] || '',
-      productId: ticketToEdit["Product ID"] || '',
-      variantsCollectionId: ticketToEdit["Variants Collection ID"] || '',
-      variantId: ticketToEdit["Variant ID"] || '',
-      productHandle: ticketToEdit["Product Handle"] || '',
-      productName: ticketToEdit["Product Name"] || '',
-      productType: ticketToEdit["Product Type"] || '',
-      productDescription: ticketToEdit["Product Description"] || '',
-      productCategories: ticketToEdit["Product Categories"] ? ticketToEdit["Product Categories"].join('; ') : '',
-      mainVariantImage: ticketToEdit["Main Variant Image"] || '',
-      moreVariantImages: ticketToEdit["More Variant Images"] || [], // Handle as array or string based on your data structure
-      variantPrice: ticketToEdit["Variant Price"] ? ticketToEdit["Variant Price"].toString() : '',
-      productTaxClass: ticketToEdit["Product Tax Class"] || '',
-      variantSku: ticketToEdit["Variant Sku"] || '',
-      requiresShipping: ticketToEdit["Requires Shipping"] ? 'Yes' : 'No',
-      createdOn: ticketToEdit["Created On"] ? new Date(ticketToEdit["Created On"]).toLocaleDateString() : '',
-      updatedOn: ticketToEdit["Updated On"] ? new Date(ticketToEdit["Updated On"]).toLocaleDateString() : ''
+      _id: ticketToEdit.id, // Use 'id' here since that's what you've named it in the mapping
+      productsCollectionId: ticketToEdit.productsCollectionId || '',
+      productId: ticketToEdit.productId || '',
+      variantsCollectionId: ticketToEdit.variantsCollectionId || '',
+      variantId: ticketToEdit.variantId || '',
+      productHandle: ticketToEdit.productHandle || '',
+      productName: ticketToEdit.ProductName || '', // Note capital 'N' based on your fetch function
+      productType: ticketToEdit.productType || '',
+      productDescription: ticketToEdit.productDescription || '',
+      productCategories: Array.isArray(ticketToEdit.productCategories) ? ticketToEdit.productCategories.join('; ') : '',
+      mainVariantImage: ticketToEdit.MainVariantImage || '', // Note 'M' and 'I' are capital based on your fetch function
+      variantPrice: ticketToEdit.variantPrice ? ticketToEdit.variantPrice.toString() : '',
+      productTaxClass: ticketToEdit.productTaxClass || '',
+      variantSku: ticketToEdit.variantSku || '',
+      variantInventory: ticketToEdit.variantInventory ? ticketToEdit.variantInventory.toString() : '', // Convert to string if necessary
+      requiresShipping: ticketToEdit.requiresShipping ? 'Yes' : 'No',
+      createdOn: ticketToEdit.createdOn ? new Date(ticketToEdit.createdOn).toLocaleDateString() : '',
+      updatedOn: ticketToEdit.updatedOn ? new Date(ticketToEdit.updatedOn).toLocaleDateString() : ''
     });
 
-     // If you have a separate state to toggle edit mode
-    
   } catch (error) {
     console.error('Error preparing ticket for editing:', error);
   }
 };
-
-
 
 
 const handleRemoveProduct = (selectedList, removedItem) => {
@@ -792,7 +790,6 @@ useEffect(() => {
   
   const fetchTickets = async () => {
     setTicketLoading(true); // Start the loading animation
-  
     try {
       const response = await axios.get('https://backend.phcodesage.tech/api/tickets', {
         headers: {
@@ -1548,7 +1545,7 @@ const handleSelectAllLines = () => {
 const handleSelectAllTickets = () => {
   // If not all lines are currently selected, select them all
   if (selectedTickets.length < tickets.length) {
-    setSelectedTickets(tickets.map(ticket => ticket._id));
+    setSelectedTickets(tickets.map(ticket => ticket.id));
   } else {
     // If all lines are currently selected, clear selection
     setSelectedTickets([]);
@@ -2005,14 +2002,14 @@ const handleOrderClick = (order) => {
               ))
               ) : tickets && tickets.length > 0 ? (
                 tickets.map((ticket, index) => (
-                  <tr key={ticket._id || index} 
+                  <tr key={ticket.id || index} 
                     className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`}
                     onClick={(e) => {
                       if (isTicketSelecting) {
                         // Prevent the default action to allow checkbox toggling without entering edit mode
                         e.preventDefault();
                         // Toggle selection state of the line
-                        toggleTicketSelection(ticket._id);
+                        toggleTicketSelection(ticket.id);
                       } else {
                         // Not in selecting mode, handle entering edit mode
                         handleEditTicketClick(ticket);
@@ -2022,8 +2019,8 @@ const handleOrderClick = (order) => {
                     <td className="px-4 py-2 whitespace-nowrap">
                     <input
                       type="checkbox"
-                      checked={selectedTickets.includes(ticket._id)}
-                      onChange={() => toggleTicketSelection(ticket._id)} />
+                      checked={selectedTickets.includes(ticket.id)}
+                      onChange={() => toggleTicketSelection(ticket.id)} />
                   </td>
                 )}
                   <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}{ticket.ProductName}</td>
