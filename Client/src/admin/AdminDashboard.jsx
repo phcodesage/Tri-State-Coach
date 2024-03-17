@@ -170,13 +170,12 @@ const getTicketStartDateForFilter = (filterValue) => {
   }
 };
 const toggleTicketSelection = (ticketId) => {
-  if (selectedTickets.includes(ticketId)) {
-    // If the ticket is already selected, remove it from the selectedTickets array
-    setSelectedTickets(selectedTickets.filter(id => id !== ticketId));
-  } else {
-    // If the ticket is not selected, add it to the selectedTickets array
-    setSelectedTickets([...selectedTickets, ticketId]);
-  }
+  setSelectedTickets(prevSelectedTickets => {
+    const isSelected = prevSelectedTickets.includes(ticketId);
+    return isSelected 
+      ? prevSelectedTickets.filter(id => id !== ticketId) 
+      : [...prevSelectedTickets, ticketId];
+  });
 };
 
 
@@ -1314,12 +1313,16 @@ const handleOrderSelectClick = () => {
 
 
 const handleTicketSelectClick = () => {
-  setIsTicketSelecting(!isTicketSelecting);
-  // Clear selections only when entering the selection mode
-  if (!isTicketSelecting) {
-    setSelectedTickets([]);
-  }
+  setIsTicketSelecting(prevIsTicketSelecting => {
+    // If we're turning off ticket selecting, clear the selections
+    if (prevIsTicketSelecting) {
+      setSelectedTickets([]);
+    }
+    // Toggle the state
+    return !prevIsTicketSelecting;
+  });
 };
+
 
 
 async function handleExportAllLines() {
@@ -1350,7 +1353,7 @@ async function handleExportAllLines() {
 
 async function handleExportAllTickets() {
   try {
-    const response = await fetch('https://backend.phcodesage.tech/api/export-all', {
+    const response = await fetch('https://backend.phcodesage.tech/api/export-tickets', { // Make sure this endpoint is correct
       headers: {
         'Accept': 'text/csv',
       },
@@ -1364,7 +1367,7 @@ async function handleExportAllTickets() {
     const downloadUrl = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = 'combined_data.csv';
+    a.download = 'tickets.csv'; // Updated to match the new file name
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1373,6 +1376,7 @@ async function handleExportAllTickets() {
     console.error('Error exporting data:', error);
   }
 }
+
 
 async function handleExportAllOrders() {
   try {
@@ -1543,11 +1547,11 @@ const handleSelectAllLines = () => {
 
 const handleSelectAllTickets = () => {
   // If not all lines are currently selected, select them all
-  if (selectedTickets.length !== tickets.length) {
+  if (selectedTickets.length < tickets.length) {
     setSelectedTickets(tickets.map(ticket => ticket._id));
   } else {
-    // If all lines are currently selected, do nothing
-    // This will prevent deselecting all tickets when a selected ticket is clicked
+    // If all lines are currently selected, clear selection
+    setSelectedTickets([]);
   }
 };
 
@@ -2003,29 +2007,24 @@ const handleOrderClick = (order) => {
                 tickets.map((ticket, index) => (
                   <tr key={ticket._id || index} 
                     className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`}
-                    onClick={() => {
-                        if (isTicketSelecting) {
-                            // Toggle ticket selection
-                            toggleTicketSelection(ticket._id);
-                        } else {
-                            // Non-selecting mode action, e.g., editing
-                            handleEditTicketClick(ticket._id);
-                        }
-                    }}>
+                    onClick={(e) => {
+                      if (isTicketSelecting) {
+                        // Prevent the default action to allow checkbox toggling without entering edit mode
+                        e.preventDefault();
+                        // Toggle selection state of the line
+                        toggleTicketSelection(ticket._id);
+                      } else {
+                        // Not in selecting mode, handle entering edit mode
+                        handleEditTicketClick(ticket);
+                      }
+                    } }>
                     {isTicketSelecting && (
                     <td className="px-4 py-2 whitespace-nowrap">
-                        <input
-                            type="checkbox"
-                            className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
-                            checked={selectedTickets.includes(ticket._id)}
-                            onChange={(e) => {
-                                e.stopPropagation(); // Stop the row click event
-                                handleTicketSelection(ticket._id);
-                            }}
-                            onClick={(e) => e.stopPropagation()} // Prevent row click from triggering when checkbox is clicked
-                            readOnly // Checkbox is just for display, actual state is controlled by the row's onClick
-                        />
-                    </td>
+                    <input
+                      type="checkbox"
+                      checked={selectedTickets.includes(ticket._id)}
+                      onChange={() => toggleTicketSelection(ticket._id)} />
+                  </td>
                 )}
                   <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}{ticket.ProductName}</td>
                   <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status === 'Published' ? (

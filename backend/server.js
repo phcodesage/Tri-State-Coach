@@ -548,32 +548,79 @@ app.get('/api/export-lines', async (req, res) => {
 
 app.get('/api/export-tickets', async (req, res) => {
   try {
-    const tickets = await Ticket.aggregate([
-      {
-        $project: {
-          _id: 0,
-          "Products Collection ID": 1,
-          "Product ID": 1,
-          "Variants Collection ID": 1,
-          "Variant ID": 1,
-          "Product Handle": 1,
-          "Product Name": 1,
-          "Product Type": 1,
-          "Product Description": 1,
-          "Product Categories": 1,
-          "Main Variant Image": 1,
-          "Variant Price": 1,
-          "Product Tax Class": 1,
-          "Variant Sku": 1,
-          "Variant Inventory": 1,
-          "Requires Shipping": 1,
-          "Created On": 1,
-          "Updated On": 1
-        }
-      }
-    ]);
+    const tickets = await Ticket.find({}).select({
+      productsCollectionId: 1,
+      productId: 1,
+      variantsCollectionId: 1,
+      variantId: 1,
+      productHandle: 1,
+      productName: 1,
+      status: 1,
+      productType: 1,
+      productDescription: 1,
+      productCategories: 1,
+      mainVariantImage: 1,
+      moreVariantImages: 1,
+      variantPrice: 1,
+      variantCompareAtPrice: 1,
+      productTaxClass: 1,
+      variantSku: 1,
+      variantInventory: 1,
+      requiresShipping: 1,
+      variantWeight: 1,
+      variantWidth: 1,
+      variantHeight: 1,
+      variantLength: 1,
+      variantDownloadName: 1,
+      variantDownloadURL: 1,
+      option1Name: 1,
+      option1Value: 1,
+      option2Name: 1,
+      option2Value: 1,
+      option3Name: 1,
+      option3Value: 1,
+      createdOn: 1,
+      updatedOn: 1,
+      publishedOn: 1
+    }).lean(); // Use `.lean()` for performance improvement since we just need POJOs
 
-    const parser = new Parser();
+    const parser = new Parser({
+      fields: [ // Add all the fields you need in the CSV in the correct order
+        'productsCollectionId',
+        'productId',
+        'variantsCollectionId',
+        'variantId',
+        'productHandle',
+        'productName',
+        'status',
+        'productType',
+        'productDescription',
+        'productCategories',
+        'mainVariantImage',
+        'moreVariantImages',
+        'variantPrice',
+        'variantCompareAtPrice',
+        'productTaxClass',
+        'variantSku',
+        'variantInventory',
+        'requiresShipping',
+        'variantWeight',
+        'variantWidth',
+        'variantHeight',
+        'variantLength',
+        'variantDownloadName',
+        'variantDownloadURL',
+        'option1Name',
+        'option1Value',
+        'option2Name',
+        'option2Value',
+        'option3Name',
+        'option3Value',
+        'createdOn',
+        'updatedOn',
+        'publishedOn'
+      ]
+    });
     const csv = parser.parse(tickets);
 
     res.header('Content-Type', 'text/csv');
