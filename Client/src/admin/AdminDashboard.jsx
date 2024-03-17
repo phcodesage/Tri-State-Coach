@@ -28,16 +28,8 @@ const [isTicketLoading, setIsTicketLoading] = useState(false);
 const [isLineLoading, setIsLineLoading] = useState(false);
 const [selectedFilter, setSelectedFilter] = useState('All Orders');
 const [currentFilter, setCurrentFilter] = useState('All Orders');
-// Before returning your component's JSX
-
-
-
-
 const [searchOrderTerm, setSearchOrderTerm] = useState('');
-const toggleOrderSelecting = () => {
-  setIsOrderSelecting(!isOrderSelecting);
-};
-
+const toggleOrderSelecting = () => {setIsOrderSelecting(!isOrderSelecting)};
 const [isLoading, setIsLoading] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
@@ -93,8 +85,6 @@ const [lineEditMode, setLineEditMode] = useState(false);
 const [ticketEditMode, setTicketEditMode] = useState(false);
 const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 const [orders, setOrders] = useState([]);
-const [orderCount, setOrderCount] = useState(0);
-const [editTicket, setEditTicket] = useState(null);
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -102,21 +92,17 @@ const initialLineFilterCriteria = {
   created: 'All',
   modified: 'All'
 };
-
 const initialTicketFilterCriteria = {
   status: 'All',
   published: 'All',
   created: 'All',
   modified: 'All'
 };
-
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 const [isTicketFilterModalVisible, setIsTicketFilterModalVisible] = useState(false);
 const [TicketFilterCriteria, setTicketFilterCriteria] = useState(initialTicketFilterCriteria); // Assuming 'tickets' holds your full ticket list
 const [originalTickets, setOriginalTickets] = useState([]); 
-
-
 const SVGArrow = (props) => (
   <svg
     className='w-6 h-6'
@@ -147,17 +133,14 @@ const SVGArrow = (props) => (
     </g>
   </svg>
 );
-
 const handleSearchChange = (event) => {
   const { value } = event.target;
   setSearchTerm(value);
 };
-
 const handleTicketSearchChange = (event) => {
   const { value } = event.target;
   setTicketSearchTerm(value);
 };
-
 const getLineStartDateForFilter = (filterValue) => {
   const now = new Date();
   switch (filterValue) {
@@ -172,7 +155,6 @@ const getLineStartDateForFilter = (filterValue) => {
       return new Date(0); // Earliest date to ensure all records are included
   }
 };
-
 const getTicketStartDateForFilter = (filterValue) => {
   const now = new Date();
   switch (filterValue) {
@@ -187,6 +169,16 @@ const getTicketStartDateForFilter = (filterValue) => {
       return null;  // No start date, meaning no filtering is applied
   }
 };
+const toggleTicketSelection = (ticketId) => {
+  if (selectedTickets.includes(ticketId)) {
+    // If the ticket is already selected, remove it from the selectedTickets array
+    setSelectedTickets(selectedTickets.filter(id => id !== ticketId));
+  } else {
+    // If the ticket is not selected, add it to the selectedTickets array
+    setSelectedTickets([...selectedTickets, ticketId]);
+  }
+};
+
 
 
 const toggleLineSelection = (lineId) => {
@@ -197,24 +189,18 @@ const toggleLineSelection = (lineId) => {
     setSelectedLines([...selectedLines, lineId]);
   }
 };
-
 const handleLineCancelClick = () => {
   setIsSelecting(false);
   setSelectedLines([]);
 };
-
 const handleTicketCancelClick = () => {
   setIsTicketSelecting(false);
   setSelectedTickets([]);
 };
-
 const handleOrderCancelClick = () => {
   setIsOrderSelecting(false);
   setSelectedOrders([]);
 };
-
-
-
 const resetLineFormStates = () => {
   setNewLine({
     name: "",
@@ -234,7 +220,6 @@ const resetLineFormStates = () => {
   setLineName("");
   // Reset any additional state related to the line form here
 };
-
 const resetTicketFormStates = () => {
   // Resetting all the state variables to their initial states
   setTicketData({
@@ -251,15 +236,12 @@ const resetTicketFormStates = () => {
     inventoryQuantity: '',
     // Add other fields as required
   });
-
   setTripType(''); // Reset trip type
   setLineName(''); // Reset line name
   setDepartureDate(''); // Reset departure date
   setReturnDate(''); 
   // Reset any additional state related to the line form here
 };
-
-
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
 const [isOrderModalVisible, setIsOrderModalVisible] = useState(false);
@@ -279,49 +261,37 @@ const [editline, setEditLine] = useState({
   status: "",
   products: []
 })
-
-
-
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
 const lineDropDownRef = useRef(null);
 const ticketDropDownRef = useRef(null);
-
-
 const [currentLineId, setCurrentLineId] = useState(null);
 const [currentTicketId, setCurrentTicketId] = useState(null);
 let timeoutId;
 const isLineMounted = useRef(true);
 const isTicketMounted = useRef(true);
-
 const [lineAutomatedValues, setLineAutomatedValues] = useState({
   itemId: '',
   created: '',
   lastEdited: '',
   lastPublished: '',
 });
-
 const [ticketAutomatedValues, setTicketAutomatedValues] = useState({
   itemId: '',
   created: '',
   lastEdited: '',
   lastPublished: '',
 });
-
 const handleLineSlugChange = (e) => {
   const newSlug = e.target.value;
   setNewLine({ ...newLine, slug: newSlug });
   setValue('slug', newSlug); // Update the slug in the form
 };
-
 const handleTicketSlugChange = (e) => {
   const newTicketSlug = e.target.value;
 
   setValue('slug', newTicketSlug); // Update the slug in the form
 };
-
-
-
 useEffect(() => {
   // Define the function inside useEffect to use the ref and state directly
   const handleOutsideClick = (event) => {
@@ -338,8 +308,6 @@ useEffect(() => {
     document.removeEventListener('mousedown', handleOutsideClick);
   };
 }, [isDropdownOpen]); // Depend on isDropdownOpen to re-attach the listener when it changes
-
-
 useEffect(() => {
   // Define the function inside useEffect to use the ref and state directly
   const handleTicketOutsideClick = (event) => {
@@ -839,7 +807,7 @@ useEffect(() => {
           return {
             // Map your ticket data as before
             status: ticket.status,
-            id: ticket._id.$oid, // Adjust according to your data structure
+            id: ticket._id, // Adjust according to your data structure
             // Add more fields as necessary
             productsCollectionId: ticket["Products Collection ID"],
             productId: ticket["Product ID"],
@@ -1369,12 +1337,18 @@ const handleOrderSelectClick = () => {
 
 
 const handleTicketSelectClick = () => {
-  setIsTicketSelecting(!isTicketSelecting);
-  // Clear selections only when entering the selection mode
-  if (!isTicketSelecting) {
-    setSelectedTickets([]);
-  }
+  setIsTicketSelecting(prevState => {
+    if (!prevState) { // We are entering selection mode
+      // Do not clear the selections here if entering selection mode
+      // Only clear if necessary based on your application's logic
+    } else {
+      // Exiting selection mode, clear selections
+      setSelectedTickets([]);
+    }
+    return !prevState; // Toggle the selection mode
+  });
 };
+
 
 async function handleExportAllLines() {
   try {
@@ -1542,11 +1516,22 @@ useEffect(() => {
   }
 }, [ticketLastAction, ticketStatus]);
 
-const toggleLineSelectMode = () => {
-  setIsSelecting(!isSelecting);
-  // Optionally clear selections when exiting select mode
-  if (isSelecting) setSelectedLineIds([]);
+const handleTicketSelection = (ticketId) => {
+  console.log(`Selecting ticket with ID: ${ticketId}`);
+  setSelectedTickets(currentSelectedTickets => {
+    console.log('Currently selected tickets:', currentSelectedTickets);
+    if (currentSelectedTickets.includes(ticketId)) {
+      const newSelectedTickets = currentSelectedTickets.filter(id => id !== ticketId);
+      console.log('New selected tickets after removal:', newSelectedTickets);
+      return newSelectedTickets;
+    } else {
+      const newSelectedTickets = [...currentSelectedTickets, ticketId];
+      console.log('New selected tickets after addition:', newSelectedTickets);
+      return newSelectedTickets;
+    }
+  });
 };
+
 
 const handleLineSelect = (lineId) => {
   // Toggle selection
@@ -1586,13 +1571,14 @@ const handleSelectAllLines = () => {
 
 const handleSelectAllTickets = () => {
   // If not all lines are currently selected, select them all
-  if (selectedTickets.length < tickets.length) {
+  if (selectedTickets.length !== tickets.length) {
     setSelectedTickets(tickets.map(ticket => ticket._id));
   } else {
-    // If all lines are currently selected, clear selection
-    setSelectedTickets([]);
+    // If all lines are currently selected, do nothing
+    // This will prevent deselecting all tickets when a selected ticket is clicked
   }
 };
+
 
 const handleSelectAllOrders = (e) => {
   if (e.target.checked) {
@@ -1848,6 +1834,8 @@ const handleOrderClick = (order) => {
 };
 
 
+
+
   return (
     <>
     {isWarningModalVisible && (
@@ -2041,20 +2029,55 @@ const handleOrderClick = (order) => {
               ))
               ) : tickets && tickets.length > 0 ? (
                 tickets.map((ticket, index) => (
-                  <tr key={ticket._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
-                    if (!isTicketSelecting) {
-                      handleEditTicketClick(ticket._id);
-
-                    }
-                  }}>
-                  {isTicketSelecting && (
-                  <td className="px-4 py-2 text-white whitespace-nowrap">
-                  {ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}
-                  {ticket.ProductName}
-                </td>
+                  <tr key={ticket._id || index} 
+                    className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`}
+                    onClick={() => {
+                        if (isTicketSelecting) {
+                            // Toggle ticket selection
+                            toggleTicketSelection(ticket._id);
+                        } else {
+                            // Non-selecting mode action, e.g., editing
+                            handleEditTicketClick(ticket._id);
+                        }
+                    }}>
+                    {isTicketSelecting && (
+                    <td className="px-4 py-2 whitespace-nowrap">
+                        <input
+                            type="checkbox"
+                            className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
+                            checked={selectedTickets.includes(ticket._id)}
+                            onChange={(e) => {
+                                e.stopPropagation(); // Stop the row click event
+                                handleTicketSelection(ticket._id);
+                            }}
+                            onClick={(e) => e.stopPropagation()} // Prevent row click from triggering when checkbox is clicked
+                            readOnly // Checkbox is just for display, actual state is controlled by the row's onClick
+                        />
+                    </td>
                 )}
                   <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}{ticket.ProductName}</td>
-                <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status}</td> {/* Assuming status is similar to type as there is no 'status' field */}
+                  <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status === 'Published' ? (
+            <span className="flex items-center">
+              <svg className='w-4 h-4 mr-2'
+                viewBox="0 0 16 16"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+              >
+                <g id="SVGRepo_bgCarrier" strokeWidth={0} />
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                <g id="SVGRepo_iconCarrier">
+                  <path fill="#02973b" d="M8 3a5 5 0 100 10A5 5 0 008 3z" />
+                </g>
+              </svg>
+
+              <span className="text-green-400">Published</span>
+            </span>
+          ) : (
+            <span className="flex items-center">
+              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
+              <span className="text-orange-300">Draft</span>
+            </span>
+          )}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">${parseFloat(ticket.variantPrice ?? '0').toFixed(2)}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.productType}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(ticket.updatedOn ?? ticket.createdOn).toLocaleString()}</td>
