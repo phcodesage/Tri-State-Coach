@@ -284,19 +284,33 @@ app.put('/api/tickets/:id', authenticateToken, async (req, res) => {
   }
 });
 
-
-
-
-
-// Endpoint to delete a ticket
-app.delete('/api/tickets/:id', async (req, res) => {
+// Endpoint to delete multiple tickets
+app.delete('/api/tickets/batch-delete', authenticateToken, async (req, res) => {
   try {
-    await Ticket.findByIdAndDelete(req.params.id);
-    res.status(204).send();
+      const { ticketIds } = req.body; // Expect an array of ticket IDs
+      const deleteResult = await Ticket.deleteMany({ _id: { $in: ticketIds } });
+      res.status(200).json({ message: 'Tickets deleted successfully', deletedCount: deleteResult.deletedCount });
   } catch (error) {
-    res.status(500).send('Error deleting ticket');
+      console.error('Error deleting tickets:', error);
+      res.status(500).json({ message: 'Error deleting tickets', error: error.message });
   }
 });
+
+// Endpoint to archive multiple tickets
+app.patch('/api/tickets/batch-archive', authenticateToken, async (req, res) => {
+  try {
+      const { ticketIds } = req.body; // Expect an array of ticket IDs
+      const archiveResult = await Ticket.updateMany(
+          { _id: { $in: ticketIds } },
+          { $set: { status: 'Archived' } }
+      );
+      res.status(200).json({ message: 'Tickets archived successfully', modifiedCount: archiveResult.nModified });
+  } catch (error) {
+      console.error('Error archiving tickets:', error);
+      res.status(500).json({ message: 'Error archiving tickets', error: error.message });
+  }
+});
+
 
 app.post('/api/lines',  async (req, res) => {
   const { name, slug, status = 'Draft', products } = req.body;
