@@ -405,8 +405,6 @@ const handleEditTicketClick = async (ticketIdParam) => {
   setCurrentTicketId(ticketIdParam.id)
   const ticketId = ticketIdParam.id || ticketIdParam; // Adjust based on actual structure if it's an object
   try {
-    console.log('Received ticketId:', ticketId, typeof ticketId);
-
     const ticketToEdit = tickets.find(ticket => ticket.id === ticketId);
     if (!ticketToEdit) {
       console.error('Ticket not found:', ticketId);
@@ -552,7 +550,7 @@ async function handleImageChange(event) {
       });
 
       setImagePreviewUrl(`/uploads/${response.data.filePath}`);
-      console.log('Image uploaded successfully:', response.data);
+
       setTicketData(prevState => ({
         ...prevState,
         logo: response.data.filePath // Update this based on how your API response is structured
@@ -1236,12 +1234,6 @@ const handleFilterLineClick = () => {
   // Here you would typically set some state to show a filter modal or dropdown
 };
 
-const applyFilters = () => {
-  console.log('Applying Filters:', ticketFilterCriteria);
-  // Implement the logic to filter your tickets based on `ticketFilterCriteria`
-  setIsTicketFilterModalVisible(false); // Close the modal after applying filters
-};
-
 // Function to reset filters to their default values
 const resetFilters = () => {
   setTicketFilterCriteria(initialTicketFilterCriteria);
@@ -1588,14 +1580,11 @@ useEffect(() => {
 const handleTicketSelection = (ticketId) => {
   console.log(`Selecting ticket with ID: ${ticketId}`);
   setSelectedTickets(currentSelectedTickets => {
-    console.log('Currently selected tickets:', currentSelectedTickets);
     if (currentSelectedTickets.includes(ticketId)) {
       const newSelectedTickets = currentSelectedTickets.filter(id => id !== ticketId);
-      console.log('New selected tickets after removal:', newSelectedTickets);
       return newSelectedTickets;
     } else {
       const newSelectedTickets = [...currentSelectedTickets, ticketId];
-      console.log('New selected tickets after addition:', newSelectedTickets);
       return newSelectedTickets;
     }
   });
@@ -2037,9 +2026,23 @@ const handleOrderClick = (order) => {
                 className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded"
                 onClick={() => setTicketsToDraft()}
             >
-                Draft
+                            <span className="flex items-center">
+              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
+              <span className="text-orange-300">Draft</span>
+            </span>
             </button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => setTicketsToArchive()}>Archive</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => setTicketsToArchive()}><span className="flex items-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path d="M9 12C9 11.5341 9 11.3011 9.07612 11.1173C9.17761 10.8723 9.37229 10.6776 9.61732 10.5761C9.80109 10.5 10.0341 10.5 10.5 10.5H13.5C13.9659 10.5 14.1989 10.5 14.3827 10.5761C14.6277 10.6776 14.8224 10.8723 14.9239 11.1173C15 11.3011 15 11.5341 15 12C15 12.4659 15 12.6989 14.9239 12.8827C14.8224 13.1277 14.6277 13.3224 14.3827 13.4239C14.1989 13.5 13.9659 13.5 13.5 13.5H10.5C10.0341 13.5 9.80109 13.5 9.61732 13.4239C9.37229 13.3224 9.17761 13.1277 9.07612 12.8827C9 12.6989 9 12.4659 9 12Z" stroke="#171717" strokeWidth="1.5"></path>
+                  <path d="M20.5 7V13C20.5 16.7712 20.5 18.6569 19.3284 19.8284C18.1569 21 16.2712 21 12.5 21H11.5M3.5 7V13C3.5 16.7712 3.5 18.6569 4.67157 19.8284C5.37634 20.5332 6.3395 20.814 7.81608 20.9259" stroke="#171717" strokeWidth="1.5" strokeLinecap="round"></path>
+                  <path d="M12 3H4C3.05719 3 2.58579 3 2.29289 3.29289C2 3.58579 2 4.05719 2 5C2 5.94281 2 6.41421 2.29289 6.70711C2.58579 7 3.05719 7 4 7H20C20.9428 7 21.4142 7 21.7071 6.70711C22 6.41421 22 5.94281 22 5C22 4.05719 22 3.58579 21.7071 3.29289C21.4142 3 20.9428 3 20 3H16" stroke="#171717" strokeWidth="1.5" strokeLinecap="round"></path>
+                </g>
+              </svg>
+              <span className="text-gray-400">Archive</span>
+            </span></button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => setTicketsToArchive()}>Archive</button>
                   </>
                 )}
@@ -2144,7 +2147,7 @@ const handleOrderClick = (order) => {
             </span>
           ) : ticket.status === 'Archived' ? (
             <span className="flex items-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className='w-4 h-4 mr-2' width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                 <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -2153,7 +2156,7 @@ const handleOrderClick = (order) => {
                   <path d="M12 3H4C3.05719 3 2.58579 3 2.29289 3.29289C2 3.58579 2 4.05719 2 5C2 5.94281 2 6.41421 2.29289 6.70711C2.58579 7 3.05719 7 4 7H20C20.9428 7 21.4142 7 21.7071 6.70711C22 6.41421 22 5.94281 22 5C22 4.05719 22 3.58579 21.7071 3.29289C21.4142 3 20.9428 3 20 3H16" stroke="#171717" strokeWidth="1.5" strokeLinecap="round"></path>
                 </g>
               </svg>
-              <span className="text-gray-400">Archived</span>
+              <span className="text-zinc-400">Archived</span>
             </span>
           ) : (
             <span className="flex items-center">
