@@ -8,6 +8,7 @@ import Multiselect from 'multiselect-react-dropdown';
 import React from 'react';
 import FilterModal from '../components/FilterModal';
 
+
 const AdminDashboard = () => {
 const authToken = localStorage.getItem('token');
 const modalRef = useRef();
@@ -103,6 +104,7 @@ const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCr
 const [isTicketFilterModalVisible, setIsTicketFilterModalVisible] = useState(false);
 const [TicketFilterCriteria, setTicketFilterCriteria] = useState(initialTicketFilterCriteria); // Assuming 'tickets' holds your full ticket list
 const [originalTickets, setOriginalTickets] = useState([]); 
+
 const SVGArrow = (props) => (
   <svg
     className='w-6 h-6'
@@ -245,7 +247,6 @@ const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
 const [isOrderModalVisible, setIsOrderModalVisible] = useState(false);
 const [isLineModalVisible, setIsLineModalVisible] = useState(false);
-const { control, register, handleSubmit, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
 const [ticketLastAction, setTicketLastAction] = useState('');
 // At the top of your component, create a ref for the form
@@ -384,9 +385,24 @@ const [ticketFormData, setTicketFormData] = useState({
   updatedOn: ""
 });
 
-
+const { register, handleSubmit, setTicketValue, reset, control, formState: { errors } } = useForm({
+  defaultValues: {
+      name: '',
+      description: '',
+      slug: '',
+      price: '',
+      compareAtPrice: '',
+      productType: '',
+      productTaxClass: '',
+      sku: '',
+      inventoryQuantity: '',
+      trackInventory: false,
+      // Add other fields as necessary
+  }
+});
 
 const handleEditTicketClick = async (ticketIdParam) => {
+  setCurrentTicketId(ticketIdParam.id)
   const ticketId = ticketIdParam.id || ticketIdParam; // Adjust based on actual structure if it's an object
   try {
     console.log('Received ticketId:', ticketId, typeof ticketId);
@@ -417,7 +433,12 @@ const handleEditTicketClick = async (ticketIdParam) => {
       createdOn: ticketToEdit.createdOn ? new Date(ticketToEdit.createdOn).toLocaleDateString() : '',
       updatedOn: ticketToEdit.updatedOn ? new Date(ticketToEdit.updatedOn).toLocaleDateString() : ''
     });
-
+    Object.keys(ticketToEdit).forEach(key => {
+      setValue(key, ticketToEdit[key]);
+  });
+  
+  setIsTicketFormVisible(true); // Show the line form for editing
+  setTicketEditMode(true); // Enable edit mode
   } catch (error) {
     console.error('Error preparing ticket for editing:', error);
   }
@@ -1320,6 +1341,28 @@ const handleTicketSelectClick = () => {
   });
 };
 
+const setTicketsToDraft = async () => {
+  selectedTickets.forEach(async (ticketId) => {
+      try {
+          const response = await axios.put(`https://backend.phcodesage.tech/api/tickets/${ticketId}`, {
+              status: 'Draft',
+          }, {
+              headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+          if (response.status === 200) {
+              console.log(`Ticket ${ticketId} set to draft successfully.`);
+              fetchTickets();
+          } else {
+              console.error(`Failed to set ticket ${ticketId} to draft: ${response.status}`);
+          }
+      } catch (error) {
+          console.error(`Error setting ticket ${ticketId} to draft:`, error);
+      }
+  });
+};
+
+
+
 
 
 async function handleExportAllLines() {
@@ -1933,11 +1976,16 @@ const handleOrderClick = (order) => {
           <div className="flex space-x-2">
             {isTicketSelecting ? (
               <>
-                {selectedTickets.length > 0 && (
+                {isTicketSelecting &&  selectedTickets.length > 0 && (
                   <>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleExportAllTickets}>Export</button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Delete')}>Delete</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Draft')}>Draft</button>
+                    <button 
+                className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded"
+                onClick={() => setTicketsToDraft()}
+            >
+                Draft
+            </button>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Archive')}>Archive</button>
                   </>
                 )}

@@ -265,19 +265,27 @@ app.get('/api/tickets', async (req, res) => {
 
 
 
-// Endpoint to update a ticket
-app.put('/api/tickets/:id', async (req, res) => {
+// Update a ticket's status
+app.put('/api/tickets/:id', authenticateToken, async (req, res) => {
+  const updateData = req.body; // This should ideally only contain the fields that need to be updated
   try {
-    const ticket = await Ticket.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true // Make sure validators run on update
-    });
-    res.status(200).send(ticket);
+      const updatedTicket = await Ticket.findByIdAndUpdate(
+          req.params.id,
+          updateData,
+          { new: true, runValidators: true, context: 'query' } // This makes sure validators run
+      );
+      if (!updatedTicket) {
+          return res.status(404).json({ message: 'Ticket not found' });
+      }
+      res.json(updatedTicket);
   } catch (error) {
-    console.error(error);
-    res.status(400).send({ message: 'Error updating ticket', error: error.message });
+      console.error('Error updating ticket:', error);
+      res.status(500).json({ message: 'Error updating ticket', error: error.toString() });
   }
 });
+
+
+
 
 
 // Endpoint to delete a ticket
