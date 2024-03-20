@@ -901,58 +901,40 @@ useEffect(() => {
 
 
 // Form submission handler for Line
-const handleCreateLineSubmission = handleSubmit(async (data) => {
-  // Prepare line data for submission
+const handleCreateLineSubmission = async () => {
+  // Update the status based on last action before submitting
+  const updatedStatus = lastAction === 'publish' ? 'Published' : 'Draft';
+  setLineStatus(updatedStatus); // Update the status in your state if needed
+
   const lineData = {
-    ...data,
-    products: selectedProducts.map(product => ({
-      id: product.id,
-      name: product.name,
-      count: product.count
-    })),
-    productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
-    status: lineStatus, // Ensure lineStatus is appropriately set elsewhere in your code
+    name: newLine.name,
+    slug: newLine.slug,
+    status: updatedStatus, // Use the status determined by the last action.
+    productsCount: selectedProducts.length, // Count of selected products.
+    products: selectedProducts.map(product => product.value) // Extract just the IDs.
   };
+  console.log(selectedProducts);
+  console.log(lineData);
 
-  // Determine the correct API URL and HTTP method based on whether it's a create or update action
-  const apiUrl = currentLineId ? `https://backend.phcodesage.tech/api/lines/${currentLineId}` : 'https://backend.phcodesage.tech/api/lines';
-  const method = currentLineId ? 'patch' : 'post';
-
+  // API call to save the line
   try {
-    // Use axios to submit the form data. Adjust this part according to your axios setup, e.g., using axios instance if configured
-    const response = await axios({
-      method: method,
-      url: apiUrl,
-      data: lineData,
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await axios.post('https://backend.phcodesage.tech/api/lines', lineData, {
+      headers: { /* Authorization headers if needed */ },
     });
-
-    if (response.status === 200 || response.status === 201) {
-      // Handle successful response
-      // Update local state to reflect the new or updated line
-      setLines(currentLines =>
-        currentLineId
-          ? currentLines.map(line => line._id === currentLineId ? { ...line, ...response.data } : line)
-          : [...currentLines, response.data]
-      );
-
-      // Reset UI state and form
-      setIsLineFormVisible(false); // Close the line form modal or toggle visibility
-      reset(); // Reset form fields using react-hook-form's reset method
-      setLineEditMode(false); // Exit line edit mode
-      setCurrentLineId(null); // Clear the current line ID
-      setLastAction(''); // Reset lastAction state
-    }
+    console.log('Line saved successfully:', response.data);
+    // Perform any additional actions, like navigating to another page or displaying a success message
   } catch (error) {
-    console.error('Error submitting line:', error);
-    // Optionally, handle the error in UI, for example, by showing an error message
+    console.error('Error saving line:', error);
+    // Handle errors, e.g., displaying an error message
   }
-});
+};
 
-    
+// Function to handle line publish
+const handleProductSelect = (selectedList, selectedItem) => {
+  setSelectedProducts(selectedList);
+};
+
+
 
   const handleLogout = () => {
    localStorage.removeItem('token'); // Remove the token
@@ -1002,16 +984,6 @@ useEffect(() => {
     setProductsCount(totalProductsCount);
   }
 }, [selectedProducts]);
-
-const handleProductSelect = (selectedList, selectedItem) => {
-  // Update the state with the selected products, including their id, name, and count
-  setSelectedProducts(selectedList.map(product => ({
-    id: product._id, // Use _id for MongoDB documents
-    name: product.name, // Include the product name
-    count: product.count || 1  // Default count to 1, adjust as necessary
-  })));
-};
-
 
 
 const handleLinePublish = () => {
@@ -2345,7 +2317,7 @@ class ErrorBoundary extends React.Component {
   <label htmlFor="lines" className="block mb-2 text-sm font-medium text-white">Lines</label>
   <Multiselect
   options={publishedTicketProducts} // Use the state for filtered published tickets
-  selectedValues={selectedProducts}
+  selectedValues={setSelectedProducts}
   onSelect={handleProductSelect}
   onRemove={handleProductSelect}
   displayValue="ProductName" // Make sure this matches an existing key in your ticket objects
@@ -3268,7 +3240,7 @@ class ErrorBoundary extends React.Component {
         />
       </td>
     )}
-          <td className="px-4 py-2 text-white whitespace-nowrap">{line["Product Name"]}</td>
+          <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
           {!isLineFormVisible && (
             <>
               <td className="px-4 py-2 text-white whitespace-nowrap">{line.status === 'Published' ? (
@@ -3494,10 +3466,12 @@ class ErrorBoundary extends React.Component {
 
     <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
     <Multiselect
-  options={publishedTicketProducts} // Use the new state for filtered published tickets
-  selectedValues={selectedProducts}
-  displayValue="ProductName"
-  placeholder="Select products"
+   options={publishedTicketProducts} // Use the state for filtered published tickets
+   selectedValues={selectedProducts} // Use the state variable here
+   onSelect={handleProductSelect} // This function should update the selectedProducts
+   onRemove={handleProductSelect} // This function should update the selectedProducts
+   displayValue="ProductName" // Make sure this matches an existing key in your ticket objects
+   placeholder="Select products"
   onChange={setSelectedProducts}
   className="" // Updated dark theme classes for the component
   style={{
