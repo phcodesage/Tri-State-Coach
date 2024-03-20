@@ -86,6 +86,8 @@ const [lineEditMode, setLineEditMode] = useState(false);
 const [ticketEditMode, setTicketEditMode] = useState(false);
 const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 const [orders, setOrders] = useState([]);
+const [publishedTicketProducts, setPublishedTicketProducts] = useState([]);
+
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -282,16 +284,7 @@ const [ticketAutomatedValues, setTicketAutomatedValues] = useState({
   lastEdited: '',
   lastPublished: '',
 });
-const handleLineSlugChange = (e) => {
-  const newSlug = e.target.value;
-  setNewLine({ ...newLine, slug: newSlug });
-  setValue('slug', newSlug); // Update the slug in the form
-};
-const handleTicketSlugChange = (e) => {
-  const newTicketSlug = e.target.value;
 
-  setValue('slug', newTicketSlug); // Update the slug in the form
-};
 useEffect(() => {
   // Define the function inside useEffect to use the ref and state directly
   const handleOutsideClick = (event) => {
@@ -603,9 +596,6 @@ useEffect(() => {
 }, []);
 
 
-// Empty dependency array to run only once on moun
-
-
 const [selectedTicket, setSelectedTicket] = useState(null);
 const [selectedCategories, setSelectedCategories] = useState([]);
 const handleCategorySelect = (event) => {
@@ -652,7 +642,6 @@ const toggleTicketFormVisibility = () => {
   
 }
 
-
  // or your state management
 const [showCreateOptions, setShowCreateOptions] = useState(false);
 
@@ -665,9 +654,6 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
    // Implement save functionality based on the option
    setShowCreateOptions(false);
  };
-
-
-
 
 const initialTicketData = {
   productType: '',
@@ -723,7 +709,6 @@ const createSlug = (name) => {
   return slug;
 };
 
-
 // Handler for when the name input changes
 const handleNameChange = (e) => {
   const name = e.target.value;
@@ -736,12 +721,9 @@ const handleNameChange = (e) => {
   trigger('slug');
 };
 
-
 const fetchLines = async () => {
   if (!isLineListVisible) return;
-
   setLoading(true);
-
   try {
     const response = await axios.get('https://backend.phcodesage.tech/api/lines', {
       headers: { 'Authorization': `Bearer ${authToken}` }
@@ -759,9 +741,6 @@ const fetchLines = async () => {
     if (isLineMounted) setLoading(false);
   }
 };
-
-
-
 
 useEffect(() => {
   let isLineMounted = true;
@@ -843,7 +822,6 @@ useEffect(() => {
             updatedOn: new Date(ticket["Updated On"])
           };
         });
-        console.log(formattedTickets)
         setOriginalTickets(formattedTickets); // Save the original, unfiltered tickets
         setTickets(formattedTickets); // Initially, display all tickets
   
@@ -857,11 +835,18 @@ useEffect(() => {
     }
   };
   
-  useEffect(() => {
-      fetchTickets(); 
-  }, []);
-  
+  const filterPublishedTickets = () => {
+    const publishedTickets = originalTickets.filter(ticket => ticket.status === 'Published'); // Correct the status string here
+    setPublishedTicketProducts(publishedTickets); // Update the state with filtered tickets
 
+    console.log(publishedTickets); // Check the filtered results
+  };
+  
+  useEffect(() => {
+    filterPublishedTickets(); // Update the published tickets whenever the original tickets change
+  }, [originalTickets]); // Dependency array ensures this runs whenever originalTickets changes
+
+  
   const submitLineData = async (lineData, isEdit) => {
     const apiUrl = isEdit ? `https://backend.phcodesage.tech/api/lines/${currentLineId}` : 'https://backend.phcodesage.tech/api/lines';
     const method = isEdit ? 'patch' : 'post';
@@ -1115,7 +1100,6 @@ const handleTicketInputChange = (event) => {
       categories: selectedLines.map(line => line.name),
     };
   
-    console.log("Submitting ticket with data:", preparedData);
   
     try {
       const response = await axios({
@@ -1136,7 +1120,6 @@ const handleTicketInputChange = (event) => {
     }
   });
   
-  
 
   useEffect(() => {
     // Assume this data comes from somewhere, like an edit button click
@@ -1148,11 +1131,7 @@ const handleTicketInputChange = (event) => {
       });
     }
   }, [setValue]);
-
-
   const [ticketData, setTicketData] = useState(initialTicketData);
-
-
 // Function to reset all related form states
 
 const handleTicketCancel = () => {
@@ -1216,12 +1195,8 @@ useEffect(() => {
   return () => clearTimeout(timeoutId);
 }, [searchTicketTerm]); // Added fetchTickets to the dependency array since it's being used here
 
-
-
-
 useEffect(() => {
   // Debounce the search for better performance
- 
 }, [searchOrderTerm]);
 
 const handleFilterTicketClick = () => {
@@ -1230,15 +1205,8 @@ const handleFilterTicketClick = () => {
 
 const handleFilterLineClick = () => {
   setIsLineFilterModalVisible(true);
-
   // Here you would typically set some state to show a filter modal or dropdown
 };
-
-// Function to reset filters to their default values
-const resetFilters = () => {
-  setTicketFilterCriteria(initialTicketFilterCriteria);
-};
-
 
 const handleLineFilterCloseModal = () => {
   setIsLineFilterModalVisible(false);
@@ -1360,7 +1328,6 @@ const setTicketsToDraft = async () => {
               headers: { 'Authorization': `Bearer ${authToken}` }
           });
           if (response.status === 200) {
-              console.log(`Ticket ${ticketId} set to draft successfully.`);
               updateTicketsInState(selectedTickets, { status: 'Draft' });
           } else {
               console.error(`Failed to set ticket ${ticketId} to draft: ${response.status}`);
@@ -1379,8 +1346,6 @@ const setTicketsToDelete = async () => {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     if (response.status === 200) {
-      console.log(`${response.data.deletedCount} tickets deleted successfully.`);
-      // Remove deleted tickets from local state
       removeTicketsFromState(selectedTickets);
     } else {
       console.error(`Failed to delete tickets: ${response.status}`);
@@ -1398,8 +1363,6 @@ const setTicketsToArchive = async () => {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
     if (response.status === 200) {
-      console.log(`${response.data.modifiedCount} tickets archived successfully.`);
-      // Update archived tickets in local state
       updateTicketsInState(selectedTickets, { status: 'Archived' });
     } else {
       console.error(`Failed to archive tickets: ${response.status}`);
@@ -1578,7 +1541,6 @@ useEffect(() => {
 }, [ticketLastAction, ticketStatus]);
 
 const handleTicketSelection = (ticketId) => {
-  console.log(`Selecting ticket with ID: ${ticketId}`);
   setSelectedTickets(currentSelectedTickets => {
     if (currentSelectedTickets.includes(ticketId)) {
       const newSelectedTickets = currentSelectedTickets.filter(id => id !== ticketId);
@@ -1726,8 +1688,6 @@ const fetchOrders = async (status = '') => {
   }
 };
 
-
-
 useEffect(() => {
   const timeoutId = setTimeout(() => {
     if (searchOrderTerm.trim() === '') {
@@ -1752,10 +1712,6 @@ useEffect(() => {
     setIsLoading(false); // Always stop loading when the component unmounts or the effect cleans up
   };
 }, [searchOrderTerm, isSearching]);
-
-
-
-
 
 
 useEffect(() => {
@@ -1884,14 +1840,24 @@ useEffect(() => {
   };
 }, []);
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
 
-const handleOrderClick = (order) => {
-  setSelectedOrderDetails(order); // Set the clicked order details
-  setIsOrderFormVisible(true); // Show the order form
-};
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong with the dropdown.</h1>;
+    }
 
-
+    return this.props.children; 
+  }
+}
 
 
   return (
@@ -2378,43 +2344,44 @@ const handleOrderClick = (order) => {
       <div className="flex flex-col space-y-4" style={{ position: 'relative', zIndex: '0' }}>
   <label htmlFor="lines" className="block mb-2 text-sm font-medium text-white">Lines</label>
   <Multiselect
-    options={lines} // Use lines instead of tickets
-    selectedValues={selectedLines} // Manage selected lines state
-    onSelect={handleLineSelect} // Handler for selecting a line
-    onRemove={handleLineSelect} // Handler for deselecting a line
-    displayValue="name" // Assumes lines have a 'name' property to display
-    placeholder="Select lines"
-    className="" // Add necessary classes or leave empty if not needed
-    style={{
-      multiselectContainer: {
-        width: '100%',
-        backgroundColor: '#1F2937',
+  options={publishedTicketProducts} // Use the state for filtered published tickets
+  selectedValues={selectedProducts}
+  onSelect={handleProductSelect}
+  onRemove={handleProductSelect}
+  displayValue="ProductName" // Make sure this matches an existing key in your ticket objects
+  placeholder="Select products"
+  className="" // Add any additional classes here
+  style={{
+    multiselectContainer: {
+      width: '100%',
+      backgroundColor: '#1F2937',
+    },
+    searchBox: {
+      minWidth: '100%',
+      border: '2px solid #4B5563',
+      borderRadius: '0px',
+      backgroundColor: '#1F2937',
+      color: 'white',
+      paddingLeft: '0.5rem',
+      paddingRight: '2.5rem',
+    },
+    optionContainer: {
+      width: '100%',
+      backgroundColor: '#1F2937',
+      borderColor: '#374151',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    },
+    option: {
+      backgroundColor: 'rgb(38 38 38)',
+      color: 'white',
+      '&:hover': {
+        backgroundColor: 'black',
       },
-      searchBox: {
-        minWidth: '100%',
-        border: '2px solid #4B5563',
-        borderRadius: '0px',
-        backgroundColor: '#1F2937',
-        color: 'white',
-        paddingLeft: '0.5rem',
-        paddingRight: '2.5rem',
-      },
-      optionContainer: {
-        width: '100%',
-        backgroundColor: '#1F2937',
-        borderColor: '#374151',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      },
-      option: {
-        backgroundColor: 'rgb(38 38 38)',
-        color: 'white',
-        '&:hover': {
-          backgroundColor: 'black',
-        },
-      },
-      // Add other style modifications as needed
-    }}
-  />
+    },
+    // Add other styles as needed
+  }}
+/>
+
 </div>
 
   
@@ -3058,7 +3025,7 @@ const handleOrderClick = (order) => {
                   <>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={(handleExportAllLines)}>Export</button>
                     <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={() => initiateDeleteLine(currentLineId)}>Delete</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Draft')}>Draft</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded">Draft</button>
                     <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={() => handleLineArchive(currentLineId)}>Archive</button>
                   </>
                 )}
@@ -3331,7 +3298,7 @@ const handleOrderClick = (order) => {
                 {line.lastEdited ? new Date(line.lastEdited).toLocaleString() : 'Not Edited'}
               </td>
               <td className="px-4 py-2 text-white whitespace-nowrap">
-                {line.created ? new Date(line.UpdatedOn).toLocaleString() : 'Not Published'}
+                {line.created ? new Date(line.created).toLocaleString() : 'Not Published'}
               </td>
             </>
           )}
@@ -3488,8 +3455,6 @@ const handleOrderClick = (order) => {
 
 
       <form onSubmit={handleSubmit(handleCreateLineSubmission)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
-
-
         {/* Line Name Input */}
         <div>
           <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name <span className="text-red-700">*</span></label>
@@ -3529,15 +3494,13 @@ const handleOrderClick = (order) => {
 
     <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
     <Multiselect
-  options={tickets}
+  options={publishedTicketProducts} // Use the new state for filtered published tickets
   selectedValues={selectedProducts}
-  onSelect={handleProductSelect}
-  onRemove={handleProductSelect}
-  displayValue="name"
+  displayValue="ProductName"
   placeholder="Select products"
+  onChange={setSelectedProducts}
   className="" // Updated dark theme classes for the component
   style={{
-    
     multiselectContainer: {
       // Styles for the container of the multiselect
       width: '100%',
@@ -3562,7 +3525,6 @@ const handleOrderClick = (order) => {
     },
     option: {
       // Styles for each dropdown option
-      
       backgroundColor: 'rgb(38 38 38)', // Blue background color for selected option
       color: 'white', // Text color for options
       '&:hover': {
@@ -3572,6 +3534,7 @@ const handleOrderClick = (order) => {
     // ... add other necessary style objects
   }}
 />
+
 
 
 </div>
