@@ -312,7 +312,7 @@ app.patch('/api/tickets/batch-archive', authenticateToken, async (req, res) => {
 });
 
 
-app.post('/api/lines',  async (req, res) => {
+app.post('/api/lines', async (req, res) => {
   const { name, slug, status = 'Draft', products } = req.body;
 
   try {
@@ -321,7 +321,7 @@ app.post('/api/lines',  async (req, res) => {
       slug,
       status, // Default to 'Draft' if not provided
       products,
-      productsCount: products.reduce((acc, product) => acc + product.count, 0)
+      productsCount: products.length // Just count the number of products
     });
 
     await newLine.save();
@@ -330,6 +330,7 @@ app.post('/api/lines',  async (req, res) => {
     res.status(400).json({ message: 'Error creating line', error: error.message });
   }
 });
+
 
 
 // Endpoint to get all lines

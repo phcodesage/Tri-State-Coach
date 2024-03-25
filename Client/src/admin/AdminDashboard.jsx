@@ -243,7 +243,6 @@ const resetTicketFormStates = () => {
   setLineName(''); // Reset line name
   setDepartureDate(''); // Reset departure date
   setReturnDate(''); 
-  // Reset any additional state related to the line form here
 };
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
@@ -911,10 +910,11 @@ const handleCreateLineSubmission = async () => {
     slug: newLine.slug,
     status: updatedStatus, // Use the status determined by the last action.
     productsCount: selectedProducts.length, // Count of selected products.
-    products: selectedProducts.map(product => product.value) // Extract just the IDs.
+    products: selectedProducts.map(product => product.ProductName) 
   };
   console.log(selectedProducts);
   console.log(lineData);
+  console.log(selectedProducts)
 
   // API call to save the line
   try {
@@ -1051,14 +1051,10 @@ const handleTicketInputChange = (event) => {
   const handleCreateTicketSubmission = handleSubmit(async (data) => {
     const status = ticketLastAction === 'draft' ? 'Draft' : 'Published';
     const sku = data.sku || uuidv4(); // Ensure you have a method to generate a UUID
-  
     let slug = data.slug; // Original slug from the form
     // Slug uniqueness check here...
-    
     // Combining ticket images and logo into one array, while filtering out any null or undefined values
     const images = [...(ticketData.images || []), ticketData.logo].filter(Boolean);
-
-  
     const preparedData = {
       ...data,
       sku,
@@ -1071,7 +1067,6 @@ const handleTicketInputChange = (event) => {
       images, // Updated to include both selected images and the logo
       categories: selectedLines.map(line => line.name),
     };
-  
   
     try {
       const response = await axios({
@@ -1184,13 +1179,10 @@ const handleLineFilterCloseModal = () => {
   setIsLineFilterModalVisible(false);
 };
 
-
 const handleLineResetFilters = () => {
   setLineFilterCriteria(initialLineFilterCriteria);
   fetchLines();
 };
-
-
 
 const handleLineApplyFilters = () => {
   setIsLineFilterModalVisible(false); // Close the modal after applying filters
@@ -1201,7 +1193,6 @@ const handleTicketApplyFilters = () => {
   setIsTicketFilterModalVisible(false); // Close the modal after applying filters
   applyTicketFiltersBasedOnCriteria(); // Apply the filters based on current criteria
 };
-
 
 const applyLineFiltersBasedOnCriteria = () => {
   setLoading(true); // Indicate the start of a filtering operation
@@ -1244,7 +1235,6 @@ const applyTicketFiltersBasedOnCriteria = () => {
   setTicketLoading(false); // End filtering operation
 };
 
-
 const handleLineSelectClick = () => {
   setIsSelecting(!isSelecting);
   // Clear selections only when entering the selection mode
@@ -1259,8 +1249,6 @@ const handleOrderSelectClick = () => {
     setSelectedOrders([]);
   }
 };
-
-
 
 const handleTicketSelectClick = () => {
   setIsTicketSelecting(prevIsTicketSelecting => {
@@ -1290,7 +1278,6 @@ const updateTicketsInState = (updatedTicketIds, update) => {
   });
 };
 
-
 const setTicketsToDraft = async () => {
   selectedTickets.forEach(async (ticketId) => {
       try {
@@ -1309,7 +1296,6 @@ const setTicketsToDraft = async () => {
       }
   });
 };
-
 
 const setTicketsToDelete = async () => {
   try {
@@ -1343,7 +1329,6 @@ const setTicketsToArchive = async () => {
     console.error(`Error archiving tickets:`, error);
   }
 };
-
 
 async function handleExportAllLines() {
   try {
@@ -1397,7 +1382,6 @@ async function handleExportAllTickets() {
   }
 }
 
-
 async function handleExportAllOrders() {
   try {
     const response = await fetch('https://backend.phcodesage.tech/api/export-orders', {
@@ -1423,7 +1407,6 @@ async function handleExportAllOrders() {
     console.error('Error exporting data:', error);
   }
 }
-
 
 const lineApplyFilters = () => {
   if (LineFilterCriteria.status === 'All' && 
@@ -1461,17 +1444,6 @@ const lineApplyFilters = () => {
   // Set the filtered lines to state
   setLines(filteredLines);
   setLoading(false); // Stop loading
-};
-
-
-const resetLineModalFilters = () => {
-  setLineFilterCriteria({
-    status: 'All',
-    published: 'All',
-    created: 'All',
-    modified: 'All'
-  });
-
 };
 
 const getDateRange = (filterOption) => {
@@ -1523,7 +1495,6 @@ const handleTicketSelection = (ticketId) => {
     }
   });
 };
-
 
 const handleLineSelect = (lineId) => {
   // Toggle selection
@@ -2232,19 +2203,18 @@ class ErrorBoundary extends React.Component {
       </div>
     </div>
   )}
-  
     <form onSubmit={handleSubmit(handleCreateTicketSubmission)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
       {/* Product Type Dropdown */}
       <div className="mb-4">
         <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
         <select
-          id="productType"
-          name="productType"
-          {...register('productType', { required: 'Product type is required' })}
-          value={ticketData.productType}
-          onChange={(e) => setTicketFormData({ ...ticketFormData, productType: e.target.value })}
-          className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-        >
+      id="productType"
+      name="productType"
+      {...register('productType', { required: 'Product type is required' })}
+      value={ticketFormData.productType}
+      onChange={(e) => setTicketFormData({ ...ticketFormData, productType: e.target.value })}
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    >
           <option value="Physical">Physical</option>
           <option value="Digital">Digital</option>
           <option value="Service">Service</option>
@@ -2266,7 +2236,7 @@ class ErrorBoundary extends React.Component {
       type="text"
       name="name"
       {...register('name', { required: 'Name is required' })}
-      value={ticketData.name || ''}
+      value={ticketFormData.name || ''}
       onChange={(e) => setTicketFormData({ ...ticketFormData, name: e.target.value })}
       placeholder="Ticket Name"
       required
@@ -2275,29 +2245,21 @@ class ErrorBoundary extends React.Component {
     {errors.name && <span className="text-red-500">{errors.name.message}</span>}
   </div>
   
-  
-  {/* Slug Input */}
-  <div>
-      <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
-      <Controller
-        name="slug"
-        control={control}
-        rules={{ required: 'Slug is required' }}
-        render={({ field }) => (
-          <input
-            id="slug"
-            {...field}
-            className="w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
-            placeholder='slug'
-            onChange={(e) => setTicketFormData({ ...ticketFormData, slug: e.target.value })}
-            value={newTicket.slug || ''}
-          />
-        )}
-      />
-      {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
-      <p className="text-white mt-2">www.tri-statecoach.com/category/{newTicket.slug || 'slug'}</p>
-    </div>
-  
+ {/* Slug Input */}
+ <div className="mb-4">
+    <label htmlFor="slug" className="block text-sm font-medium text-white mb-1">Slug <span className="text-red-700">*</span></label>
+    <input
+      id="slug"
+      name="slug"
+      {...register('slug', { required: 'Slug is required' })}
+      value={ticketFormData.slug || ''}
+      onChange={(e) => setTicketFormData({ ...ticketFormData, slug: e.target.value })}
+      placeholder="slug"
+      className="block w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
+    />
+    {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
+    <p className="text-white mt-2">www.tri-statecoach.com/category/{ticketFormData.slug || 'slug'}</p>
+  </div>
   
       {/* Description TextArea */}
       <div className="mb-4">
@@ -3227,7 +3189,7 @@ class ErrorBoundary extends React.Component {
             toggleLineSelection(line._id);
           } else {
             // Not in selecting mode, handle entering edit mode
-            handleEditLineClick(line);
+            handleEditLineClick(line._id);
           }
         }}
       >
@@ -3508,8 +3470,6 @@ class ErrorBoundary extends React.Component {
     // ... add other necessary style objects
   }}
 />
-
-
 
 </div>
       </form>
