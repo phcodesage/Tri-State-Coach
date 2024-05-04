@@ -11,12 +11,14 @@ const { Parser } = require('json2csv');
 const multer = require('multer');
 const path = require('path');
 const Order = require('./models/Order'); // Update the path according to your structure
+const app = express();
+app.use(cors());
+app.use(express.json()); // for parsing application/json
+
+const PORT = process.env.PORT || 5000;
 
 
 
-if (result.error) {
-  throw result.error
-}
 
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -44,12 +46,14 @@ function jsonToCsv(jsonArray) {
 }
 
 
+<<<<<<< HEAD
 const app = express();
 app.use(cors());
 app.use(express.json()); // for parsing application/json
 app.use(express.static('dist'));
+=======
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
 
-const PORT = process.env.PORT || 5000;
 
 
 // SMTP Transporter
@@ -58,15 +62,12 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true, // use SSL
   auth: {
-    user: 'contact@shamuscoachbus.com',
-    pass: 'sq9A#5{*!)IT'
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
-app.use((error, req, res, next) => {
-  console.error(error); // Log the error for debugging
-  res.status(500).json({ error: 'Internal Server Error' }); // Respond with JSON
-});
+
 
 app.get('/', (req, res) => {
   res.send('Welcome to the tristate-coach-backend!')
@@ -132,7 +133,7 @@ app.post('/quote-request', async (req, res) => {
     // Sending email
     const mailOptions = {
       from: 'contact@shamuscoachbus.com',
-      to: 'test@memelope.com',
+      to: 'rechceltoledo@gmail.com',
       subject: 'New Quote Request',
       text: `You have a new quote request: \nName: ${req.body.name}\nEmail: ${req.body.email}\nMessage: ${req.body.message}`
       // You can format the email body as per your requirements
@@ -271,32 +272,54 @@ app.get('/api/tickets', async (req, res) => {
 
 
 
-// Endpoint to update a ticket
-app.put('/api/tickets/:id', async (req, res) => {
+// Update a ticket's status
+app.put('/api/tickets/:id', authenticateToken, async (req, res) => {
+  const updateData = req.body; // This should ideally only contain the fields that need to be updated
   try {
-    const ticket = await Ticket.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true // Make sure validators run on update
-    });
-    res.status(200).send(ticket);
+      const updatedTicket = await Ticket.findByIdAndUpdate(
+          req.params.id,
+          updateData,
+          { new: true, runValidators: true, context: 'query' } // This makes sure validators run
+      );
+      if (!updatedTicket) {
+          return res.status(404).json({ message: 'Ticket not found' });
+      }
+      res.json(updatedTicket);
   } catch (error) {
-    console.error(error);
-    res.status(400).send({ message: 'Error updating ticket', error: error.message });
+      console.error('Error updating ticket:', error);
+      res.status(500).json({ message: 'Error updating ticket', error: error.toString() });
+  }
+});
+
+// Endpoint to delete multiple tickets
+app.delete('/api/tickets/batch-delete', authenticateToken, async (req, res) => {
+  try {
+      const { ticketIds } = req.body; // Expect an array of ticket IDs
+      const deleteResult = await Ticket.deleteMany({ _id: { $in: ticketIds } });
+      res.status(200).json({ message: 'Tickets deleted successfully', deletedCount: deleteResult.deletedCount });
+  } catch (error) {
+      console.error('Error deleting tickets:', error);
+      res.status(500).json({ message: 'Error deleting tickets', error: error.message });
+  }
+});
+
+// Endpoint to archive multiple tickets
+app.patch('/api/tickets/batch-archive', authenticateToken, async (req, res) => {
+  try {
+      const { ticketIds } = req.body; // Expect an array of ticket IDs
+      const archiveResult = await Ticket.updateMany(
+          { _id: { $in: ticketIds } },
+          { $set: { status: 'Archived' } }
+      );
+      res.status(200).json({ message: 'Tickets archived successfully', modifiedCount: archiveResult.nModified });
+  } catch (error) {
+      console.error('Error archiving tickets:', error);
+      res.status(500).json({ message: 'Error archiving tickets', error: error.message });
   }
 });
 
 
-// Endpoint to delete a ticket
-app.delete('/api/tickets/:id', async (req, res) => {
-  try {
-    await Ticket.findByIdAndDelete(req.params.id);
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).send('Error deleting ticket');
-  }
-});
-
-app.post('/api/lines',  async (req, res) => {
+app.post('/api/lines', async (req, res) => {
   const { name, slug, status = 'Draft', products } = req.body;
 
   try {
@@ -305,7 +328,7 @@ app.post('/api/lines',  async (req, res) => {
       slug,
       status, // Default to 'Draft' if not provided
       products,
-      productsCount: products.reduce((acc, product) => acc + product.count, 0)
+      productsCount: products.length // Just count the number of products
     });
 
     await newLine.save();
@@ -314,6 +337,7 @@ app.post('/api/lines',  async (req, res) => {
     res.status(400).json({ message: 'Error creating line', error: error.message });
   }
 });
+
 
 
 // Endpoint to get all lines
@@ -554,32 +578,79 @@ app.get('/api/export-lines', async (req, res) => {
 
 app.get('/api/export-tickets', async (req, res) => {
   try {
-    const tickets = await Ticket.aggregate([
-      {
-        $project: {
-          _id: 0,
-          "Products Collection ID": 1,
-          "Product ID": 1,
-          "Variants Collection ID": 1,
-          "Variant ID": 1,
-          "Product Handle": 1,
-          "Product Name": 1,
-          "Product Type": 1,
-          "Product Description": 1,
-          "Product Categories": 1,
-          "Main Variant Image": 1,
-          "Variant Price": 1,
-          "Product Tax Class": 1,
-          "Variant Sku": 1,
-          "Variant Inventory": 1,
-          "Requires Shipping": 1,
-          "Created On": 1,
-          "Updated On": 1
-        }
-      }
-    ]);
+    const tickets = await Ticket.find({}).select({
+      productsCollectionId: 1,
+      productId: 1,
+      variantsCollectionId: 1,
+      variantId: 1,
+      productHandle: 1,
+      productName: 1,
+      status: 1,
+      productType: 1,
+      productDescription: 1,
+      productCategories: 1,
+      mainVariantImage: 1,
+      moreVariantImages: 1,
+      variantPrice: 1,
+      variantCompareAtPrice: 1,
+      productTaxClass: 1,
+      variantSku: 1,
+      variantInventory: 1,
+      requiresShipping: 1,
+      variantWeight: 1,
+      variantWidth: 1,
+      variantHeight: 1,
+      variantLength: 1,
+      variantDownloadName: 1,
+      variantDownloadURL: 1,
+      option1Name: 1,
+      option1Value: 1,
+      option2Name: 1,
+      option2Value: 1,
+      option3Name: 1,
+      option3Value: 1,
+      createdOn: 1,
+      updatedOn: 1,
+      publishedOn: 1
+    }).lean(); // Use `.lean()` for performance improvement since we just need POJOs
 
-    const parser = new Parser();
+    const parser = new Parser({
+      fields: [ // Add all the fields you need in the CSV in the correct order
+        'productsCollectionId',
+        'productId',
+        'variantsCollectionId',
+        'variantId',
+        'productHandle',
+        'productName',
+        'status',
+        'productType',
+        'productDescription',
+        'productCategories',
+        'mainVariantImage',
+        'moreVariantImages',
+        'variantPrice',
+        'variantCompareAtPrice',
+        'productTaxClass',
+        'variantSku',
+        'variantInventory',
+        'requiresShipping',
+        'variantWeight',
+        'variantWidth',
+        'variantHeight',
+        'variantLength',
+        'variantDownloadName',
+        'variantDownloadURL',
+        'option1Name',
+        'option1Value',
+        'option2Name',
+        'option2Value',
+        'option3Name',
+        'option3Value',
+        'createdOn',
+        'updatedOn',
+        'publishedOn'
+      ]
+    });
     const csv = parser.parse(tickets);
 
     res.header('Content-Type', 'text/csv');
@@ -641,13 +712,27 @@ app.get('/api/export-orders', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'dist', 'index.html')); // Adjust if using 'build' or another directory
 });
+=======
+app.use((req, res, next) => {
+  console.log('Raw request body:', req.rawBody);
+  next();
+});
+
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+app.use((req, res, next) => {
+  console.log(req.path, req.body);
+  next();
+});
+
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI, {
@@ -655,3 +740,15 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
   .then(() => console.log("MongoDB successfully connected"))
   .catch(err => console.log(err));
+
+  if (result.error) {
+    throw result.error
+  }
+
+  app.use((error, req, res, next) => {
+    console.error(error.stack); // More detailed error logging
+    const statusCode = error.statusCode || 500;
+    const message = error.message || 'Internal Server Error';
+    res.status(statusCode).json({ error: message });
+  });
+  

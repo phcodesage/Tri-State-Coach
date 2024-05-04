@@ -7,22 +7,9 @@ const lineSchema = new mongoose.Schema({
   itemId: { type: String, required: true, default: uuidv4 },
   created: { type: Date, default: Date.now },
   lastEdited: { type: Date, default: Date.now },
-  lastPublished: { type: Date },
-  status: { type: String, required: true, enum: ['Draft', 'Published'], default: 'Published' },
+  status: { type: String, required: true, enum: ['Draft', 'Published'], default: 'Draft' }, // Default to 'Draft' as per your form's functionality
   productsCount: { type: Number, default: 0 },
-  products: [{
-    productId: { type: String, required: true }, // Changed from 'id' for clarity and direct mapping to your data
-    productName: { type: String, required: true }, // Added to store product name
-    productType: { type: String, required: true }, // Added to store product type
-    variantPrice: { type: String, required: true }, // Added to store variant price
-    variantSku: { type: String, required: true }, // Added to store SKU
-    productHandle: { type: String, required: true }, // Added for URL or identification purposes
-    requiresShipping: { type: Boolean, default: false }, // Added to store shipping requirement
-    productTaxClass: { type: String }, // Added for tax classification
-    count: { type: Number, required: true, default: 1 }, // Count could be for inventory or other purposes
-    mainVariantImage: { type: String }, // Added to store main image URL
-    moreVariantImages: [{ type: String }] // Added to store additional images
-  }]
+  products: [{ type: String }] // Assuming products are represented by their IDs as strings
 });
 
 module.exports = mongoose.model('Line', lineSchema);

@@ -6,6 +6,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import Multiselect from 'multiselect-react-dropdown';
 import React from 'react';
+import FilterModal from '../components/FilterModal';
+
 
 const AdminDashboard = () => {
 const authToken = localStorage.getItem('token');
@@ -27,16 +29,8 @@ const [isTicketLoading, setIsTicketLoading] = useState(false);
 const [isLineLoading, setIsLineLoading] = useState(false);
 const [selectedFilter, setSelectedFilter] = useState('All Orders');
 const [currentFilter, setCurrentFilter] = useState('All Orders');
-// Before returning your component's JSX
-
-
-
-
 const [searchOrderTerm, setSearchOrderTerm] = useState('');
-const toggleOrderSelecting = () => {
-  setIsOrderSelecting(!isOrderSelecting);
-};
-
+const toggleOrderSelecting = () => {setIsOrderSelecting(!isOrderSelecting)};
 const [isLoading, setIsLoading] = useState(false);
 const [isLineFormVisible, setIsLineFormVisible] = useState(false);
 const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
@@ -92,8 +86,8 @@ const [lineEditMode, setLineEditMode] = useState(false);
 const [ticketEditMode, setTicketEditMode] = useState(false);
 const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 const [orders, setOrders] = useState([]);
-const [orderCount, setOrderCount] = useState(0);
-const [editTicket, setEditTicket] = useState(null);
+const [publishedTicketProducts, setPublishedTicketProducts] = useState([]);
+
 // Initial state for filter criteria
 const initialLineFilterCriteria = {
   status: 'All',
@@ -101,18 +95,17 @@ const initialLineFilterCriteria = {
   created: 'All',
   modified: 'All'
 };
-
 const initialTicketFilterCriteria = {
   status: 'All',
   published: 'All',
   created: 'All',
   modified: 'All'
 };
-
 const [isLineFilterModalVisible, setIsLineFilterModalVisible] = useState(false);
 const [LineFilterCriteria, setLineFilterCriteria] = useState(initialLineFilterCriteria);
 const [isTicketFilterModalVisible, setIsTicketFilterModalVisible] = useState(false);
-const [TicketFilterCriteria, setTicketFilterCriteria] = useState(initialTicketFilterCriteria);
+const [TicketFilterCriteria, setTicketFilterCriteria] = useState(initialTicketFilterCriteria); // Assuming 'tickets' holds your full ticket list
+const [originalTickets, setOriginalTickets] = useState([]); 
 
 const SVGArrow = (props) => (
   <svg
@@ -148,14 +141,10 @@ const handleSearchChange = (event) => {
   const { value } = event.target;
   setSearchTerm(value);
 };
-
 const handleTicketSearchChange = (event) => {
   const { value } = event.target;
   setTicketSearchTerm(value);
 };
-
-// Helper function to convert filter option to the actual start date
-// Helper function to convert filter option to the actual start date
 const getLineStartDateForFilter = (filterValue) => {
   const now = new Date();
   switch (filterValue) {
@@ -170,21 +159,30 @@ const getLineStartDateForFilter = (filterValue) => {
       return new Date(0); // Earliest date to ensure all records are included
   }
 };
-
 const getTicketStartDateForFilter = (filterValue) => {
   const now = new Date();
   switch (filterValue) {
     case 'Last 24 hours':
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      return new Date(now.setHours(now.getHours() - 24));
     case 'Last 7 days':
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return new Date(now.setDate(now.getDate() - 7));
     case 'Last 30 days':
-      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      return new Date(now.setDate(now.getDate() - 30));
+    case 'All':
     default:
-      // This effectively removes the filter
-      return new Date(0); // Earliest date to ensure all records are included
+      return null;  // No start date, meaning no filtering is applied
   }
 };
+const toggleTicketSelection = (ticketId) => {
+  setSelectedTickets(prevSelectedTickets => {
+    const isSelected = prevSelectedTickets.includes(ticketId);
+    return isSelected 
+      ? prevSelectedTickets.filter(id => id !== ticketId) 
+      : [...prevSelectedTickets, ticketId];
+  });
+};
+
+
 
 const toggleLineSelection = (lineId) => {
   const isSelected = selectedLines.includes(lineId);
@@ -194,24 +192,18 @@ const toggleLineSelection = (lineId) => {
     setSelectedLines([...selectedLines, lineId]);
   }
 };
-
 const handleLineCancelClick = () => {
   setIsSelecting(false);
   setSelectedLines([]);
 };
-
 const handleTicketCancelClick = () => {
   setIsTicketSelecting(false);
   setSelectedTickets([]);
 };
-
 const handleOrderCancelClick = () => {
   setIsOrderSelecting(false);
   setSelectedOrders([]);
 };
-
-
-
 const resetLineFormStates = () => {
   setNewLine({
     name: "",
@@ -231,7 +223,6 @@ const resetLineFormStates = () => {
   setLineName("");
   // Reset any additional state related to the line form here
 };
-
 const resetTicketFormStates = () => {
   // Resetting all the state variables to their initial states
   setTicketData({
@@ -248,20 +239,15 @@ const resetTicketFormStates = () => {
     inventoryQuantity: '',
     // Add other fields as required
   });
-
   setTripType(''); // Reset trip type
   setLineName(''); // Reset line name
   setDepartureDate(''); // Reset departure date
   setReturnDate(''); 
-  // Reset any additional state related to the line form here
 };
-
-
 const [suggestedTipForDriver, setSuggestedTipForDriver] = useState('');
 const [isTicketModalVisible, setIsTicketModalVisible] = useState(false);
 const [isOrderModalVisible, setIsOrderModalVisible] = useState(false);
 const [isLineModalVisible, setIsLineModalVisible] = useState(false);
-const { control, register, handleSubmit, formState: { errors }, reset } = useForm();
 const [lastAction, setLastAction] = useState('');
 const [ticketLastAction, setTicketLastAction] = useState('');
 // At the top of your component, create a ref for the form
@@ -276,48 +262,27 @@ const [editline, setEditLine] = useState({
   status: "",
   products: []
 })
-
-
-
 // State to manage selected products for a line
 const [selectedProducts, setSelectedProducts] = useState([]);
 const lineDropDownRef = useRef(null);
 const ticketDropDownRef = useRef(null);
-
-
 const [currentLineId, setCurrentLineId] = useState(null);
 const [currentTicketId, setCurrentTicketId] = useState(null);
 let timeoutId;
 const isLineMounted = useRef(true);
 const isTicketMounted = useRef(true);
-
 const [lineAutomatedValues, setLineAutomatedValues] = useState({
   itemId: '',
   created: '',
   lastEdited: '',
   lastPublished: '',
 });
-
 const [ticketAutomatedValues, setTicketAutomatedValues] = useState({
   itemId: '',
   created: '',
   lastEdited: '',
   lastPublished: '',
 });
-
-const handleLineSlugChange = (e) => {
-  const newSlug = e.target.value;
-  setNewLine({ ...newLine, slug: newSlug });
-  setValue('slug', newSlug); // Update the slug in the form
-};
-
-const handleTicketSlugChange = (e) => {
-  const newTicketSlug = e.target.value;
-
-  setValue('slug', newTicketSlug); // Update the slug in the form
-};
-
-
 
 useEffect(() => {
   // Define the function inside useEffect to use the ref and state directly
@@ -335,8 +300,6 @@ useEffect(() => {
     document.removeEventListener('mousedown', handleOutsideClick);
   };
 }, [isDropdownOpen]); // Depend on isDropdownOpen to re-attach the listener when it changes
-
-
 useEffect(() => {
   // Define the function inside useEffect to use the ref and state directly
   const handleTicketOutsideClick = (event) => {
@@ -363,7 +326,7 @@ const handleEditLineClick = async (line) => {
     const productId = product.id?.$oid ? product.id.$oid : product.id?.toString() || '';
 
     // Ensuring fullProduct search does not fail due to undefined ID
-    const fullProduct = tickets.find(ticket => ticket._id.toString() === productId);
+    const fullProduct = tickets.find(ticket => ticket.id.toString() === productId);
 
     return {
       id: productId,
@@ -414,46 +377,62 @@ const [ticketFormData, setTicketFormData] = useState({
   updatedOn: ""
 });
 
+const { register, handleSubmit, setTicketValue, reset, control, formState: { errors } } = useForm({
+  defaultValues: {
+      name: '',
+      description: '',
+      slug: '',
+      price: '',
+      compareAtPrice: '',
+      productType: '',
+      productTaxClass: '',
+      sku: '',
+      inventoryQuantity: '',
+      trackInventory: false,
+      // Add other fields as necessary
+  }
+});
 
-
-const handleEditTicketClick = async (ticketId) => {
+const handleEditTicketClick = async (ticketIdParam) => {
+  setCurrentTicketId(ticketIdParam.id)
+  const ticketId = ticketIdParam.id || ticketIdParam; // Adjust based on actual structure if it's an object
   try {
-    const ticketToEdit = tickets.find(ticket => ticket._id === ticketId); // Your existing logic
+    const ticketToEdit = tickets.find(ticket => ticket.id === ticketId);
     if (!ticketToEdit) {
       console.error('Ticket not found:', ticketId);
       return;
     }
-
-    // Set the ticket data state
+    // Convert your ticket data to the expected format for the form state, aligning field names and formats
     setTicketFormData({
-      _id: ticketToEdit._id,
-      productsCollectionId: ticketToEdit["Products Collection ID"] || '',
-      productId: ticketToEdit["Product ID"] || '',
-      variantsCollectionId: ticketToEdit["Variants Collection ID"] || '',
-      variantId: ticketToEdit["Variant ID"] || '',
-      productHandle: ticketToEdit["Product Handle"] || '',
-      productName: ticketToEdit["Product Name"] || '',
-      productType: ticketToEdit["Product Type"] || '',
-      productDescription: ticketToEdit["Product Description"] || '',
-      productCategories: ticketToEdit["Product Categories"] ? ticketToEdit["Product Categories"].join('; ') : '',
-      mainVariantImage: ticketToEdit["Main Variant Image"] || '',
-      moreVariantImages: ticketToEdit["More Variant Images"] || [], // Handle as array or string based on your data structure
-      variantPrice: ticketToEdit["Variant Price"] ? ticketToEdit["Variant Price"].toString() : '',
-      productTaxClass: ticketToEdit["Product Tax Class"] || '',
-      variantSku: ticketToEdit["Variant Sku"] || '',
-      requiresShipping: ticketToEdit["Requires Shipping"] ? 'Yes' : 'No',
-      createdOn: ticketToEdit["Created On"] ? new Date(ticketToEdit["Created On"]).toLocaleDateString() : '',
-      updatedOn: ticketToEdit["Updated On"] ? new Date(ticketToEdit["Updated On"]).toLocaleDateString() : ''
+      _id: ticketToEdit.id, // Use 'id' here since that's what you've named it in the mapping
+      productsCollectionId: ticketToEdit.productsCollectionId || '',
+      productId: ticketToEdit.productId || '',
+      variantsCollectionId: ticketToEdit.variantsCollectionId || '',
+      variantId: ticketToEdit.variantId || '',
+      productHandle: ticketToEdit.productHandle || '',
+      productName: ticketToEdit.ProductName || '', // Note capital 'N' based on your fetch function
+      productType: ticketToEdit.productType || '',
+      productDescription: ticketToEdit.productDescription || '',
+      productCategories: Array.isArray(ticketToEdit.productCategories) ? ticketToEdit.productCategories.join('; ') : '',
+      mainVariantImage: ticketToEdit.MainVariantImage || '', // Note 'M' and 'I' are capital based on your fetch function
+      variantPrice: ticketToEdit.variantPrice ? ticketToEdit.variantPrice.toString() : '',
+      productTaxClass: ticketToEdit.productTaxClass || '',
+      variantSku: ticketToEdit.variantSku || '',
+      variantInventory: ticketToEdit.variantInventory ? ticketToEdit.variantInventory.toString() : '', // Convert to string if necessary
+      requiresShipping: ticketToEdit.requiresShipping ? 'Yes' : 'No',
+      createdOn: ticketToEdit.createdOn ? new Date(ticketToEdit.createdOn).toLocaleDateString() : '',
+      updatedOn: ticketToEdit.updatedOn ? new Date(ticketToEdit.updatedOn).toLocaleDateString() : ''
     });
-
-     // If you have a separate state to toggle edit mode
-    
+    Object.keys(ticketToEdit).forEach(key => {
+      setValue(key, ticketToEdit[key]);
+  });
+  
+  setIsTicketFormVisible(true); // Show the line form for editing
+  setTicketEditMode(true); // Enable edit mode
   } catch (error) {
     console.error('Error preparing ticket for editing:', error);
   }
 };
-
-
 
 
 const handleRemoveProduct = (selectedList, removedItem) => {
@@ -466,14 +445,22 @@ const [loading, setLoading] = useState(false);
 const [ticketLoading, setTicketLoading] = useState(false);
 // Create an Axios instance
 const api = axios.create({
+<<<<<<< HEAD
   baseURL: '/api',
+=======
+  baseURL: 'https://backend.phcodesage.tech/api',
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
 });
 
 // Function to refresh token
 const refreshToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   try {
+<<<<<<< HEAD
     const response = await axios.post('/refresh-token', { refreshToken });
+=======
+    const response = await axios.post('https://backend.phcodesage.tech/refresh-token', { refreshToken });
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
     const { accessToken } = response.data;
     localStorage.setItem('token', accessToken);
     return accessToken;
@@ -556,14 +543,22 @@ async function handleImageChange(event) {
     formData.append('image', file);
 
     try {
+<<<<<<< HEAD
       const response = await axios.post('/api/upload-image', formData, {
+=======
+      const response = await axios.post('https://backend.phcodesage.tech/api/upload-image', formData, {
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
       setImagePreviewUrl(`/uploads/${response.data.filePath}`);
+<<<<<<< HEAD
       console.log('Image uploaded successfully:', response.data);
+=======
+
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
       setTicketData(prevState => ({
         ...prevState,
         logo: response.data.filePath // Update this based on how your API response is structured
@@ -616,9 +611,6 @@ useEffect(() => {
 }, []);
 
 
-// Empty dependency array to run only once on moun
-
-
 const [selectedTicket, setSelectedTicket] = useState(null);
 const [selectedCategories, setSelectedCategories] = useState([]);
 const handleCategorySelect = (event) => {
@@ -665,7 +657,6 @@ const toggleTicketFormVisibility = () => {
   
 }
 
-
  // or your state management
 const [showCreateOptions, setShowCreateOptions] = useState(false);
 
@@ -678,9 +669,6 @@ const [showCreateOptions, setShowCreateOptions] = useState(false);
    // Implement save functionality based on the option
    setShowCreateOptions(false);
  };
-
-
-
 
 const initialTicketData = {
   productType: '',
@@ -736,7 +724,6 @@ const createSlug = (name) => {
   return slug;
 };
 
-
 // Handler for when the name input changes
 const handleNameChange = (e) => {
   const name = e.target.value;
@@ -749,14 +736,15 @@ const handleNameChange = (e) => {
   trigger('slug');
 };
 
-
 const fetchLines = async () => {
   if (!isLineListVisible) return;
-
   setLoading(true);
-
   try {
+<<<<<<< HEAD
     const response = await axios.get('/api/lines', {
+=======
+    const response = await axios.get('https://backend.phcodesage.tech/api/lines', {
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
 
@@ -772,9 +760,6 @@ const fetchLines = async () => {
     if (isLineMounted) setLoading(false);
   }
 };
-
-
-
 
 useEffect(() => {
   let isLineMounted = true;
@@ -819,10 +804,74 @@ useEffect(() => {
     setIsLineFormVisible(true); // Show the line form for editing
     
   };
+  
+  const fetchTickets = async () => {
+    setTicketLoading(true); // Start the loading animation
+    try {
+      const response = await axios.get('https://backend.phcodesage.tech/api/tickets', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+  
+      if (response.status === 200) {
+        // Map the data to match your frontend state management expectations
+        const formattedTickets = response.data.map(ticket => {
+          return {
+            // Map your ticket data as before
+            status: ticket.status,
+            id: ticket._id, // Adjust according to your data structure
+            // Add more fields as necessary
+            productsCollectionId: ticket["Products Collection ID"],
+            productId: ticket["Product ID"],
+            variantsCollectionId: ticket["Variants Collection ID"],
+            variantId: ticket["Variant ID"],
+            productHandle: ticket["Product Handle"],
+            ProductName: ticket["Product Name"],
+            productType: ticket["Product Type"],
+            productDescription: ticket["Product Description"],
+            productCategories: ticket["Product Categories"],
+            MainVariantImage: ticket["Main Variant Image"],
+            variantPrice: parseFloat(ticket["Variant Price"].replace(/[^0-9.-]+/g, "")),
+            productTaxClass: ticket["Product Tax Class"],
+            variantSku: ticket["Variant Sku"],
+            variantInventory: ticket["Variant Inventory"],
+            requiresShipping: ticket["Requires Shipping"],
+            createdOn: new Date(ticket["Created On"]),
+            updatedOn: new Date(ticket["Updated On"])
+          };
+        });
+        setOriginalTickets(formattedTickets); // Save the original, unfiltered tickets
+        setTickets(formattedTickets); // Initially, display all tickets
+  
+      } else {
+        throw new Error('Error fetching tickets');
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+    } finally {
+      setTicketLoading(false); // Stop the loading animation whether or not there was an error
+    }
+  };
+  
+  const filterPublishedTickets = () => {
+    const publishedTickets = originalTickets.filter(ticket => ticket.status === 'Published'); // Correct the status string here
+    setPublishedTicketProducts(publishedTickets); // Update the state with filtered tickets
 
+    console.log(publishedTickets); // Check the filtered results
+  };
+  
+  useEffect(() => {
+    filterPublishedTickets(); // Update the published tickets whenever the original tickets change
+  }, [originalTickets]); // Dependency array ensures this runs whenever originalTickets changes
 
+  
   const submitLineData = async (lineData, isEdit) => {
+<<<<<<< HEAD
     const apiUrl = isEdit ? `/api/lines/${currentLineId}` : '/api/lines';
+=======
+    const apiUrl = isEdit ? `https://backend.phcodesage.tech/api/lines/${currentLineId}` : 'https://backend.phcodesage.tech/api/lines';
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
     const method = isEdit ? 'patch' : 'post';
   
     try {
@@ -875,97 +924,64 @@ useEffect(() => {
 
 
 // Form submission handler for Line
-const handleCreateLineSubmission = handleSubmit(async (data) => {
-  // Prepare line data for submission
-  const lineData = {
-    ...data,
-    products: selectedProducts.map(product => ({
-      id: product.id,
-      name: product.name,
-      count: product.count
-    })),
-    productsCount: selectedProducts.reduce((acc, curr) => acc + curr.count, 0),
-    status: lineStatus, // Ensure lineStatus is appropriately set elsewhere in your code
-  };
+const handleCreateLineSubmission = async () => {
+  // Update the status based on last action before submitting
+  const updatedStatus = lastAction === 'publish' ? 'Published' : 'Draft';
+  setLineStatus(updatedStatus); // Update the status in your state if needed
 
+  const lineData = {
+    name: newLine.name,
+    slug: newLine.slug,
+    status: updatedStatus, // Use the status determined by the last action.
+    productsCount: selectedProducts.length, // Count of selected products.
+    products: selectedProducts.map(product => product.ProductName) 
+  };
+  console.log(selectedProducts);
+  console.log(lineData);
+  console.log(selectedProducts)
+
+<<<<<<< HEAD
   // Determine the correct API URL and HTTP method based on whether it's a create or update action
   const apiUrl = currentLineId ? `/api/lines/${currentLineId}` : '/api/lines';
   const method = currentLineId ? 'patch' : 'post';
 
+=======
+  // API call to save the line
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
   try {
-    // Use axios to submit the form data. Adjust this part according to your axios setup, e.g., using axios instance if configured
-    const response = await axios({
-      method: method,
-      url: apiUrl,
-      data: lineData,
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await axios.post('https://backend.phcodesage.tech/api/lines', lineData, {
+      headers: { /* Authorization headers if needed */ },
     });
-
-    if (response.status === 200 || response.status === 201) {
-      // Handle successful response
-      // Update local state to reflect the new or updated line
-      setLines(currentLines =>
-        currentLineId
-          ? currentLines.map(line => line._id === currentLineId ? { ...line, ...response.data } : line)
-          : [...currentLines, response.data]
-      );
-
-      // Reset UI state and form
-      setIsLineFormVisible(false); // Close the line form modal or toggle visibility
-      reset(); // Reset form fields using react-hook-form's reset method
-      setLineEditMode(false); // Exit line edit mode
-      setCurrentLineId(null); // Clear the current line ID
-      setLastAction(''); // Reset lastAction state
-    }
+    console.log('Line saved successfully:', response.data);
+    // Perform any additional actions, like navigating to another page or displaying a success message
   } catch (error) {
-    console.error('Error submitting line:', error);
-    // Optionally, handle the error in UI, for example, by showing an error message
+    console.error('Error saving line:', error);
+    // Handle errors, e.g., displaying an error message
   }
-});
+};
 
-    
+// Function to handle line publish
+const handleProductSelect = (selectedList, selectedItem) => {
+  setSelectedProducts(selectedList);
+};
+
+
 
   const handleLogout = () => {
    localStorage.removeItem('token'); // Remove the token
    navigate('/'); // Redirect to home page
  };
-
- const handleTicketSelect = (ticket) => {
-   setSelectedTicket(ticket);
-   setIsTicketFormVisible(true);
-   // Update form fields with the selected ticket data
-   setTicketData({
-     productType: ticket.productType || '',
-     name: ticket.name || '',
-     slug: ticket.slug || '',
-     description: ticket.description || '',
-     categories: ticket.categories || [],
-     images: ticket.images || [],
-     price: ticket.price || '',
-     compareAtPrice: ticket.compareAtPrice || '',
-     sku: ticket.sku || '',
-     trackInventory: ticket.trackInventory || false,
-     inventoryQuantity: ticket.inventoryQuantity || 0,
-     inventoryPolicy: ticket.inventoryPolicy || '',
-     requiresShipping: ticket.requiresShipping || false,
-     createdOn: ticket.createdOn || new Date().toISOString(),
-     updatedOn: ticket.updatedOn || new Date().toISOString(),
-     publishedOn: ticket.publishedOn || new Date().toISOString(),
-   });
-  
-   // If the ticket has categories, set the selected categories state
-  if (ticket.categories) {
-    setSelectedCategories(ticket.categories);
-  }
-
-  // If the ticket has an image, set the selected image for preview
-  if (ticket.images && ticket.images.length > 0) {
-    setSelectedImage(ticket.images[0]);
-  }
-};
+const handleTicketSelect = () => {
+  setSelectedTicketIds(prevSelected => {
+    if (prevSelected.includes(ticketId)) {
+      // Remove lineId from selection
+      return prevSelected.filter(id => id !== ticketId);
+    } else {
+      // Add lineId to selection
+      return [...prevSelected, ticketId];
+    }
+  });
+}
 
 useEffect(() => {
   let logoutTimer = setTimeout(() => {
@@ -999,16 +1015,6 @@ useEffect(() => {
     setProductsCount(totalProductsCount);
   }
 }, [selectedProducts]);
-
-const handleProductSelect = (selectedList, selectedItem) => {
-  // Update the state with the selected products, including their id, name, and count
-  setSelectedProducts(selectedList.map(product => ({
-    id: product._id, // Use _id for MongoDB documents
-    name: product.name, // Include the product name
-    count: product.count || 1  // Default count to 1, adjust as necessary
-  })));
-};
-
 
 
 const handleLinePublish = () => {
@@ -1076,14 +1082,10 @@ const handleTicketInputChange = (event) => {
   const handleCreateTicketSubmission = handleSubmit(async (data) => {
     const status = ticketLastAction === 'draft' ? 'Draft' : 'Published';
     const sku = data.sku || uuidv4(); // Ensure you have a method to generate a UUID
-  
     let slug = data.slug; // Original slug from the form
     // Slug uniqueness check here...
-    
     // Combining ticket images and logo into one array, while filtering out any null or undefined values
     const images = [...(ticketData.images || []), ticketData.logo].filter(Boolean);
-
-  
     const preparedData = {
       ...data,
       sku,
@@ -1097,12 +1099,14 @@ const handleTicketInputChange = (event) => {
       categories: selectedLines.map(line => line.name),
     };
   
-    console.log("Submitting ticket with data:", preparedData);
-  
     try {
       const response = await axios({
         method: 'POST',
+<<<<<<< HEAD
         url: '/api/tickets',
+=======
+        url: 'https://backend.phcodesage.tech/api/tickets',
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
         data: preparedData,
         headers: {
           'Content-Type': 'application/json',
@@ -1118,7 +1122,6 @@ const handleTicketInputChange = (event) => {
     }
   });
   
-  
 
   useEffect(() => {
     // Assume this data comes from somewhere, like an edit button click
@@ -1130,11 +1133,7 @@ const handleTicketInputChange = (event) => {
       });
     }
   }, [setValue]);
-
-
   const [ticketData, setTicketData] = useState(initialTicketData);
-
-
 // Function to reset all related form states
 
 const handleTicketCancel = () => {
@@ -1182,57 +1181,53 @@ useEffect(() => {
   // Debounce the search for better performance
   const timeoutId = setTimeout(() => {
     if (searchTicketTerm.trim() === '') {
-      // If the search term is empty, reset the lines to the default
-      fetchLines();
+      // If the search term is empty, reset the tickets to the default
+      fetchTickets();
     } else {
-      // Filter lines based on the search term
-      const filteredLines = lines.filter((line) =>
-        line.name.toLowerCase().includes(searchTicketTerm.toLowerCase())
+      // Filter tickets based on the search term
+      const filteredTickets = tickets.filter((ticket) =>
+        (ticket.ProductName?.toLowerCase() || '').includes(searchTicketTerm.toLowerCase())
       );
-      setLines(filteredLines);
+
+      setTickets(filteredTickets);
     }
   }, 500); // Wait 500ms after the user stops typing before applying the search
 
   // Cleanup the timeout on component unmount
   return () => clearTimeout(timeoutId);
-}, [searchTicketTerm]);
-
+}, [searchTicketTerm]); // Added fetchTickets to the dependency array since it's being used here
 
 useEffect(() => {
   // Debounce the search for better performance
- 
 }, [searchOrderTerm]);
 
 const handleFilterTicketClick = () => {
-  setIsLineFilterModalVisible(true);
-
-  // Here you would typically set some state to show a filter modal or dropdown
+  setIsTicketFilterModalVisible(true);
 };
 
 const handleFilterLineClick = () => {
   setIsLineFilterModalVisible(true);
-
   // Here you would typically set some state to show a filter modal or dropdown
 };
-
 
 const handleLineFilterCloseModal = () => {
   setIsLineFilterModalVisible(false);
 };
-
 
 const handleLineResetFilters = () => {
   setLineFilterCriteria(initialLineFilterCriteria);
   fetchLines();
 };
 
-
-
 const handleLineApplyFilters = () => {
   setIsLineFilterModalVisible(false); // Close the modal after applying filters
   applyLineFiltersBasedOnCriteria(); // Apply the filters based on current criteria
 };
 
+const handleTicketApplyFilters = () => {
+  setIsTicketFilterModalVisible(false); // Close the modal after applying filters
+  applyTicketFiltersBasedOnCriteria(); // Apply the filters based on current criteria
+};
 
 const applyLineFiltersBasedOnCriteria = () => {
   setLoading(true); // Indicate the start of a filtering operation
@@ -1258,26 +1253,21 @@ const applyLineFiltersBasedOnCriteria = () => {
 };
 
 const applyTicketFiltersBasedOnCriteria = () => {
-  setTicketLoading(true); // Indicate the start of a filtering operation
-  const filteredTickets = originalTickets.filter((ticket) => {
+  setTicketLoading(true); // Begin filtering operation
+  const filteredTickets = originalTickets.filter(ticket => {
     const matchesTicketStatus = TicketFilterCriteria.status === 'All' || ticket.status === TicketFilterCriteria.status;
-    // Convert line dates from strings to Date objects if necessary
-    const ticketPublishedDate = new Date(ticket.lastPublished);
-    const ticketCreatedDate = new Date(ticket.created);
-    const ticketLastEditedDate = new Date(ticket.lastEdited);
-    // Calculate start dates for each filter option
-    const publishedTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.published);
-    const createdTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.created);
-    const modifiedTicketStart = getTicketStartDateForFilter(TicketFilterCriteria.modified);
-    // Check if the line matches the date filters
-    const matchesTicketPublished = TicketFilterCriteria.published === 'All' || ticketPublishedDate >= ticketPublishedStart;
-    const matchesTicketCreated = TicketFilterCriteria.created === 'All' || ticketCreatedDate >= createdStart;
-    const matchesTicketModified = TicketFilterCriteria.modified === 'All' || ticketLastEditedDate >= modifiedStart;
+    const ticketCreatedDate = new Date(ticket.createdOn);
+    const ticketLastEditedDate = new Date(ticket.updatedOn); 
+    const publishedStart = getTicketStartDateForFilter(TicketFilterCriteria.published);
+    const createdStart = getTicketStartDateForFilter(TicketFilterCriteria.created);
+    const modifiedStart = getTicketStartDateForFilter(TicketFilterCriteria.modified);
+    const matchesTicketPublished = TicketFilterCriteria.published === 'All' || publishedStart === null || ticketCreatedDate >= publishedStart;
+    const matchesTicketCreated = TicketFilterCriteria.created === 'All' || createdStart === null || ticketCreatedDate >= createdStart;
+    const matchesTicketModified = TicketFilterCriteria.modified === 'All' || modifiedStart === null || ticketLastEditedDate >= modifiedStart;
     return matchesTicketStatus && matchesTicketPublished && matchesTicketCreated && matchesTicketModified;
   });
-
-  setTickets(filteredLines); // Update the state with the filtered lines
-  setTicketLoading(false); // Indicate the end of the filtering operation
+  setTickets(filteredTickets); // Update with filtered tickets
+  setTicketLoading(false); // End filtering operation
 };
 
 const handleLineSelectClick = () => {
@@ -1295,19 +1285,93 @@ const handleOrderSelectClick = () => {
   }
 };
 
-
-
 const handleTicketSelectClick = () => {
-  setIsTicketSelecting(!isTicketSelecting);
-  // Clear selections only when entering the selection mode
-  if (!isTicketSelecting) {
-    setSelectedTickets([]);
+  setIsTicketSelecting(prevIsTicketSelecting => {
+    // If we're turning off ticket selecting, clear the selections
+    if (prevIsTicketSelecting) {
+      setSelectedTickets([]);
+    }
+    // Toggle the state
+    return !prevIsTicketSelecting;
+  });
+};
+
+const updateTicketsInState = (updatedTicketIds, update) => {
+  // Use the current state to create a new state
+  setTickets(currentTickets => {
+    return currentTickets.map(ticket => {
+      // If this ticket's ID is in the list of updated IDs, apply the update
+      if (updatedTicketIds.includes(ticket.id)) {
+        // The spread operator (...) is used to create a new object
+        // that has all properties of the original ticket, but with overrides from 'update'
+        return { ...ticket, ...update };
+      } else {
+        // If this ticket isn't one of the updated ones, leave it as is
+        return ticket;
+      }
+    });
+  });
+};
+
+const setTicketsToDraft = async () => {
+  selectedTickets.forEach(async (ticketId) => {
+      try {
+          const response = await axios.put(`https://backend.phcodesage.tech/api/tickets/${ticketId}`, {
+              status: 'Draft',
+          }, {
+              headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+          if (response.status === 200) {
+              updateTicketsInState(selectedTickets, { status: 'Draft' });
+          } else {
+              console.error(`Failed to set ticket ${ticketId} to draft: ${response.status}`);
+          }
+      } catch (error) {
+          console.error(`Error setting ticket ${ticketId} to draft:`, error);
+      }
+  });
+};
+
+const setTicketsToDelete = async () => {
+  try {
+    const response = await axios.delete(`https://backend.phcodesage.tech/api/tickets/batch-delete`, {
+      data: { ticketIds: selectedTickets },
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (response.status === 200) {
+      removeTicketsFromState(selectedTickets);
+    } else {
+      console.error(`Failed to delete tickets: ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`Error deleting tickets:`, error);
+  }
+};
+
+const setTicketsToArchive = async () => {
+  try {
+    const response = await axios.patch(`https://backend.phcodesage.tech/api/tickets/batch-archive`, {
+      ticketIds: selectedTickets
+    }, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (response.status === 200) {
+      updateTicketsInState(selectedTickets, { status: 'Archived' });
+    } else {
+      console.error(`Failed to archive tickets: ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`Error archiving tickets:`, error);
   }
 };
 
 async function handleExportAllLines() {
   try {
+<<<<<<< HEAD
     const response = await fetch('/api/export-all', {
+=======
+    const response = await fetch('https://backend.phcodesage.tech/api/export-all', {
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
       headers: {
         'Accept': 'text/csv',
       },
@@ -1333,7 +1397,11 @@ async function handleExportAllLines() {
 
 async function handleExportAllTickets() {
   try {
+<<<<<<< HEAD
     const response = await fetch('/api/export-all', {
+=======
+    const response = await fetch('https://backend.phcodesage.tech/api/export-tickets', { // Make sure this endpoint is correct
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
       headers: {
         'Accept': 'text/csv',
       },
@@ -1347,7 +1415,7 @@ async function handleExportAllTickets() {
     const downloadUrl = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = 'combined_data.csv';
+    a.download = 'tickets.csv'; // Updated to match the new file name
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1359,7 +1427,11 @@ async function handleExportAllTickets() {
 
 async function handleExportAllOrders() {
   try {
+<<<<<<< HEAD
     const response = await fetch('/api/export-orders', {
+=======
+    const response = await fetch('https://backend.phcodesage.tech/api/export-orders', {
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
       headers: {
         'Accept': 'text/csv',
       },
@@ -1382,7 +1454,6 @@ async function handleExportAllOrders() {
     console.error('Error exporting data:', error);
   }
 }
-
 
 const lineApplyFilters = () => {
   if (LineFilterCriteria.status === 'All' && 
@@ -1420,17 +1491,6 @@ const lineApplyFilters = () => {
   // Set the filtered lines to state
   setLines(filteredLines);
   setLoading(false); // Stop loading
-};
-
-
-const resetLineModalFilters = () => {
-  setLineFilterCriteria({
-    status: 'All',
-    published: 'All',
-    created: 'All',
-    modified: 'All'
-  });
-
 };
 
 const getDateRange = (filterOption) => {
@@ -1471,10 +1531,16 @@ useEffect(() => {
   }
 }, [ticketLastAction, ticketStatus]);
 
-const toggleLineSelectMode = () => {
-  setIsSelecting(!isSelecting);
-  // Optionally clear selections when exiting select mode
-  if (isSelecting) setSelectedLineIds([]);
+const handleTicketSelection = (ticketId) => {
+  setSelectedTickets(currentSelectedTickets => {
+    if (currentSelectedTickets.includes(ticketId)) {
+      const newSelectedTickets = currentSelectedTickets.filter(id => id !== ticketId);
+      return newSelectedTickets;
+    } else {
+      const newSelectedTickets = [...currentSelectedTickets, ticketId];
+      return newSelectedTickets;
+    }
+  });
 };
 
 const handleLineSelect = (lineId) => {
@@ -1516,12 +1582,13 @@ const handleSelectAllLines = () => {
 const handleSelectAllTickets = () => {
   // If not all lines are currently selected, select them all
   if (selectedTickets.length < tickets.length) {
-    setSelectedTickets(tickets.map(ticket => ticket._id));
+    setSelectedTickets(tickets.map(ticket => ticket.id));
   } else {
     // If all lines are currently selected, clear selection
     setSelectedTickets([]);
   }
 };
+
 
 const handleSelectAllOrders = (e) => {
   if (e.target.checked) {
@@ -1550,7 +1617,11 @@ const handleLineDuplicate = async (lineId) => {
   }
   const newLineData = { ...lineToDuplicate, name: `${lineToDuplicate.name} (Copy)`, _id: undefined };
   try {
+<<<<<<< HEAD
     const response = await axios.post('/api/lines', newLineData, {
+=======
+    const response = await axios.post('https://backend.phcodesage.tech/api/lines', newLineData, {
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
       headers: { 'Authorization': `Bearer ${authToken}` },
     });
     if (response.status === 200 || response.status === 201) {
@@ -1573,7 +1644,11 @@ const initiateDeleteLine = (lineId) => {
 const confirmDeleteLine = async () => {
   if (lineToDelete) {
     try {
+<<<<<<< HEAD
       const response = await axios.delete(`/api/lines/${lineToDelete}`);
+=======
+      const response = await axios.delete(`https://backend.phcodesage.tech/api/lines/${lineToDelete}`);
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
       if (response.status === 204) {
         // Remove the line from the state
         setLines(lines.filter((line) => line._id !== lineToDelete));
@@ -1593,6 +1668,7 @@ const cancelLineFormDelete = () => {
 };
 
 
+<<<<<<< HEAD
 useEffect(() => {
   const fetchLines = async () => {
     try {
@@ -1670,11 +1746,17 @@ useEffect(() => {
 
 
 }, []);
+=======
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
 
 const fetchOrders = async (status = '') => {
   setIsLoading(true);
   try {
+<<<<<<< HEAD
     const response = await axios.get(`/api/orders`);
+=======
+    const response = await axios.get(`https://backend.phcodesage.tech/api/orders`);
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
     if (response.status === 200) {
       const filteredOrders = status ? response.data.filter(order => order.status.toLowerCase() === status.toLowerCase()) : response.data;
       setOrders(filteredOrders);
@@ -1687,8 +1769,6 @@ const fetchOrders = async (status = '') => {
     setIsLoading(false);
   }
 };
-
-
 
 useEffect(() => {
   const timeoutId = setTimeout(() => {
@@ -1716,21 +1796,30 @@ useEffect(() => {
 }, [searchOrderTerm, isSearching]);
 
 
-
-
-
-
 useEffect(() => {
   function handleResize() {
     setWindowWidth(window.innerWidth);
-    setIsWarningModalVisible(window.innerWidth < 900);
+    const isModalVisible = window.innerWidth < 900;
+    setIsWarningModalVisible(isModalVisible);
+
+    // Disable scrolling when the modal is visible
+    if (isModalVisible) {
+      document.body.style.overflow = 'hidden'; // Disables scrolling
+    } else {
+      document.body.style.overflow = 'auto'; // Re-enables scrolling
+    }
   }
 
   window.addEventListener('resize', handleResize);
   handleResize(); // Call it to set the initial state based on current window size
 
-  return () => window.removeEventListener('resize', handleResize);
+  return () => {
+    window.removeEventListener('resize', handleResize);
+    // Make sure to re-enable scrolling when the component unmounts
+    document.body.style.overflow = 'auto';
+  };
 }, []);
+
 
 useEffect (() => {
   fetchLines();
@@ -1793,7 +1882,11 @@ const handleSetStatusForSelectedOrders = async (newStatus) => {
 
     // Send the PUT request to your backend API to update the order
     try {
+<<<<<<< HEAD
       const response = await fetch(`/api/orders/${orderId}`, {
+=======
+      const response = await fetch(`https://backend.phcodesage.tech/api/orders/${orderId}`, {
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1833,7 +1926,13 @@ useEffect(() => {
   };
 }, []);
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
+<<<<<<< HEAD
 useEffect(() => {
   // Async function to fetch lines
   const fetchLines = async () => {
@@ -1845,9 +1944,18 @@ useEffect(() => {
       console.error('Error fetching lines:', error);
     } finally {
       setIsLineLoading(false); // Update to use setIsLineLoading
-    }
-  };
+=======
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
 
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong with the dropdown.</h1>;
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+    }
+
+<<<<<<< HEAD
   // Async function to fetch tickets
   const fetchTickets = async () => {
     setIsTicketLoading(true); // Update to use setIsTicketLoading
@@ -1884,6 +1992,11 @@ const handleOrderClick = (order) => {
   setSelectedOrderDetails(order); // Set the clicked order details
   setIsOrderFormVisible(true); // Show the order form
 };
+=======
+    return this.props.children; 
+  }
+}
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
 
 
   return (
@@ -2010,12 +2123,32 @@ const handleOrderClick = (order) => {
           <div className="flex space-x-2">
             {isTicketSelecting ? (
               <>
-                {selectedTickets.length > 0 && (
+                {isTicketSelecting &&  selectedTickets.length > 0 && (
                   <>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={handleExportAllTickets}>Export</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Delete')}>Delete</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Draft')}>Draft</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Archive')}>Archive</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => setTicketsToDelete()}>Delete</button>
+                    <button 
+                className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded"
+                onClick={() => setTicketsToDraft()}
+            >
+                            <span className="flex items-center">
+              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
+              <span className="text-orange-300">Draft</span>
+            </span>
+            </button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => setTicketsToArchive()}><span className="flex items-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path d="M9 12C9 11.5341 9 11.3011 9.07612 11.1173C9.17761 10.8723 9.37229 10.6776 9.61732 10.5761C9.80109 10.5 10.0341 10.5 10.5 10.5H13.5C13.9659 10.5 14.1989 10.5 14.3827 10.5761C14.6277 10.6776 14.8224 10.8723 14.9239 11.1173C15 11.3011 15 11.5341 15 12C15 12.4659 15 12.6989 14.9239 12.8827C14.8224 13.1277 14.6277 13.3224 14.3827 13.4239C14.1989 13.5 13.9659 13.5 13.5 13.5H10.5C10.0341 13.5 9.80109 13.5 9.61732 13.4239C9.37229 13.3224 9.17761 13.1277 9.07612 12.8827C9 12.6989 9 12.4659 9 12Z" stroke="#171717" strokeWidth="1.5"></path>
+                  <path d="M20.5 7V13C20.5 16.7712 20.5 18.6569 19.3284 19.8284C18.1569 21 16.2712 21 12.5 21H11.5M3.5 7V13C3.5 16.7712 3.5 18.6569 4.67157 19.8284C5.37634 20.5332 6.3395 20.814 7.81608 20.9259" stroke="#171717" strokeWidth="1.5" strokeLinecap="round"></path>
+                  <path d="M12 3H4C3.05719 3 2.58579 3 2.29289 3.29289C2 3.58579 2 4.05719 2 5C2 5.94281 2 6.41421 2.29289 6.70711C2.58579 7 3.05719 7 4 7H20C20.9428 7 21.4142 7 21.7071 6.70711C22 6.41421 22 5.94281 22 5C22 4.05719 22 3.58579 21.7071 3.29289C21.4142 3 20.9428 3 20 3H16" stroke="#171717" strokeWidth="1.5" strokeLinecap="round"></path>
+                </g>
+              </svg>
+              <span className="text-gray-400">Archive</span>
+            </span></button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => setTicketsToArchive()}>Archive</button>
                   </>
                 )}
                 <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={handleTicketCancelClick}>Cancel</button>
@@ -2036,6 +2169,15 @@ const handleOrderClick = (order) => {
       )}
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm divide-zinc-200">
+        <FilterModal
+        isOpen={isTicketFilterModalVisible}
+        onClose={() => setIsTicketFilterModalVisible(false)}
+        filterCriteria={TicketFilterCriteria}
+        setFilterCriteria={setTicketFilterCriteria}
+        resetFilters={() => setTicketFilterCriteria(initialTicketFilterCriteria)}
+        applyFilters={handleTicketApplyFilters}
+      />
+
           <thead>
             <tr>
               {isTicketSelecting && (
@@ -2070,20 +2212,63 @@ const handleOrderClick = (order) => {
               ))
               ) : tickets && tickets.length > 0 ? (
                 tickets.map((ticket, index) => (
-                  <tr key={ticket._id || index} className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`} onClick={(e) => {
-                    if (!isTicketSelecting) {
-                      handleEditTicketClick(ticket._id);
-
-                    }
-                  }}>
-                  {isTicketSelecting && (
-                  <td className="px-4 py-2 text-white whitespace-nowrap">
-                  {ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}
-                  {ticket.ProductName}
-                </td>
+                  <tr key={ticket.id || index} 
+                    className={`${index % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} hover:bg-zinc-600 cursor-pointer`}
+                    onClick={(e) => {
+                      if (isTicketSelecting) {
+                        // Prevent the default action to allow checkbox toggling without entering edit mode
+                        e.preventDefault();
+                        // Toggle selection state of the line
+                        toggleTicketSelection(ticket.id);
+                      } else {
+                        // Not in selecting mode, handle entering edit mode
+                        handleEditTicketClick(ticket);
+                      }
+                    } }>
+                    {isTicketSelecting && (
+                    <td className="px-4 py-2 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedTickets.includes(ticket.id)}
+                      onChange={() => toggleTicketSelection(ticket.id)} />
+                  </td>
                 )}
                   <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.MainVariantImage && <img src={ticket.MainVariantImage} alt="Ticket Logo" className="h-10 w-10 object-cover rounded-full inline-block mr-2" />}{ticket.ProductName}</td>
-                <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status}</td> {/* Assuming status is similar to type as there is no 'status' field */}
+                  <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.status === 'Published' ? (
+            <span className="flex items-center">
+              <svg className='w-4 h-4 mr-2'
+                viewBox="0 0 16 16"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+              >
+                <g id="SVGRepo_bgCarrier" strokeWidth={0} />
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                <g id="SVGRepo_iconCarrier">
+                  <path fill="#02973b" d="M8 3a5 5 0 100 10A5 5 0 008 3z" />
+                </g>
+              </svg>
+
+              <span className="text-green-400">Published</span>
+            </span>
+          ) : ticket.status === 'Archived' ? (
+            <span className="flex items-center">
+              <svg className='w-4 h-4 mr-2' width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path d="M9 12C9 11.5341 9 11.3011 9.07612 11.1173C9.17761 10.8723 9.37229 10.6776 9.61732 10.5761C9.80109 10.5 10.0341 10.5 10.5 10.5H13.5C13.9659 10.5 14.1989 10.5 14.3827 10.5761C14.6277 10.6776 14.8224 10.8723 14.9239 11.1173C15 11.3011 15 11.5341 15 12C15 12.4659 15 12.6989 14.9239 12.8827C14.8224 13.1277 14.6277 13.3224 14.3827 13.4239C14.1989 13.5 13.9659 13.5 13.5 13.5H10.5C10.0341 13.5 9.80109 13.5 9.61732 13.4239C9.37229 13.3224 9.17761 13.1277 9.07612 12.8827C9 12.6989 9 12.4659 9 12Z" stroke="#171717" strokeWidth="1.5"></path>
+                  <path d="M20.5 7V13C20.5 16.7712 20.5 18.6569 19.3284 19.8284C18.1569 21 16.2712 21 12.5 21H11.5M3.5 7V13C3.5 16.7712 3.5 18.6569 4.67157 19.8284C5.37634 20.5332 6.3395 20.814 7.81608 20.9259" stroke="#171717" strokeWidth="1.5" strokeLinecap="round"></path>
+                  <path d="M12 3H4C3.05719 3 2.58579 3 2.29289 3.29289C2 3.58579 2 4.05719 2 5C2 5.94281 2 6.41421 2.29289 6.70711C2.58579 7 3.05719 7 4 7H20C20.9428 7 21.4142 7 21.7071 6.70711C22 6.41421 22 5.94281 22 5C22 4.05719 22 3.58579 21.7071 3.29289C21.4142 3 20.9428 3 20 3H16" stroke="#171717" strokeWidth="1.5" strokeLinecap="round"></path>
+                </g>
+              </svg>
+              <span className="text-zinc-400">Archived</span>
+            </span>
+          ) : (
+            <span className="flex items-center">
+              <svg fill="#FCA5A5" className="w-4 h-4 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" d="M17,21 L17,23 L15,23 L15,21 L17,21 Z M19,21 L21,21 C21,22.1045695 20.1045695,23 19,23 L19,21 Z M13,21 L13,23 L11,23 L11,21 L13,21 Z M9,21 L9,23 L7,23 L7,21 L9,21 Z M5,21 L5,23 C3.8954305,23 3,22.1045695 3,21 L5,21 Z M19,13 L21,13 L21,15 L19,15 L19,13 Z M19,11 L19,9 L15,9 C13.8954305,9 13,8.1045695 13,7 L13,3 L5,3 L5,11 L3,11 L3,3 C3,1.8954305 3.8954305,1 5,1 L15.4142136,1 L21,6.58578644 L21,11 L19,11 Z M5,13 L5,15 L3,15 L3,13 L5,13 Z M19,17 L21,17 L21,19 L19,19 L19,17 Z M5,17 L5,19 L3,19 L3,17 L5,17 Z M15,3.41421356 L15,7 L18.5857864,7 L15,3.41421356 Z"></path> </g></svg>
+              <span className="text-orange-300">Draft</span>
+            </span>
+          )}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">${parseFloat(ticket.variantPrice ?? '0').toFixed(2)}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">{ticket.productType}</td>
                 <td className="px-4 py-2 text-white whitespace-nowrap">{new Date(ticket.updatedOn ?? ticket.createdOn).toLocaleString()}</td>
@@ -2214,19 +2399,18 @@ const handleOrderClick = (order) => {
       </div>
     </div>
   )}
-  
     <form onSubmit={handleSubmit(handleCreateTicketSubmission)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
       {/* Product Type Dropdown */}
       <div className="mb-4">
         <label htmlFor="productType" className="block text-sm font-medium mb-2">Product Type</label>
         <select
-          id="productType"
-          name="productType"
-          {...register('productType', { required: 'Product type is required' })}
-          value={ticketData.productType}
-          onChange={(e) => setTicketFormData({ ...ticketFormData, productType: e.target.value })}
-          className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
-        >
+      id="productType"
+      name="productType"
+      {...register('productType', { required: 'Product type is required' })}
+      value={ticketFormData.productType}
+      onChange={(e) => setTicketFormData({ ...ticketFormData, productType: e.target.value })}
+      className="block w-full p-2 text-sm bg-zinc-700 rounded focus:outline-none"
+    >
           <option value="Physical">Physical</option>
           <option value="Digital">Digital</option>
           <option value="Service">Service</option>
@@ -2248,7 +2432,7 @@ const handleOrderClick = (order) => {
       type="text"
       name="name"
       {...register('name', { required: 'Name is required' })}
-      value={ticketData.name || ''}
+      value={ticketFormData.name || ''}
       onChange={(e) => setTicketFormData({ ...ticketFormData, name: e.target.value })}
       placeholder="Ticket Name"
       required
@@ -2257,29 +2441,21 @@ const handleOrderClick = (order) => {
     {errors.name && <span className="text-red-500">{errors.name.message}</span>}
   </div>
   
-  
-  {/* Slug Input */}
-  <div>
-      <label className="block text-sm font-medium text-white mb-1" htmlFor="slug">Slug <span className="text-red-700">*</span></label>
-      <Controller
-        name="slug"
-        control={control}
-        rules={{ required: 'Slug is required' }}
-        render={({ field }) => (
-          <input
-            id="slug"
-            {...field}
-            className="w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
-            placeholder='slug'
-            onChange={(e) => setTicketFormData({ ...ticketFormData, slug: e.target.value })}
-            value={newTicket.slug || ''}
-          />
-        )}
-      />
-      {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
-      <p className="text-white mt-2">www.tri-statecoach.com/category/{newTicket.slug || 'slug'}</p>
-    </div>
-  
+ {/* Slug Input */}
+ <div className="mb-4">
+    <label htmlFor="slug" className="block text-sm font-medium text-white mb-1">Slug <span className="text-red-700">*</span></label>
+    <input
+      id="slug"
+      name="slug"
+      {...register('slug', { required: 'Slug is required' })}
+      value={ticketFormData.slug || ''}
+      onChange={(e) => setTicketFormData({ ...ticketFormData, slug: e.target.value })}
+      placeholder="slug"
+      className="block w-full p-2 border bg-black border-zinc-300 rounded-md focus:outline-none focus:ring-zinc-500 focus:border-zinc-500"
+    />
+    {errors.slug && <span className="text-red-500">{errors.slug.message}</span>}
+    <p className="text-white mt-2">www.tri-statecoach.com/category/{ticketFormData.slug || 'slug'}</p>
+  </div>
   
       {/* Description TextArea */}
       <div className="mb-4">
@@ -2298,43 +2474,44 @@ const handleOrderClick = (order) => {
       <div className="flex flex-col space-y-4" style={{ position: 'relative', zIndex: '0' }}>
   <label htmlFor="lines" className="block mb-2 text-sm font-medium text-white">Lines</label>
   <Multiselect
-    options={lines} // Use lines instead of tickets
-    selectedValues={selectedLines} // Manage selected lines state
-    onSelect={handleLineSelect} // Handler for selecting a line
-    onRemove={handleLineSelect} // Handler for deselecting a line
-    displayValue="name" // Assumes lines have a 'name' property to display
-    placeholder="Select lines"
-    className="" // Add necessary classes or leave empty if not needed
-    style={{
-      multiselectContainer: {
-        width: '100%',
-        backgroundColor: '#1F2937',
+  options={publishedTicketProducts} // Use the state for filtered published tickets
+  selectedValues={setSelectedProducts}
+  onSelect={handleProductSelect}
+  onRemove={handleProductSelect}
+  displayValue="ProductName" // Make sure this matches an existing key in your ticket objects
+  placeholder="Select products"
+  className="" // Add any additional classes here
+  style={{
+    multiselectContainer: {
+      width: '100%',
+      backgroundColor: '#1F2937',
+    },
+    searchBox: {
+      minWidth: '100%',
+      border: '2px solid #4B5563',
+      borderRadius: '0px',
+      backgroundColor: '#1F2937',
+      color: 'white',
+      paddingLeft: '0.5rem',
+      paddingRight: '2.5rem',
+    },
+    optionContainer: {
+      width: '100%',
+      backgroundColor: '#1F2937',
+      borderColor: '#374151',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    },
+    option: {
+      backgroundColor: 'rgb(38 38 38)',
+      color: 'white',
+      '&:hover': {
+        backgroundColor: 'black',
       },
-      searchBox: {
-        minWidth: '100%',
-        border: '2px solid #4B5563',
-        borderRadius: '0px',
-        backgroundColor: '#1F2937',
-        color: 'white',
-        paddingLeft: '0.5rem',
-        paddingRight: '2.5rem',
-      },
-      optionContainer: {
-        width: '100%',
-        backgroundColor: '#1F2937',
-        borderColor: '#374151',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      },
-      option: {
-        backgroundColor: 'rgb(38 38 38)',
-        color: 'white',
-        '&:hover': {
-          backgroundColor: 'black',
-        },
-      },
-      // Add other style modifications as needed
-    }}
-  />
+    },
+    // Add other styles as needed
+  }}
+/>
+
 </div>
 
   
@@ -2978,7 +3155,7 @@ const handleOrderClick = (order) => {
                   <>
                     <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={(handleExportAllLines)}>Export</button>
                     <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow" onClick={() => initiateDeleteLine(currentLineId)}>Delete</button>
-                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded" onClick={() => console.log('Draft')}>Draft</button>
+                    <button className="bg-zinc-700 hover:bg-zinc-600 text-white font-bold p-2 rounded">Draft</button>
                     <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded shadow" onClick={() => handleLineArchive(currentLineId)}>Archive</button>
                   </>
                 )}
@@ -3208,7 +3385,7 @@ const handleOrderClick = (order) => {
             toggleLineSelection(line._id);
           } else {
             // Not in selecting mode, handle entering edit mode
-            handleEditLineClick(line);
+            handleEditLineClick(line._id);
           }
         }}
       >
@@ -3221,7 +3398,7 @@ const handleOrderClick = (order) => {
         />
       </td>
     )}
-          <td className="px-4 py-2 text-white whitespace-nowrap">{line["Product Name"]}</td>
+          <td className="px-4 py-2 text-white whitespace-nowrap">{line.name}</td>
           {!isLineFormVisible && (
             <>
               <td className="px-4 py-2 text-white whitespace-nowrap">{line.status === 'Published' ? (
@@ -3251,7 +3428,7 @@ const handleOrderClick = (order) => {
                 {line.lastEdited ? new Date(line.lastEdited).toLocaleString() : 'Not Edited'}
               </td>
               <td className="px-4 py-2 text-white whitespace-nowrap">
-                {line.created ? new Date(line.UpdatedOn).toLocaleString() : 'Not Published'}
+                {line.created ? new Date(line.created).toLocaleString() : 'Not Published'}
               </td>
             </>
           )}
@@ -3408,8 +3585,6 @@ const handleOrderClick = (order) => {
 
 
       <form onSubmit={handleSubmit(handleCreateLineSubmission)} className="h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-4 bg-zinc-800 text-white p-4 rounded">
-
-
         {/* Line Name Input */}
         <div>
           <label className="block text-sm font-medium text-white mb-1" htmlFor="line-name">Name <span className="text-red-700">*</span></label>
@@ -3449,15 +3624,15 @@ const handleOrderClick = (order) => {
 
     <label htmlFor="products" className="block mb-2 text-sm font-medium text-white">Products</label>
     <Multiselect
-  options={tickets}
-  selectedValues={selectedProducts}
-  onSelect={handleProductSelect}
-  onRemove={handleProductSelect}
-  displayValue="name"
-  placeholder="Select products"
+   options={publishedTicketProducts} // Use the state for filtered published tickets
+   selectedValues={selectedProducts} // Use the state variable here
+   onSelect={handleProductSelect} // This function should update the selectedProducts
+   onRemove={handleProductSelect} // This function should update the selectedProducts
+   displayValue="ProductName" // Make sure this matches an existing key in your ticket objects
+   placeholder="Select products"
+  onChange={setSelectedProducts}
   className="" // Updated dark theme classes for the component
   style={{
-    
     multiselectContainer: {
       // Styles for the container of the multiselect
       width: '100%',
@@ -3482,7 +3657,6 @@ const handleOrderClick = (order) => {
     },
     option: {
       // Styles for each dropdown option
-      
       backgroundColor: 'rgb(38 38 38)', // Blue background color for selected option
       color: 'white', // Text color for options
       '&:hover': {
@@ -3492,7 +3666,6 @@ const handleOrderClick = (order) => {
     // ... add other necessary style objects
   }}
 />
-
 
 </div>
       </form>

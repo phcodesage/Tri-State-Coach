@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import React from 'react';
 
 
 
@@ -24,7 +24,11 @@ function login() {
     setIsLoading(true);
     setError('');
     try {
+<<<<<<< HEAD
       const response = await fetch('/login', {
+=======
+      const response = await fetch('https://backend.phcodesage.tech/login', {
+>>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -73,7 +77,7 @@ function login() {
           <label htmlFor="password" className="block text-sm font-medium text-white">Password</label>
           <div className="relative flex">
           <button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center text-white cursor-pointer"
-    onClick={togglePassword}>
+    onClick={togglePassword} tabIndex={-1}>
     
       {showPassword ? (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
