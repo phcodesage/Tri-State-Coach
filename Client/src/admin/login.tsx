@@ -24,11 +24,7 @@ function login() {
     setIsLoading(true);
     setError('');
     try {
-<<<<<<< HEAD
-      const response = await fetch('/login', {
-=======
       const response = await fetch('https://backend.phcodesage.tech/login', {
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

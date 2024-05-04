@@ -14,6 +14,9 @@ const Order = require('./models/Order'); // Update the path according to your st
 const app = express();
 app.use(cors());
 app.use(express.json()); // for parsing application/json
+app.use(express.static('dist'));
+app.use(cors());
+app.use(express.json()); // for parsing application/json
 
 const PORT = process.env.PORT || 5000;
 
@@ -46,13 +49,7 @@ function jsonToCsv(jsonArray) {
 }
 
 
-<<<<<<< HEAD
-const app = express();
-app.use(cors());
-app.use(express.json()); // for parsing application/json
-app.use(express.static('dist'));
-=======
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
 
 
 
@@ -712,17 +709,17 @@ app.get('/api/export-orders', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
+
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'dist', 'index.html')); // Adjust if using 'build' or another directory
 });
-=======
+
 app.use((req, res, next) => {
   console.log('Raw request body:', req.rawBody);
   next();
 });
 
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

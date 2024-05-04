@@ -445,22 +445,18 @@ const [loading, setLoading] = useState(false);
 const [ticketLoading, setTicketLoading] = useState(false);
 // Create an Axios instance
 const api = axios.create({
-<<<<<<< HEAD
-  baseURL: '/api',
-=======
+
   baseURL: 'https://backend.phcodesage.tech/api',
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
 });
 
 // Function to refresh token
 const refreshToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   try {
-<<<<<<< HEAD
-    const response = await axios.post('/refresh-token', { refreshToken });
-=======
+
     const response = await axios.post('https://backend.phcodesage.tech/refresh-token', { refreshToken });
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
     const { accessToken } = response.data;
     localStorage.setItem('token', accessToken);
     return accessToken;
@@ -543,22 +539,21 @@ async function handleImageChange(event) {
     formData.append('image', file);
 
     try {
-<<<<<<< HEAD
-      const response = await axios.post('/api/upload-image', formData, {
-=======
+
+
       const response = await axios.post('https://backend.phcodesage.tech/api/upload-image', formData, {
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
       setImagePreviewUrl(`/uploads/${response.data.filePath}`);
-<<<<<<< HEAD
-      console.log('Image uploaded successfully:', response.data);
-=======
 
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+      console.log('Image uploaded successfully:', response.data);
+
+
+
       setTicketData(prevState => ({
         ...prevState,
         logo: response.data.filePath // Update this based on how your API response is structured
@@ -740,11 +735,10 @@ const fetchLines = async () => {
   if (!isLineListVisible) return;
   setLoading(true);
   try {
-<<<<<<< HEAD
-    const response = await axios.get('/api/lines', {
-=======
+
+
     const response = await axios.get('https://backend.phcodesage.tech/api/lines', {
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
 
@@ -867,11 +861,9 @@ useEffect(() => {
 
   
   const submitLineData = async (lineData, isEdit) => {
-<<<<<<< HEAD
-    const apiUrl = isEdit ? `/api/lines/${currentLineId}` : '/api/lines';
-=======
-    const apiUrl = isEdit ? `https://backend.phcodesage.tech/api/lines/${currentLineId}` : 'https://backend.phcodesage.tech/api/lines';
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
+    apiUrl = isEdit ? `https://backend.phcodesage.tech/api/lines/${currentLineId}` : 'https://backend.phcodesage.tech/api/lines';
+
     const method = isEdit ? 'patch' : 'post';
   
     try {
@@ -940,14 +932,14 @@ const handleCreateLineSubmission = async () => {
   console.log(lineData);
   console.log(selectedProducts)
 
-<<<<<<< HEAD
+
   // Determine the correct API URL and HTTP method based on whether it's a create or update action
   const apiUrl = currentLineId ? `/api/lines/${currentLineId}` : '/api/lines';
   const method = currentLineId ? 'patch' : 'post';
 
-=======
+
   // API call to save the line
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
   try {
     const response = await axios.post('https://backend.phcodesage.tech/api/lines', lineData, {
       headers: { /* Authorization headers if needed */ },
@@ -1102,11 +1094,8 @@ const handleTicketInputChange = (event) => {
     try {
       const response = await axios({
         method: 'POST',
-<<<<<<< HEAD
-        url: '/api/tickets',
-=======
         url: 'https://backend.phcodesage.tech/api/tickets',
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
         data: preparedData,
         headers: {
           'Content-Type': 'application/json',
@@ -1367,11 +1356,10 @@ const setTicketsToArchive = async () => {
 
 async function handleExportAllLines() {
   try {
-<<<<<<< HEAD
-    const response = await fetch('/api/export-all', {
-=======
+
+
     const response = await fetch('https://backend.phcodesage.tech/api/export-all', {
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
       headers: {
         'Accept': 'text/csv',
       },
@@ -1397,11 +1385,10 @@ async function handleExportAllLines() {
 
 async function handleExportAllTickets() {
   try {
-<<<<<<< HEAD
-    const response = await fetch('/api/export-all', {
-=======
+
+
     const response = await fetch('https://backend.phcodesage.tech/api/export-tickets', { // Make sure this endpoint is correct
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
       headers: {
         'Accept': 'text/csv',
       },
@@ -1427,11 +1414,10 @@ async function handleExportAllTickets() {
 
 async function handleExportAllOrders() {
   try {
-<<<<<<< HEAD
-    const response = await fetch('/api/export-orders', {
-=======
+
+
     const response = await fetch('https://backend.phcodesage.tech/api/export-orders', {
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
       headers: {
         'Accept': 'text/csv',
       },
@@ -1617,11 +1603,9 @@ const handleLineDuplicate = async (lineId) => {
   }
   const newLineData = { ...lineToDuplicate, name: `${lineToDuplicate.name} (Copy)`, _id: undefined };
   try {
-<<<<<<< HEAD
-    const response = await axios.post('/api/lines', newLineData, {
-=======
+
     const response = await axios.post('https://backend.phcodesage.tech/api/lines', newLineData, {
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+
       headers: { 'Authorization': `Bearer ${authToken}` },
     });
     if (response.status === 200 || response.status === 201) {
@@ -1644,11 +1628,7 @@ const initiateDeleteLine = (lineId) => {
 const confirmDeleteLine = async () => {
   if (lineToDelete) {
     try {
-<<<<<<< HEAD
-      const response = await axios.delete(`/api/lines/${lineToDelete}`);
-=======
       const response = await axios.delete(`https://backend.phcodesage.tech/api/lines/${lineToDelete}`);
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
       if (response.status === 204) {
         // Remove the line from the state
         setLines(lines.filter((line) => line._id !== lineToDelete));
@@ -1668,7 +1648,7 @@ const cancelLineFormDelete = () => {
 };
 
 
-<<<<<<< HEAD
+
 useEffect(() => {
   const fetchLines = async () => {
     try {
@@ -1691,72 +1671,14 @@ useEffect(() => {
   fetchLines();
 }, []);
 
-useEffect(() => {
-  const fetchTickets = async () => {
-    setTicketLoading(true); // Start the loading animation
-  
-    try {
-      const response = await axios.get('/api/tickets', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
-      });
-  
-      if (response.status === 200) {
-        // Map the data to match your frontend state management expectations
-        const formattedTickets = response.data.map(ticket => {
-          return {
-            status: ticket.status,
-            id: ticket._id,
-            productsCollectionId: ticket["Products Collection ID"],
-            productId: ticket["Product ID"],
-            variantsCollectionId: ticket["Variants Collection ID"],
-            variantId: ticket["Variant ID"],
-            productHandle: ticket["Product Handle"],
-            ProductName: ticket["Product Name"],
-            productType: ticket["Product Type"],
-            productDescription: ticket["Product Description"],
-            productCategories: ticket["Product Categories"],
-            MainVariantImage: ticket["Main Variant Image"],
-            variantPrice: parseFloat(ticket["Variant Price"].replace(/[^0-9.-]+/g,"")),
-            productTaxClass: ticket["Product Tax Class"],
-            variantSku: ticket["Variant Sku"],
-            variantInventory: ticket["Variant Inventory"],
-            requiresShipping: ticket["Requires Shipping"],
-            createdOn: new Date(ticket["Created On"]),
-            updatedOn: new Date(ticket["Updated On"])
-            // Add more fields as necessary
-          };
-        });
-  
-        setTickets(formattedTickets);
 
-      } else {
-        throw new Error('Error fetching tickets');
-      }
-    } catch (error) {
-      console.error('Fetch error:', error);
-    } finally {
-      setTicketLoading(false); // Stop the loading animation whether or not there was an error
-    }
-  };
-
-
-    fetchTickets();
-
-
-}, []);
-=======
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
 
 const fetchOrders = async (status = '') => {
   setIsLoading(true);
   try {
-<<<<<<< HEAD
-    const response = await axios.get(`/api/orders`);
-=======
+
     const response = await axios.get(`https://backend.phcodesage.tech/api/orders`);
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+ f2ac87d8c6d6737713afa989bd8bf3a16c35a989
     if (response.status === 200) {
       const filteredOrders = status ? response.data.filter(order => order.status.toLowerCase() === status.toLowerCase()) : response.data;
       setOrders(filteredOrders);
@@ -1882,11 +1804,8 @@ const handleSetStatusForSelectedOrders = async (newStatus) => {
 
     // Send the PUT request to your backend API to update the order
     try {
-<<<<<<< HEAD
-      const response = await fetch(`/api/orders/${orderId}`, {
-=======
+
       const response = await fetch(`https://backend.phcodesage.tech/api/orders/${orderId}`, {
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1931,8 +1850,8 @@ class ErrorBoundary extends React.Component {
     super(props);
     this.state = { hasError: false };
   }
+}
 
-<<<<<<< HEAD
 useEffect(() => {
   // Async function to fetch lines
   const fetchLines = async () => {
@@ -1944,18 +1863,11 @@ useEffect(() => {
       console.error('Error fetching lines:', error);
     } finally {
       setIsLineLoading(false); // Update to use setIsLineLoading
-=======
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <h1>Something went wrong with the dropdown.</h1>;
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
     }
 
-<<<<<<< HEAD
+    }
+
+
   // Async function to fetch tickets
   const fetchTickets = async () => {
     setIsTicketLoading(true); // Update to use setIsTicketLoading
@@ -1969,34 +1881,15 @@ useEffect(() => {
     }
   };
 
-  // Async function to fetch orders
-  const fetchOrders = async () => {
-    setIsOrderLoading(true); // Update to use setIsOrderLoading
-    try {
-      const response = await axios.get('/api/orders');
-      setOrders(response.data);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-    } finally {
-      setIsOrderLoading(false); // Update to use setIsOrderLoading
-    }
-  };
-
-  // Call the fetch functions
-  fetchLines();
-  fetchTickets();
-  fetchOrders();
-}, []); // Empty dependency array means this effect runs once on mount
 
 const handleOrderClick = (order) => {
   setSelectedOrderDetails(order); // Set the clicked order details
   setIsOrderFormVisible(true); // Show the order form
 };
-=======
+
     return this.props.children; 
   }
-}
->>>>>>> f2ac87d8c6d6737713afa989bd8bf3a16c35a989
+)
 
 
   return (
@@ -4129,7 +4022,7 @@ const handleOrderClick = (order) => {
 </div>
     </>
   );
-}
 
+}
 
 export default AdminDashboard;
