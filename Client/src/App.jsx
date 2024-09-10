@@ -10,7 +10,7 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import NotFoundPage from './pages/NotFoundPage';
 import Login from './admin/login';
-import AdminDashboard from './admin/AdminDashboard';
+import AdminDashboard from './admin/AdminDashboard.tsx';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 

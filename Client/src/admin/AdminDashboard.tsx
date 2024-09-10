@@ -1,15 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { jwtDecode } from "jwt-decode";// Assuming 'jwt_decode' is the correct named export
-import { useForm, Controller } from 'react-hook-form';
+import { jwtDecode } from "jwt-decode";
+import { useForm } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import Multiselect from 'multiselect-react-dropdown';
-import React from 'react';
 import FilterModal from '../components/FilterModal';
 
 
-const AdminDashboard = () => {
+interface AdminDashboardProps {
+  // Define any props if needed
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = () => {
 const authToken = localStorage.getItem('token');
 const modalRef = useRef();
 const navigate = useNavigate();
@@ -4016,8 +4019,6 @@ const handleOrderClick = (order) => {
   </main>
 )}
 </div>
-
-
 </div>
 </div>
     </>
