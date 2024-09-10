@@ -1,1 +1,0 @@
-export { CollegeShuttles } from "./CollegeShuttles";
