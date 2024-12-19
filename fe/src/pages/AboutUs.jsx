@@ -4,6 +4,7 @@ import RegencyBusLogo from '../assets/regency-buses-mechanics&workshop-left.png'
 import UMALogo from '../assets/UMA-logo.svg';
 import ADALogo from '../assets/ADA-logo.svg';
 import BanyLogo from '../assets/Bany-logo.svg';
+import PageHeader from '../components/PageHeader'
 
 function AboutUs() {
   const [isHovered, setIsHovered] = useState(false);
@@ -11,6 +12,10 @@ function AboutUs() {
   return (
     <>
       <Navbar />
+      <PageHeader 
+        title="About Us" 
+        subtitle="Learn about our history and commitment to excellence"
+      />
       <div className="mx-4 sm:mx-10 md:mx-16 lg:mx-20">
         <h1 className="mb-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white text-center mt-10 sm:mt-15 md:mt-20">About Us</h1>
         

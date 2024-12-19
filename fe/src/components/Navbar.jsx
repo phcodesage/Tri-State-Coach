@@ -1,114 +1,137 @@
-import { Fragment, useEffect, useState } from 'react';
-import Logo from '../assets/tri-state-coach-logo.png';
-
-import { Disclosure, Menu, Transition } from '@headlessui/react'
-const Bars3Icon = () => (
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-</svg>
-)
-
-const BellIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-</svg>
-)
-
-const XMarkIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
-
-)
-
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import closeIcon from '../assets/close.png';
+import menuIcon from '../assets/menu.png';
 
 export default function Navbar() {
-  const [currentPath, setCurrentPath] = useState('/');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  useEffect(() => {
-    setCurrentPath(window.location.pathname);
-  }, []);
-
-  const navigation = [
-    { name: 'Home', href: '/', current: currentPath === '/' },
-    { name: 'College Shuttles', href: '/college-shuttles', current: currentPath === '/college-shuttles' },
-    { name: 'Get a Quote', href: '/quote', current: currentPath === '/quote' },
-    { name: 'Contact Us', href: '/contact-us', current: currentPath === '/contact-us' },
-    { name: 'Our Buses', href: '/about-us', current: currentPath === '/about-us' },
-    { name: 'Chartering', href: '/charter-work', current: currentPath === '/charter-work' },
-    
-  ];
-  
-  function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
-  }
   return (
-    <Disclosure as="nav" className="bg-gray-800">
-      {({ open }) => (
-        <>
-          <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-          <div className="relative z-20 flex h-16 items-center justify-between mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-              <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                {/* Mobile menu button*/}
-                <Disclosure.Button className="relative inline-flex items-center justify-center rounded-md p-2 text-rose-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
-                  <span className="absolute -inset-0.5" />
-                  <span className="sr-only">Open main menu</span>
-                  {open ? (
-                    <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
-                  ) : (
-                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
-                  )}
-                </Disclosure.Button>
-              </div>
-              <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-                <div className="flex flex-shrink-0 items-center">
-                  <img
-                    className="h-8 w-auto"
-                    src={Logo}
-                    alt="Tri-statecoach Logo"
-                  />
-                </div>
-                <div className="hidden sm:ml-6 sm:block">
-                  <div className="flex space-x-4">
-                    {navigation.map((item) => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className={classNames(
-                          item.current ? 'bg-rose-900 text-white' : 'text-rose-300 hover:bg-gray-700 hover:text-white',
-                          'rounded-md px-3 py-2 text-sm font-medium'
-                        )}
-                        aria-current={item.current ? 'page' : undefined}
-                      >
-                        {item.name}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+    <>
+      {/* Main Navbar - Transparent */}
+      <nav className="fixed top-0 left-0 right-0 z-40">
+        <div className="flex justify-between items-center px-4 py-4">
+          {/* Left side - Close/Back button */}
+          <button className="w-12 h-12 flex items-center justify-center bg-[#A13D3D]">
+            <img src={closeIcon} alt="Close" className="h-6 w-6" />
+          </button>
 
-          <Disclosure.Panel className="sm:hidden">
-            <div className="space-y-1 px-2 pb-3 pt-2">
-              {navigation.map((item) => (
-                <Disclosure.Button
-                  key={item.name}
-                  as="a"
-                  href={item.href}
-                  className={classNames(
-                    item.current ? 'bg-gray-900 text-white' : 'text-rose-300 hover:bg-gray-700 hover:text-white',
-                    'block rounded-md px-3 py-2 text-base font-medium'
-                  )}
-                  aria-current={item.current ? 'page' : undefined}
-                >
-                  {item.name}
-                </Disclosure.Button>
-              ))}
-            </div>
-          </Disclosure.Panel>
-        </>
+          {/* Right side - Quote button and Menu */}
+          <div className="flex items-center gap-4">
+            <Link
+              to="/get-a-quote"
+              className="bg-[#F5ECD7] px-6 py-2 rounded-md text-sm font-medium"
+            >
+              Request a Quote
+            </Link>
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="w-12 h-12 flex items-center justify-center bg-[#A13D3D]"
+            >
+              <img src={menuIcon} alt="Menu" className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Backdrop with blur when menu is open */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+          onClick={() => setIsMenuOpen(false)}
+        />
       )}
-    </Disclosure>
-  )
+
+      {/* Slide-in Menu */}
+      <div
+        className={`fixed top-0 right-0 w-[300px] h-full bg-[#A13D3D] z-50 transform transition-transform duration-300 ease-in-out ${
+          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Close button for menu - Now on the right */}
+        <button
+          onClick={() => setIsMenuOpen(false)}
+          className="absolute top-4 right-4 text-xl font-semibold text-black"
+        >
+          ✕
+        </button>
+
+        {/* Menu Items */}
+        <div className="flex flex-col pt-16 px-8 text-white">
+          <Link 
+            to="/" 
+            className="py-3 text-xl font-semibold"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            HOME
+          </Link>
+          <Link 
+            to="/college-shuttles" 
+            className="py-3 text-xl font-semibold"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            COLLEGE SHUTTLES
+          </Link>
+          <Link 
+            to="/get-a-quote" 
+            className="py-3 text-xl font-semibold"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            GET A QUOTE
+          </Link>
+          <Link 
+            to="/contact-us" 
+            className="py-3 text-xl font-semibold"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            CONTACT US
+          </Link>
+
+          {/* Divider */}
+          <div className="border-t border-white/20 my-4"></div>
+
+          <Link 
+            to="/our-buses" 
+            className="py-3 text-xl font-semibold"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            OUR BUSES
+          </Link>
+          <Link 
+            to="/chartering" 
+            className="py-3 text-xl font-semibold"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            CHARTERING
+          </Link>
+          <Link 
+            to="/pay-invoices" 
+            className="py-3 text-xl font-semibold"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            PAY INVOICES
+          </Link>
+
+          {/* Divider */}
+          <div className="border-t border-white/20 my-4"></div>
+
+          {/* Footer Links */}
+          <Link 
+            to="/terms-of-service" 
+            className="py-2 text-sm opacity-80"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Terms of Services
+          </Link>
+          <Link 
+            to="/privacy-policy" 
+            className="py-2 text-sm opacity-80"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Privacy policy
+          </Link>
+        </div>
+      </div>
+    </>
+  );
 }

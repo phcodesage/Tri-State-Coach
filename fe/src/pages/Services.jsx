@@ -1,11 +1,15 @@
+import PageHeader from '../components/PageHeader'
 import TopNavMenu from '../components/Navbar'
 
-function Services() {
+export default function Services() {
   return (
-    <div>
+    <>
       <TopNavMenu />
-      Services</div>
+      <PageHeader 
+        title="Our Services" 
+        subtitle="Discover our range of transportation solutions"
+      />
+      {/* Rest of the page content */}
+    </>
   )
 }
-
-export default Services
