@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom';
+import LocationIcon from '../assets/location-small-icon.png';
+import PhoneIcon from '../assets/phone-small-icon.png';
+import ClockIcon from '../assets/clock-small-icon.png';
 
 export default function Footer() {
   return (
@@ -9,7 +12,7 @@ export default function Footer() {
           <div className="px-6 py-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="md:w-[30%]">
-                <h3 className="text-3xl font-bold text-white mb-1">Join Our Newsletter</h3>
+                <h3 className="text-3xl text-white mb-1 font-inter font-bold">Join Our Newsletter</h3>
                 <p className="text-[#908345]">Get notified about new tips</p>
               </div>
 
@@ -20,7 +23,7 @@ export default function Footer() {
                     placeholder="Enter your email"
                     className="w-full px-4 py-3 rounded-lg border border-gray-600 bg-white text-gray-900 focus:outline-none"
                   />
-                  <button className="px-8 py-3 bg-[#908345] text-white rounded-lg font-medium whitespace-nowrap">
+                  <button className="px-8 py-3 bg-[#908345] text-white rounded-lg font-medium whitespace-nowrap font-inter font-bold">
                     Subscribe
                   </button>
                 </div>
@@ -31,8 +34,8 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Main Footer - With padding top to account for newsletter overlap */}
-      <footer className="bg-[#A13D3D] text-white pt-32 pb-12">
+      {/* Main Footer */}
+      <footer className="bg-[#A13D3D] text-white pt-32 pb-12 relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Logo and Description */}
@@ -81,15 +84,15 @@ export default function Footer() {
               <h3 className="text-xl font-medium mb-6">Work Hours</h3>
               <div className="space-y-4 text-white/80">
                 <div className="flex items-center gap-4">
-                  <span>🕒</span>
+                  <img src={ClockIcon} alt="Clock" />
                   <span>8 AM-7 PM , Monday -Friday</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span>📞</span>
+                  <img src={PhoneIcon} alt="Phone"  />
                   <span>+92-659-65-0</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span>📍</span>
+                  <img src={LocationIcon} alt="Location"  />
                   <span>Mumbai , India</span>
                 </div>
               </div>
