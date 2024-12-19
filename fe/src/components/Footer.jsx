@@ -1,90 +1,102 @@
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <>
-    
-    <header className="relative px-14 py-12 w-full max-md:px-5 max-md:max-w-full" style={{"background":"#A13D3D"}}>
-      
-      <div className="flex gap-5 max-md:flex-col max-md:gap-0 max-md:">
-        <section className="flex flex-col w-[32%] max-md:ml-0 max-md:w-full">
-          <header className="flex flex-col self-stretch my-auto font-bold max-md:mt-10">
-            <h1 className=" bg-clip-text max-md:text-4xl text-center" style={{"fontFamily":"'Palatino Linotype'","fontStyle":"normal","fontWeight":"700","fontSize":"64px","lineHeight":"86px","background":"linear-gradient(148.81deg, #FFFFFF 18.86%, #908345 141.54%)","WebkitBackgroundClip":"text","WebkitTextFillColor":"transparent","backgroundClip":"text","textFillColor":"transparent"}}>Tri-State</h1>
-            <div className="self-center mt-5 text-xl  text-white tracking-[4px]">
-              COACH
-            </div>
-            <p className="mt-8 text-white">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit
-            </p>
-          </header>
-        </section>
-        <nav className="flex flex-col ml-5 w-[17%] max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col mt-24 text-xl font-light text-white whitespace-nowrap max-md:mt-10">
-            <h2 className="font-medium">Other Pages</h2>
-            <a href="#" className="mt-5">
-              Home
-            </a>
-            <a href="#" className="mt-6">
-              Services
-            </a>
-            <a href="#" className="mt-6">
-              Buses
-            </a>
-            <a href="#" className="mt-6">
-              Contact Us
-            </a>
-            <a href="#" className="mt-6">
-              Chartering
-            </a>
-          </div>
-        </nav>
-        <section className="flex flex-col ml-5 w-1/5 max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col self-stretch my-auto text-xl font-light  text-white max-md:mt-10">
-            <h2 className="font-medium">Quick Links</h2>
-            <a href="#" className="mt-6">
-              Privacy Policy
-            </a>
-            <a href="#" className="mt-5 whitespace-nowrap">
-              Terms of Services
-            </a>
-            <a href="#" className="mt-6">
-              FAQs
-            </a>
-          </div>
-        </section>
-        <section className="flex flex-col ml-5 w-[31%] max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col self-stretch my-auto text-xl font-light  text-white max-md:mt-10">
-            <h2 className="font-medium">Work Hours</h2>
-            <div className="flex gap-3.5 justify-between mt-5 whitespace-nowrap">
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/8f7e24fe5e00a74e9218e813ff76d5c156b7155e6a61284b3e86546541438f8e?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&"
-                className="w-6 aspect-square"
-                alt="Clock"
-              />
-              <div className="grow">8 AM-7 PM , Monday -Friday</div>
-            </div>
-            <div className="flex gap-3.5 justify-between mt-7 whitespace-nowrap">
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/9b518390834448c6bce6ad5c6d5aa495f5a211559376cea1d069df61772527cd?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&"
-                className="aspect-square fill-orange-100 w-[21px]"
-                alt="Phone"
-              />
-              <div className="flex-auto">+92-659-65-0</div>
-            </div>
-            <div className="flex gap-5 justify-between mt-7">
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/9e10eae827551294c4386b90753e528973ddc69d64fc61124f2f6724c57baafc?apiKey=0c561be43c1e4fe4bc6ddc537f498e85&"
-                className="aspect-[0.71] fill-orange-100 w-[17px]"
-                alt="Location"
-              />
-              <div className="flex-auto">Mumbai , India</div>
+    <div className="relative">
+      {/* Newsletter Section - Positioned to overlap footer */}
+      <div className="absolute left-20 right-20 -top-16 z-10">
+        <div className="bg-[#192636] rounded-lg">
+          <div className="px-6 py-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="md:w-[30%]">
+                <h3 className="text-3xl font-bold text-white mb-1">Join Our Newsletter</h3>
+                <p className="text-[#908345]">Get notified about new tips</p>
+              </div>
+
+              <div className="md:w-[70%] flex flex-col items-center mt-4 md:mt-0">
+                <div className="flex gap-4 w-full">
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-600 bg-white text-gray-900 focus:outline-none"
+                  />
+                  <button className="px-8 py-3 bg-[#908345] text-white rounded-lg font-medium whitespace-nowrap">
+                    Subscribe
+                  </button>
+                </div>
+                <p className="text-gray-400 text-sm mt-2 self-start">We do not share your email.Unsubscribe anytime</p>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
       </div>
-    </header>
-    </>
+
+      {/* Main Footer - With padding top to account for newsletter overlap */}
+      <footer className="bg-[#A13D3D] text-white pt-32 pb-12">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            {/* Logo and Description */}
+            <div>
+              <h2 
+                className="text-5xl font-bold mb-4"
+                style={{
+                  fontFamily: 'Palatino Linotype',
+                  background: 'linear-gradient(148.81deg, #FFFFFF 18.86%, #908345 141.54%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}
+              >
+                Tri-State
+              </h2>
+              <div className="text-white text-xl tracking-[4px] mb-6">COACH</div>
+              <p className="text-white/80 text-sm">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit
+              </p>
+            </div>
+
+            {/* Other Pages */}
+            <div>
+              <h3 className="text-xl font-medium mb-6">Other Pages</h3>
+              <ul className="space-y-4">
+                <li><Link to="/" className="text-white/80 hover:text-white">Home</Link></li>
+                <li><Link to="/services" className="text-white/80 hover:text-white">Services</Link></li>
+                <li><Link to="/buses" className="text-white/80 hover:text-white">Buses</Link></li>
+                <li><Link to="/contact-us" className="text-white/80 hover:text-white">Contact Us</Link></li>
+                <li><Link to="/chartering" className="text-white/80 hover:text-white">Chartering</Link></li>
+              </ul>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-xl font-medium mb-6">Quick Links</h3>
+              <ul className="space-y-4">
+                <li><Link to="/privacy-policy" className="text-white/80 hover:text-white">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service" className="text-white/80 hover:text-white">Terms of Services</Link></li>
+                <li><Link to="/faqs" className="text-white/80 hover:text-white">FAQs</Link></li>
+              </ul>
+            </div>
+
+            {/* Work Hours */}
+            <div>
+              <h3 className="text-xl font-medium mb-6">Work Hours</h3>
+              <div className="space-y-4 text-white/80">
+                <div className="flex items-center gap-4">
+                  <span>🕒</span>
+                  <span>8 AM-7 PM , Monday -Friday</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span>📞</span>
+                  <span>+92-659-65-0</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span>📍</span>
+                  <span>Mumbai , India</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
