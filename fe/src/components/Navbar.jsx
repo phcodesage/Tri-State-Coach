@@ -1,34 +1,43 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import closeIcon from '../assets/close.png';
 import menuIcon from '../assets/menu.png';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleClose = () => {
+    navigate('/');
+  };
 
   return (
     <>
       {/* Main Navbar - Transparent */}
       <nav className="fixed top-0 left-0 right-0 z-40">
-        <div className="flex justify-between items-center px-4 py-4">
+        <div className="flex justify-between items-center">
           {/* Left side - Close/Back button */}
-          <button className="w-12 h-12 flex items-center justify-center bg-[#A13D3D]">
-            <img src={closeIcon} alt="Close" className="h-6 w-6" />
+          <button 
+            onClick={handleClose}
+            className="w-16 h-16 flex items-center justify-center bg-[#A13D3D]"
+          >
+            <img src={closeIcon} alt="Close" className="h-16 w-16" />
           </button>
 
+
           {/* Right side - Quote button and Menu */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-start">
             <Link
               to="/get-a-quote"
-              className="bg-[#F5ECD7] px-6 py-2 rounded-md text-sm font-medium"
+              className="bg-[#F5ECD7] px-6 py-4 rounded-md text-sm font-medium"
             >
               Request a Quote
             </Link>
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="w-12 h-12 flex items-center justify-center bg-[#A13D3D]"
+              className="w-16 h-16 flex items-center justify-center bg-[#A13D3D]"
             >
-              <img src={menuIcon} alt="Menu" className="h-6 w-6" />
+              <img src={menuIcon} alt="Menu" className="h-16 w-16" />
             </button>
           </div>
         </div>
